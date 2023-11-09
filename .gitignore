@@ -1,0 +1,17 @@
+# Packages
+__pycache__
+
+# Unit test / coverage reports
+
+
+# Log files
+*.log
+
+# Environment vars files
+.env
+
+# Pyenv
+.python-version
+
+
+.DS_Store
