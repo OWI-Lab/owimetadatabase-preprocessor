@@ -1,0 +1,45 @@
+[tool.poetry]
+name = "owimetadatabase-preprocessor"
+version = "0.1.0"
+description = "Package for preprocessing data from owimetadatabase."
+authors = ["arsmlnkv <arsen.melnikov@vub.be>"]
+readme = "README.md"
+homepage = "https://github.com/arsmlnkv/owimetadatabase_preprocessor"
+repository = "https://github.com/arsmlnkv/owimetadatabase_preprocessor"
+keywords = ["owimetadatabase"]
+
+
+[tool.poetry.dependencies]
+python = "^3.10"
+plotly = "^5.0.0"
+requests = "^2.0.0"
+matplotlib = "^3.0.0"
+pandas = "^2.0.0"
+python-dotenv = "^1.0.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0.0"
+pytest-mock = "*"
+pytest-xdist = "*"
+pytest-clarity = "*"
+ruff = "^0.1.0"
+coverage = "^7.0.0"
+mypy = "^1.0.0"
+
+
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+pdoc = "*"
+
+
+[tool.ruff.lint.pydocstyle]
+# Use Google-style docstrings.
+convention = "google"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
