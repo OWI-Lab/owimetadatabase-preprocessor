@@ -1,11 +1,10 @@
-import pytest
 import requests
 
-from owimetadatabase_preprocessor.io import API 
+from owimetadatabase_preprocessor.io import API
 
 
 def test_API_header() -> None:
-    """Test parent API class with header that it initializes everything correctly."""	
+    """Test parent API class with header that it initializes everything correctly."""
     api_root = "https://test.api/test"
     header = {'Authorization': 'Token 12345'}
     api_test = API(api_root, header=header)
@@ -17,7 +16,7 @@ def test_API_header() -> None:
 
 
 def test_API_user() -> None:
-    """Test parent API class with user credentials that it initializes everything correctly."""	
+    """Test parent API class with user credentials that it initializes everything correctly."""
     api_root = "https://test.api/test"
     name = "test"
     pswd = "12345"
