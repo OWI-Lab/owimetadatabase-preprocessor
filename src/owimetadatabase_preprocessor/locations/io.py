@@ -1,3 +1,5 @@
+"""Module to connect to the database API to retrieve and operate on locations data."""
+
 import json
 
 import pandas as pd
@@ -9,7 +11,7 @@ from owimetadatabase_preprocessor.io import API
 
 class LocationsAPI(API):
     """
-    Class to connect to the location data API with methods to retrieve data
+    Class to connect to the location data API with methods to retrieve data.
 
     A number of methods are provided to query the database via the owimetadatabase API.
     In the majority of cases, the methods return a dataframe based on the URL parameters provided.
@@ -21,8 +23,7 @@ class LocationsAPI(API):
 
     @staticmethod
     def urlparameters(parameters, parameternames):
-        """
-        Returns a dictionary with URL parameters based on lists of parameters and parameter names
+        """Return a dictionary with URL parameters based on lists of parameters and parameter names.
 
         :param parameters: List with parameters
         :param parameternames: List with parameter names
@@ -36,8 +37,7 @@ class LocationsAPI(API):
         return url_params
 
     def get_projectsites(self, **kwargs):
-        """
-        Get all available projects
+        """Get all available projects.
 
         :return:  Dictionary with the following keys:
             - 'data': Pandas dataframe with the location data for each project
@@ -63,8 +63,7 @@ class LocationsAPI(API):
         return {"data": df, "exists": exists}
 
     def get_projectsite_detail(self, projectsite, **kwargs):
-        """
-        Get details for a specific projectsite
+        """Get details for a specific projectsite.
 
         :param projectsite: Title of the projectsite
         :return:  Dictionary with the following keys:
@@ -105,8 +104,7 @@ class LocationsAPI(API):
         return {"id": project_id, "data": df, "exists": exists}
 
     def assetlocation_exists(self, projectsite=None, location=None, **kwargs):
-        """
-        Checks if the asset location answering to the search criteria exists
+        """Check if the asset location answering to the search criteria exists.
 
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
         :param location: Name of the asset location (e.g. "BBK05")
@@ -138,8 +136,8 @@ class LocationsAPI(API):
         return record_id
 
     def assetlocation_location_exists(self, projectsite=None, location=None, **kwargs):
-        """
-        Checks if the location answering to the search criteria for the asset location exists
+        """Check if the location answering to the search criteria for the asset location exists.
+
         If the asset location id is required, run the method ``assetlocation_exists`` instead.
 
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
@@ -172,8 +170,7 @@ class LocationsAPI(API):
         return record_id
 
     def get_assetlocations(self, projectsite=None, assetlocation=None):
-        """
-        Get all available asset locations, specify a projectsite or filter by projectsite
+        """Get all available asset locations, specify a projectsite or filter by projectsite.
 
         :param projectsite: String with the projectsite title (e.g. "Nobelwind")
         :param assetlocation: String with the asset location title (e.g. "NW2A04")
@@ -218,8 +215,7 @@ class LocationsAPI(API):
         return {"data": df, "exists": exists}
 
     def get_assetlocation_detail(self, projectsite, assetlocation):
-        """
-        Get a selected turbine
+        """Get a selected turbine.
 
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
         :param assetlocation: Title of the asset location (e.g. "BBK05")
@@ -276,8 +272,7 @@ class LocationsAPI(API):
         return {"id": asset_id, "data": df, "exists": exists}
 
     def plot_assetlocations(self, return_fig=False, **kwargs):
-        """
-        Retrieves asset locations and generates a Plotly plot to show them
+        """Retrieve asset locations and generates a Plotly plot to show them.
 
         :param return_fig: Boolean indicating whether the Plotly figure object needs to be returned
         (default is False which simply shows the plot)
