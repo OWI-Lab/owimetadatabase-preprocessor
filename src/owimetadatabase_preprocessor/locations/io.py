@@ -1,8 +1,8 @@
 import json
 
 import pandas as pd
+import plotly.express as px  # type: ignore
 import requests
-import plotly.express as px
 
 from owimetadatabase_preprocessor.io import API
 
@@ -48,9 +48,10 @@ class LocationsAPI(API):
         url_params = {**url_params, **kwargs}
 
         resp = requests.get(
-            url='%s/locations/projectsites/' % self.api_root,
+            url="%s/locations/projectsites/" % self.api_root,
             headers=self.header,
-            params=url_params)
+            params=url_params,
+        )
 
         df = pd.DataFrame(json.loads(resp.text))
 
@@ -59,10 +60,7 @@ class LocationsAPI(API):
         else:
             exists = True
 
-        return {
-            'data': df,
-            'exists': exists
-        }
+        return {"data": df, "exists": exists}
 
     def get_projectsite_detail(self, projectsite, **kwargs):
         """
@@ -75,16 +73,21 @@ class LocationsAPI(API):
             - 'exists': Boolean indicating whether matching records are found
         """
         url_params = self.urlparameters(
-            parameters=[projectsite, ],
-            parameternames=['projectsite', ]
+            parameters=[
+                projectsite,
+            ],
+            parameternames=[
+                "projectsite",
+            ],
         )
 
         url_params = {**url_params, **kwargs}
 
         resp = requests.get(
-            url='%s/locations/projectsites/' % self.api_root,
+            url="%s/locations/projectsites/" % self.api_root,
             headers=self.header,
-            params=url_params)
+            params=url_params,
+        )
 
         df = pd.DataFrame(json.loads(resp.text))
 
@@ -93,15 +96,13 @@ class LocationsAPI(API):
             project_id = None
         elif df.__len__() == 1:
             exists = True
-            project_id = df['id'].iloc[0]
+            project_id = df["id"].iloc[0]
         else:
-            raise ValueError("More than one project site was returned, check search criteria.")
+            raise ValueError(
+                "More than one project site was returned, check search criteria."
+            )
 
-        return {
-            'id': project_id,
-            'data': df,
-            'exists': exists
-        }
+        return {"id": project_id, "data": df, "exists": exists}
 
     def assetlocation_exists(self, projectsite=None, location=None, **kwargs):
         """
@@ -113,23 +114,26 @@ class LocationsAPI(API):
         """
         url_params = self.urlparameters(
             parameters=[projectsite, location],
-            parameternames=['projectsite', 'assetlocation']
+            parameternames=["projectsite", "assetlocation"],
         )
 
         url_params = {**url_params, **kwargs}
 
         resp = requests.get(
-            url='%s/locations/assetlocations/' % self.api_root,
+            url="%s/locations/assetlocations/" % self.api_root,
             headers=self.header,
-            params=url_params)
+            params=url_params,
+        )
         df = pd.DataFrame(json.loads(resp.text))
 
         if df.__len__() == 0:
             record_id = False
         elif df.__len__() == 1:
-            record_id = df['id'].iloc[0]
+            record_id = df["id"].iloc[0]
         else:
-            raise ValueError("More than one asset location was returned, refine search criteria")
+            raise ValueError(
+                "More than one asset location was returned, refine search criteria"
+            )
 
         return record_id
 
@@ -144,23 +148,26 @@ class LocationsAPI(API):
         """
         url_params = self.urlparameters(
             parameters=[projectsite, location],
-            parameternames=['projectsite', 'assetlocation']
+            parameternames=["projectsite", "assetlocation"],
         )
 
         url_params = {**url_params, **kwargs}
 
         resp = requests.get(
-            url='%s/locations/assetlocations/' % self.api_root,
+            url="%s/locations/assetlocations/" % self.api_root,
             headers=self.header,
-            params=url_params)
+            params=url_params,
+        )
         df = pd.DataFrame(json.loads(resp.text))
 
         if df.__len__() == 0:
             record_id = False
         elif df.__len__() == 1:
-            record_id = df['location'].iloc[0]
+            record_id = df["location"].iloc[0]
         else:
-            raise ValueError("More than one asset location was returned, refine search criteria")
+            raise ValueError(
+                "More than one asset location was returned, refine search criteria"
+            )
 
         return record_id
 
@@ -177,27 +184,28 @@ class LocationsAPI(API):
         url_params = {}
 
         if projectsite is not None:
-            url_params['projectsite__title'] = projectsite
+            url_params["projectsite__title"] = projectsite
         elif assetlocation is not None and projectsite is None:
-            url_params['title'] = assetlocation
+            url_params["title"] = assetlocation
 
         if self.header is not None:
             resp_assetlocation = requests.get(
-                url='%s/locations/assetlocations/' % self.api_root,
+                url="%s/locations/assetlocations/" % self.api_root,
                 headers=self.header,
-                params=url_params
+                params=url_params,
             )
         else:
             if self.uname is None or self.password is None:
                 e = [
-                    'Either self.header or self.uname and ',
-                    'self.password must be defined.']
-                raise ValueError(''.join(e))
+                    "Either self.header or self.uname and ",
+                    "self.password must be defined.",
+                ]
+                raise ValueError("".join(e))
             else:
                 resp_assetlocation = requests.get(
-                    url='%s/locations/assetlocations/' % self.api_root,
+                    url="%s/locations/assetlocations/" % self.api_root,
                     auth=self.auth,
-                    params=url_params
+                    params=url_params,
                 )
 
         df = pd.DataFrame(json.loads(resp_assetlocation.text))
@@ -207,10 +215,7 @@ class LocationsAPI(API):
         else:
             exists = True
 
-        return {
-            'data': df,
-            'exists': exists
-        }
+        return {"data": df, "exists": exists}
 
     def get_assetlocation_detail(self, projectsite, assetlocation):
         """
@@ -225,29 +230,35 @@ class LocationsAPI(API):
         """
         if self.header is not None:
             resp_assetlocation = requests.get(
-                url='%s/locations/assetlocations/' % self.api_root,
+                url="%s/locations/assetlocations/" % self.api_root,
                 headers=self.header,
-                params=dict(projectsite=projectsite, assetlocation=assetlocation)
+                params=dict(projectsite=projectsite, assetlocation=assetlocation),
             )
         else:
             if self.uname is None or self.password is None:
                 e = [
-                    'Either self.header or self.uname and ',
-                    'self.password must be defined.']
-                raise ValueError(''.join(e))
+                    "Either self.header or self.uname and ",
+                    "self.password must be defined.",
+                ]
+                raise ValueError("".join(e))
             else:
                 resp_assetlocation = requests.get(
-                    url='%s/locations/assetlocations/' % self.api_root,
+                    url="%s/locations/assetlocations/" % self.api_root,
                     auth=self.auth,
-                    params=dict(projectsite=projectsite, assetlocation=assetlocation)
+                    params=dict(projectsite=projectsite, assetlocation=assetlocation),
                 )
 
         if resp_assetlocation.status_code != 200:
-            e = ['Error ', resp_assetlocation.status_code, '.\n', resp_assetlocation.reason]
-            raise Exception(''.join(e))
+            e = [
+                "Error ",
+                resp_assetlocation.status_code,
+                ".\n",
+                resp_assetlocation.reason,
+            ]
+            raise Exception("".join(e))
 
         if not resp_assetlocation.json():
-            raise ValueError('No asset locations found. Check request criteria.')
+            raise ValueError("No asset locations found. Check request criteria.")
 
         df = pd.DataFrame(json.loads(resp_assetlocation.text))
 
@@ -256,15 +267,13 @@ class LocationsAPI(API):
             asset_id = None
         elif df.__len__() == 1:
             exists = True
-            asset_id = df['id'].iloc[0]
+            asset_id = df["id"].iloc[0]
         else:
-            raise ValueError("More than one asset location was returned, check search criteria.")
+            raise ValueError(
+                "More than one asset location was returned, check search criteria."
+            )
 
-        return {
-            'id': asset_id,
-            'data': df,
-            'exists': exists
-        }
+        return {"id": asset_id, "data": df, "exists": exists}
 
     def plot_assetlocations(self, return_fig=False, **kwargs):
         """
@@ -275,15 +284,15 @@ class LocationsAPI(API):
         :param kwargs: Keyword arguments for the search (see ``get_assetlocations``)
         :return: Plotly figure object with selected asset locations plotted on OpenStreetMap tiles (if requested)
         """
-        assetlocations = self.get_assetlocations(**kwargs)['data']
+        assetlocations = self.get_assetlocations(**kwargs)["data"]
         fig = px.scatter_mapbox(
             assetlocations,
-            lat='northing',
-            lon='easting',
-            hover_name='title',
-            hover_data=['projectsite_name', 'description'],
+            lat="northing",
+            lon="easting",
+            hover_name="title",
+            hover_data=["projectsite_name", "description"],
             zoom=9.6,
-            height=500
+            height=500,
         )
         fig.update_layout(mapbox_style="open-street-map")
         fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})

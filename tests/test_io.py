@@ -6,7 +6,7 @@ from owimetadatabase_preprocessor.io import API
 def test_API_header() -> None:
     """Test parent API class with header that it initializes everything correctly."""
     api_root = "https://test.api/test"
-    header = {'Authorization': 'Token 12345'}
+    header = {"Authorization": "Token 12345"}
     api_test = API(api_root, header=header)
     assert api_test.api_root == api_root
     assert api_test.header == header
