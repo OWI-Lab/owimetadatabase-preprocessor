@@ -14,13 +14,16 @@ class LocationsAPI(API):
     A number of methods are provided to query the database via the owimetadatabase API.
     In the majority of cases, the methods return a dataframe based on the URL parameters provided.
     The methods are written such that a number of mandatory URL parameters are required (see documentation of the methods).
-    The URL parameters can be expanded with Django-style additional filtering arguments (e.g. ``location__title__icontains="BB"``) as optional keyword arguments. Knowledge of the Django models is required for this (see ``owimetadatabase`` code).
+    The URL parameters can be expanded with Django-style additional filtering arguments (e.g.
+    ``location__title__icontains="BB"``) as optional keyword arguments. Knowledge of the Django models is required for this
+    (see ``owimetadatabase`` code).
     """
 
     @staticmethod
     def urlparameters(parameters, parameternames):
         """
         Returns a dictionary with URL parameters based on lists of parameters and parameter names
+
         :param parameters: List with parameters
         :param parameternames: List with parameter names
         :return: Dictionary with the URL parameters
@@ -32,10 +35,10 @@ class LocationsAPI(API):
 
         return url_params
 
-
     def get_projectsites(self, **kwargs):
         """
         Get all available projects
+
         :return:  Dictionary with the following keys:
             - 'data': Pandas dataframe with the location data for each project
             - 'exists': Boolean indicating whether matching records are found
@@ -106,7 +109,6 @@ class LocationsAPI(API):
 
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
         :param location: Name of the asset location (e.g. "BBK05")
-
         :return: Returns the asset location id if the asset location exists, False otherwise
         """
         url_params = self.urlparameters(
@@ -138,7 +140,6 @@ class LocationsAPI(API):
 
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
         :param location: Name of the asset location (e.g. "BBK05")
-
         :return: Returns the location id if the asset location exists, False otherwise
         """
         url_params = self.urlparameters(
@@ -166,20 +167,19 @@ class LocationsAPI(API):
     def get_assetlocations(self, projectsite=None, assetlocation=None):
         """
         Get all available asset locations, specify a projectsite or filter by projectsite
+
         :param projectsite: String with the projectsite title (e.g. "Nobelwind")
         :param assetlocation: String with the asset location title (e.g. "NW2A04")
         :return: Dictionary with the following keys:
             - 'data': Pandas dataframe with the location data for each location in the projectsite
             - 'exists': Boolean indicating whether matching records are found
         """
-
         url_params = {}
 
         if projectsite is not None:
             url_params['projectsite__title'] = projectsite
         elif assetlocation is not None and projectsite is None:
             url_params['title'] = assetlocation
-
 
         if self.header is not None:
             resp_assetlocation = requests.get(
@@ -215,6 +215,7 @@ class LocationsAPI(API):
     def get_assetlocation_detail(self, projectsite, assetlocation):
         """
         Get a selected turbine
+
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
         :param assetlocation: Title of the asset location (e.g. "BBK05")
         :return: Dictionary with the following keys:
@@ -222,7 +223,6 @@ class LocationsAPI(API):
             - 'data': Pandas dataframe with the location data for the individual location
             - 'exists': Boolean indicating whether a matching location is found
         """
-
         if self.header is not None:
             resp_assetlocation = requests.get(
                 url='%s/locations/assetlocations/' % self.api_root,
@@ -249,7 +249,6 @@ class LocationsAPI(API):
         if not resp_assetlocation.json():
             raise ValueError('No asset locations found. Check request criteria.')
 
-
         df = pd.DataFrame(json.loads(resp_assetlocation.text))
 
         if df.__len__() == 0:
@@ -270,7 +269,9 @@ class LocationsAPI(API):
     def plot_assetlocations(self, return_fig=False, **kwargs):
         """
         Retrieves asset locations and generates a Plotly plot to show them
-        :param return_fig: Boolean indicating whether the Plotly figure object needs to be returned (default is False which simply shows the plot)
+
+        :param return_fig: Boolean indicating whether the Plotly figure object needs to be returned
+        (default is False which simply shows the plot)
         :param kwargs: Keyword arguments for the search (see ``get_assetlocations``)
         :return: Plotly figure object with selected asset locations plotted on OpenStreetMap tiles (if requested)
         """
