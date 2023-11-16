@@ -1,3 +1,5 @@
+"""Module for the base class handling the access to the Database API."""
+
 import requests
 
 
