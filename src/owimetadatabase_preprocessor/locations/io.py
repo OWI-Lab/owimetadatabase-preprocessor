@@ -2,6 +2,7 @@
 
 import numpy as np 
 import pandas as pd
+import plotly as plt
 import plotly.express as px  # type: ignore
 
 from owimetadatabase_preprocessor.io import API
@@ -48,3 +49,63 @@ class LocationsAPI(API):
         output_type = "single"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"id": df_add["id"], "data": df, "exists": df_add["existance"]}
+
+    def get_assetlocations(self, projectsite=None, **kwargs):
+        """Get all available asset locations, specify a projectsite or filter by projectsite.
+
+        :param projectsite: String with the projectsite title (e.g. "Nobelwind")
+        :param assetlocation: String with the asset location title (e.g. "NW2A04")
+        :return: Dictionary with the following keys:
+            - 'data': Pandas dataframe with the location data for each location in the projectsite
+            - 'exists': Boolean indicating whether matching records are found
+        """
+        url_params = {}
+        url_params = {**url_params, **kwargs}
+        if projectsite is not None:
+            url_params["projectsite__title"] = projectsite
+        url_data_type = "/locations/assetlocations/"
+        output_type = "list"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return {"data": df, "exists": df_add["existance"]}
+
+    def get_assetlocation_detail(self, projectsite, assetlocation, **kwargs):
+        """Get a selected turbine.
+
+        :param projectsite: Name of the projectsite (e.g. "Nobelwind")
+        :param assetlocation: Title of the asset location (e.g. "BBK05")
+        :return: Dictionary with the following keys:
+            - 'id': id of the selected projectsite site
+            - 'data': Pandas dataframe with the location data for the individual location
+            - 'exists': Boolean indicating whether a matching location is found
+        """
+        url_params = {"projectsite": projectsite, "assetlocation": assetlocation}
+        url_params = {**url_params, **kwargs}
+        url_data_type = "/locations/assetlocations/"
+        output_type = "single"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return {"id": df_add["id"], "data": df, "exists": df_add["existance"]}
+        
+    def plot_assetlocations(self, return_fig: bool = False, **kwargs) -> None | plt.graph_objects.Figure:
+        """Retrieve asset locations and generates a Plotly plot to show them.
+
+        :param return_fig: Boolean indicating whether the Plotly figure object needs to be returned
+        (default is False which simply shows the plot)
+        :param kwargs: Keyword arguments for the search (see ``get_assetlocations``)
+        :return: Plotly figure object with selected asset locations plotted on OpenStreetMap tiles (if requested)
+        """
+        assetlocations = self.get_assetlocations(**kwargs)["data"]
+        fig = px.scatter_mapbox(
+            assetlocations,
+            lat="northing",
+            lon="easting",
+            hover_name="title",
+            hover_data=["projectsite_name", "description"],
+            zoom=9.6,
+            height=500,
+        )
+        fig.update_layout(mapbox_style="open-street-map")
+        fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+        if return_fig:
+            return fig
+        else:
+            fig.show()
