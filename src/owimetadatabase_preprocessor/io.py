@@ -1,6 +1,7 @@
 """Module for the base class handling the access to the Database API."""
 
 import json
+
 import numpy as np
 import pandas as pd
 import requests
@@ -25,12 +26,10 @@ class API(object):
             self.auth = requests.auth.HTTPBasicAuth(self.uname, self.password)
 
     def send_request(
-        self,
-        url_data_type: str,
-        url_params: dict[str, str]
+        self, url_data_type: str, url_params: dict[str, str]
     ) -> requests.Response:
         """Handle sending appropriate request according to the type of authentication.
-        
+
         :param url_data_type: Type of the data we want to request (according to database model).
         :param url_params: Parameters to send with the request to the database.
         :return:  An instance of the Response object.
@@ -52,35 +51,32 @@ class API(object):
                     params=url_params,
                 )
         return response
-    
+
     @staticmethod
     def check_request_health(resp: requests.Response) -> None:
         """Check status code of the response to request and provide detials if unexpected.
 
         :param resp: Instance of the Response object.
-        :return: 
+        :return:
         """
         if resp.status_code != 200:
-            e = [
-                "Error ",
-                resp.status_code,
-                ".\n",
-                resp.reason,
-            ]
-            raise Exception("".join(e))
+            e = "Error " + str(resp.status_code) + ".\n" + resp.reason
+            raise Exception(e)
 
     @staticmethod
     def output_to_df(response: requests.Response) -> pd.DataFrame:
         """Transform output to Pandas dataframe.
 
-        :param response: Raw output of the sent request. 
+        :param response: Raw output of the sent request.
         :return: Pandas dataframe of the data from the output.
         """
         df = pd.DataFrame(json.loads(response.text))
         return df
-    
+
     @staticmethod
-    def postprocess_data(df: pd.DataFrame, output_type: str) -> dict[str, bool | np.int64]:
+    def postprocess_data(
+        df: pd.DataFrame, output_type: str
+    ) -> dict[str, bool | np.int64 | None]:
         """Process dataframe information to extarct the necessary additional data.
 
         :param df: Dataframe of the output data.
@@ -108,11 +104,8 @@ class API(object):
         return data_add
 
     def process_data(
-        self,
-        url_data_type: str,
-        url_params: dict[str, str],
-        output_type: str
-    ) -> tuple[pd.DataFrame, dict[str, bool | np.int64]]:
+        self, url_data_type: str, url_params: dict[str, str], output_type: str
+    ) -> tuple[pd.DataFrame, dict[str, bool | np.int64 | None]]:
         """Process output data according to specified request parameters.
 
         :param url_data_type: Type of the data we want to request (according to database model).
