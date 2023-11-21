@@ -54,6 +54,17 @@ class API(object):
         return response
     
     @staticmethod
+    def check_request_health(resp: requests.Response) -> None:
+        if resp.status_code != 200:
+            e = [
+                "Error ",
+                resp.status_code,
+                ".\n",
+                resp.reason,
+            ]
+            raise Exception("".join(e))
+
+    @staticmethod
     def output_to_df(response: requests.Response) -> pd.DataFrame:
         """Transform output to Pandas dataframe.
 
@@ -98,6 +109,7 @@ class API(object):
         output_type: str
     ) -> tuple[pd.DataFrame, dict[str, bool | np.int64]]:
         resp = self.send_request(url_data_type, url_params)
+        self.check_request_health(resp)
         df = self.output_to_df(resp)
         df_add = self.postprocess_data(df, output_type)
         return df, df_add
