@@ -31,9 +31,9 @@ class API(object):
     ) -> requests.Response:
         """Handle sending appropriate request according to the type of authentication.
         
-        :param url_data_type: Type of the data we want to request (according to database architecture specifics).
+        :param url_data_type: Type of the data we want to request (according to database model).
         :param url_params: Parameters to send with the request to the database.
-        :return:  An instance of the response object.
+        :return:  An instance of the Response object.
         """
         if self.header is not None:
             response = requests.get(
@@ -55,6 +55,11 @@ class API(object):
     
     @staticmethod
     def check_request_health(resp: requests.Response) -> None:
+        """Check status code of the response to request and provide detials if unexpected.
+
+        :param resp: Instance of the Response object.
+        :return: 
+        """
         if resp.status_code != 200:
             e = [
                 "Error ",
@@ -108,6 +113,13 @@ class API(object):
         url_params: dict[str, str],
         output_type: str
     ) -> tuple[pd.DataFrame, dict[str, bool | np.int64]]:
+        """Process output data according to specified request parameters.
+
+        :param url_data_type: Type of the data we want to request (according to database model).
+        :param url_params: Parameters to send with the request to the database.
+        :param output_type: Expected type (amount) of the data extracted.
+        :return: A tuple of dataframe with the requested data and additional data from postprocessing.
+        """
         resp = self.send_request(url_data_type, url_params)
         self.check_request_health(resp)
         df = self.output_to_df(resp)
