@@ -1,6 +1,7 @@
 """Module for the base class handling the access to the Database API."""
 
 import json
+import numpy as np
 import pandas as pd
 import requests
 
@@ -63,7 +64,7 @@ class API(object):
         return df
     
     @staticmethod
-    def postprocess_data(df: pd.DataFrame, output_type: str) -> dict[str, bool | int]:
+    def postprocess_data(df: pd.DataFrame, output_type: str) -> dict[str, bool | np.int64]:
         """Process dataframe information to extarct the necessary additional data.
 
         :param df: Dataframe of the output data.
@@ -89,3 +90,14 @@ class API(object):
                 exists = True
             data_add = {"existance": exists}
         return data_add
+
+    def process_data(
+        self,
+        url_data_type: str,
+        url_params: dict[str, str],
+        output_type: str
+    ) -> tuple[pd.DataFrame, dict[str, bool | np.int64]]:
+        resp = self.send_request(url_data_type, url_params)
+        df = self.output_to_df(resp)
+        df_add = self.postprocess_data(df, output_type)
+        return df, df_add
