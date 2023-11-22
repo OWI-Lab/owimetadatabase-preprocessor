@@ -2,7 +2,7 @@
 
 Tools for preprocessing geometries from the metadatabase.
 
-## Installation (not working yet)
+## Installation
 
 In your desired virtual environment with Python 3 and pip installed:
 
@@ -31,3 +31,7 @@ The repository also has ``.lock`` file if you use ``poetry``.
 ## Authors
 
 `owi_preprocessor` was written by the team of OWI-lab.
+
+## License
+
+The package is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
