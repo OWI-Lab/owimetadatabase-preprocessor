@@ -13,12 +13,12 @@ keywords = ["owimetadatabase"]
 # Main and dev dependencies are separated but dev dependencies are not grouped 
 # and put into optional to fascilitate pip usage. 
 # Main dependencies
-python = ">=3.8"
+python = ">=3.7"
 plotly = "^5.0.0"
 requests = "^2.0.0"
 matplotlib = "^3.0.0"
-pandas = "^2.0.0"
-python-dotenv = "^1.0.0"
+pandas = "*"
+python-dotenv = "*"
 
 
 # Development dependencies
