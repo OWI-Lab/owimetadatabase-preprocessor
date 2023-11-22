@@ -10,6 +10,7 @@ def mock_requests_get(mocker):
     mock.return_value = requests.Response()
     return mock
 
+
 class TestAPIAuth:
     """Tests of authentication setup."""
 
