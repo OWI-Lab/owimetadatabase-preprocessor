@@ -1,6 +1,7 @@
 """Module for the base class handling the access to the Database API."""
 
 import json
+from typing import Dict, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -13,9 +14,9 @@ class API(object):
     def __init__(
         self,
         api_root: str,
-        header: dict[str, str] | None = None,
-        uname: str | None = None,
-        password: str | None = None,
+        header: Union[Dict[str, str], None] = None,
+        uname: Union[str, None] = None,
+        password: Union[str, None] = None,
     ) -> None:
         self.api_root = api_root
         self.header = header
@@ -26,7 +27,7 @@ class API(object):
             self.auth = requests.auth.HTTPBasicAuth(self.uname, self.password)
 
     def send_request(
-        self, url_data_type: str, url_params: dict[str, str]
+        self, url_data_type: str, url_params: Dict[str, str]
     ) -> requests.Response:
         """Handle sending appropriate request according to the type of authentication.
 
@@ -76,7 +77,7 @@ class API(object):
     @staticmethod
     def postprocess_data(
         df: pd.DataFrame, output_type: str
-    ) -> dict[str, bool | np.int64 | None]:
+    ) -> Dict[str, Union[bool, np.int64, None]]:
         """Process dataframe information to extarct the necessary additional data.
 
         :param df: Dataframe of the output data.
@@ -104,8 +105,8 @@ class API(object):
         return data_add
 
     def process_data(
-        self, url_data_type: str, url_params: dict[str, str], output_type: str
-    ) -> tuple[pd.DataFrame, dict[str, bool | np.int64 | None]]:
+        self, url_data_type: str, url_params: Dict[str, str], output_type: str
+    ) -> Tuple[pd.DataFrame, Dict[str, Union[bool, np.int64, None]]]:
         """Process output data according to specified request parameters.
 
         :param url_data_type: Type of the data we want to request (according to database model).

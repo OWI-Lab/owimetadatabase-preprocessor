@@ -1,5 +1,7 @@
 """Module to connect to the database API to retrieve and operate on locations data."""
 
+from typing import Dict, Union
+
 import numpy as np
 import pandas as pd
 import plotly as plt  # type: ignore
@@ -22,7 +24,7 @@ class LocationsAPI(API):
 
     def get_projectsites(
         self, **kwargs
-    ) -> dict[str, pd.DataFrame | bool | np.int64 | None]:
+    ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
         """Get all available projects.
 
         :param :
@@ -30,7 +32,7 @@ class LocationsAPI(API):
             - 'data': Pandas dataframe with the location data for each project
             - 'exists': Boolean indicating whether matching records are found
         """
-        url_params = {}  # type: dict[str, str]
+        url_params = {}  # type: Dict[str, str]
         url_params = {**url_params, **kwargs}
         url_data_type = "/locations/projectsites/"
         output_type = "list"
@@ -39,7 +41,7 @@ class LocationsAPI(API):
 
     def get_projectsite_detail(
         self, projectsite: str, **kwargs
-    ) -> dict[str, pd.DataFrame | bool | np.int64 | None]:
+    ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
         """Get details for a specific projectsite.
 
         :param projectsite: Title of the projectsite.
@@ -56,8 +58,8 @@ class LocationsAPI(API):
         return {"id": df_add["id"], "data": df, "exists": df_add["existance"]}
 
     def get_assetlocations(
-        self, projectsite: str | None = None, **kwargs
-    ) -> dict[str, pd.DataFrame | bool | np.int64 | None]:
+        self, projectsite: Union[str, None] = None, **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
         """Get all available asset locations for all projectsites or a specific projectsite.
 
         :param projectsite: String with the projectsite title (e.g. "Nobelwind").
@@ -66,7 +68,7 @@ class LocationsAPI(API):
             - 'data': Pandas dataframe with the location data for each location in the projectsite.
             - 'exists': Boolean indicating whether matching records are found.
         """
-        url_params = {}  # type: dict[str, str]
+        url_params = {}  # type: Dict[str, str]
         url_params = {**url_params, **kwargs}
         if projectsite is not None:
             url_params["projectsite__title"] = projectsite
@@ -77,7 +79,7 @@ class LocationsAPI(API):
 
     def get_assetlocation_detail(
         self, projectsite: str, assetlocation: str, **kwargs
-    ) -> dict[str, pd.DataFrame | bool | np.int64 | None]:
+    ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
         """Get a selected turbine.
 
         :param projectsite: Name of the projectsite (e.g. "Nobelwind").
@@ -96,7 +98,7 @@ class LocationsAPI(API):
 
     def plot_assetlocations(
         self, return_fig: bool = False, **kwargs
-    ) -> None | plt.graph_objects.Figure:
+    ) -> Union[None, plt.graph_objects.Figure]:
         """Retrieve asset locations and generates a Plotly plot to show them.
 
         :param return_fig: Boolean indicating whether the Plotly figure object needs to be returned
