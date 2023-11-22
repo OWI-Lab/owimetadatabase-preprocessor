@@ -1,0 +1,29 @@
+name: Publish Python package
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.10
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+        source $HOME/.poetry/env
+    - name: Install dependencies
+      run: poetry install --all-extras
+    - name: Build and publish
+      run: |
+        poetry build
+        poetry publish --build
+      env:
+        PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
