@@ -1,10 +1,10 @@
 name: CI Python package
 
 on:
-  #push:
-  #  branches: [ "main" ]
-  pull_request:
+  push:
     branches: [ "test_pipelines" ]
+  #pull_request:
+  #  branches: [ "main" ]
 
 jobs:
   build:
