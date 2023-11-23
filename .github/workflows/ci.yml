@@ -33,15 +33,15 @@ jobs:
       #  python -m pip install -e ./[dev]
     - name: Type checking with mypy
       run: |
-        poetry run mypy .
+        poetry run mypy ./src ./tests
     - name: Lint with flake8
       run: |
-        poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        poetry run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        poetry run flake8 ./src ./tests --count --select=E9,F63,F7,F82 --show-source --statistics
+        poetry run flake8 ./src ./tests --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Format with black and isort
       run: |
-        poetry run isort .
-        poetry run black .
+        poetry run isort ./src ./tests
+        poetry run black ./src ./tests
     - name: Test with pytest
       run: |
-        poetry run pytest
+        poetry run pytest ./tests
