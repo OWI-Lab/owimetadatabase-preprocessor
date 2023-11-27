@@ -127,6 +127,8 @@ def test_output_to_df() -> None:
         ),
     ],
 )
+
+
 def test_postprocess_data(df, output_type, expected_result, expected_exception) -> None:
     if expected_exception is not None:
         with pytest.raises(expected_exception):
@@ -136,5 +138,28 @@ def test_postprocess_data(df, output_type, expected_result, expected_exception) 
         assert result == expected_result
 
 
-def test_process_data() -> None:
-    pass
+@pytest.fixture
+def mock_requests_get_advanced(mocker):
+    mock = mocker.patch("requests.get")
+    def response():
+        resp = requests.Response()
+        resp.status_code = 200
+        resp._content = (
+            b'[{"col_1": "11", "col_2": "12", "col_3": "13"}, '
+            b'{"col_1": "21", "col_2": "22", "col_3": "23"}]'
+        )
+        return resp
+    mock.return_value = response()
+    return mock
+
+
+def test_process_data(mock_requests_get_advanced, api_root) -> None:
+    header = {"Authorization": "Token 12345"}
+    url_data_type = "/test/"
+    url_params = {"test": "test"}
+    output_type = "list"
+    api_test = API(api_root, header=header)
+    df, df_add = api_test.process_data(url_data_type, url_params, output_type)
+    assert isinstance(df, pd.DataFrame)
+    assert isinstance(df_add, dict)
+    assert isinstance(df_add["existance"], bool)
