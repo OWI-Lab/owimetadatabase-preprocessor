@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "owimetadatabase-preprocessor"
-version = "0.1.0"
+version = "0.1.1"
 description = "Package for preprocessing data from owimetadatabase."
 authors = ["arsmlnkv <melnikov.arsene@gmail.com>"]
 readme = "README.md"
@@ -21,7 +21,6 @@ matplotlib = "^3.6.0"
 numpy = "^1.24.0"
 pandas = "^2.0.0"
 python-dotenv = "*"
-bump2version = "^1.0.1"
 
 
 # Development dependencies
@@ -39,12 +38,13 @@ pandas-stubs = { version = "*", optional = true }
 types-requests = { version = "*", optional = true }
 pydocstyle = { version = "*", optional = true }
 sphinx = { version = "^6.0.0", optional = true }
+bump2version =  { version = "^1.0.1", optional = true }
 
 
 [tool.poetry.extras]
 dev = ["pytest", "pytest-mock", "pytest-xdist", "pytest-clarity", "pytest-cov", 
     "isort", "black", "flake8", "mypy", "pydocstyle", "sphinx", "pandas-stubs",
-    "types-requests", "requests-mock"]
+    "types-requests", "requests-mock", "bump2version"]
 
 
 [build-system]
