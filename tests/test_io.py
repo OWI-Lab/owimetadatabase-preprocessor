@@ -73,17 +73,17 @@ def test_check_request_health() -> None:
 def test_output_to_df() -> None:
     response = requests.Response()
     response._content = (
-        b'[{"col_1": "11", "col_2": "12", "col_3": "13"}, '
-        b'{"col_1": "21", "col_2": "22", "col_3": "23"}]'
+        b'[{"col_1": 11, "col_2": 12, "col_3": 13}, '
+        b'{"col_1": 21, "col_2": 22, "col_3": 23}]'
     )
     df = API.output_to_df(response)
     assert isinstance(df, pd.DataFrame)
-    assert df["col_1"][0] == "11"
-    assert df["col_1"][1] == "21"
-    assert df["col_2"][0] == "12"
-    assert df["col_2"][1] == "22"
-    assert df["col_3"][0] == "13"
-    assert df["col_3"][1] == "23"
+    assert df["col_1"][0] == 11
+    assert df["col_1"][1] == 21
+    assert df["col_2"][0] == 12
+    assert df["col_2"][1] == 22
+    assert df["col_3"][0] == 13
+    assert df["col_3"][1] == 23
 
 
 @pytest.mark.parametrize(
@@ -127,8 +127,6 @@ def test_output_to_df() -> None:
         ),
     ],
 )
-
-
 def test_postprocess_data(df, output_type, expected_result, expected_exception) -> None:
     if expected_exception is not None:
         with pytest.raises(expected_exception):
@@ -141,14 +139,16 @@ def test_postprocess_data(df, output_type, expected_result, expected_exception) 
 @pytest.fixture
 def mock_requests_get_advanced(mocker):
     mock = mocker.patch("requests.get")
+
     def response():
         resp = requests.Response()
         resp.status_code = 200
         resp._content = (
-            b'[{"col_1": "11", "col_2": "12", "col_3": "13"}, '
-            b'{"col_1": "21", "col_2": "22", "col_3": "23"}]'
+            b'[{"col_1": 11, "col_2": 12, "col_3": 13}, '
+            b'{"col_1": 21, "col_2": 22, "col_3": 23}]'
         )
         return resp
+
     mock.return_value = response()
     return mock
 
