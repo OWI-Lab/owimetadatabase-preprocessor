@@ -15,8 +15,9 @@ def type_check(session):
     session.install("mypy")
     session.install("pandas-stubs")
     session.install("types-requests")
+    session.install("pytest-stub")
     session.run("mypy", "--install-types", "--non-interactive")
-    session.run("mypy", "./src") #"./tests"
+    session.run("mypy", "./src", "./tests")
 
 
 @nox.session(python="3.10")
