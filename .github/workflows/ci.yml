@@ -33,7 +33,7 @@ jobs:
       #  python -m pip install -e ./[dev]
     - name: Type checking with mypy
       run: | # poetry run mypy --install-types --non-interactive
-        poetry run mypy ./src
+        poetry run mypy ./src ./tests
     - name: Lint with flake8
       run: |
         poetry run flake8 ./src ./tests --count --select=E9,F63,F7,F82 --show-source --statistics

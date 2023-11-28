@@ -27,10 +27,11 @@ class LocationsAPI(API):
     ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
         """Get all available projects.
 
-        :param :
+        :param:
         :return:  Dictionary with the following keys:
-            - 'data': Pandas dataframe with the location data for each project
-            - 'exists': Boolean indicating whether matching records are found
+
+            - "data": Pandas dataframe with the location data for each project
+            - "exists": Boolean indicating whether matching records are found
         """
         url_params = {}  # type: Dict[str, str]
         url_params = {**url_params, **kwargs}
@@ -46,9 +47,10 @@ class LocationsAPI(API):
 
         :param projectsite: Title of the projectsite.
         :return:  Dictionary with the following keys:
-            - 'id': id of the selected project site.
-            - 'data': Pandas dataframe with the location data for each projectsite.
-            - 'exists': Boolean indicating whether matching records are found.
+
+            - "id": id of the selected project site.
+            - "data": Pandas dataframe with the location data for each projectsite.
+            - "exists": Boolean indicating whether matching records are found.
         """
         url_params = {"projectsite": projectsite}
         url_params = {**url_params, **kwargs}
@@ -65,8 +67,9 @@ class LocationsAPI(API):
         :param projectsite: String with the projectsite title (e.g. "Nobelwind").
         :param assetlocation: String with the asset location title (e.g. "NW2A04").
         :return: Dictionary with the following keys:
-            - 'data': Pandas dataframe with the location data for each location in the projectsite.
-            - 'exists': Boolean indicating whether matching records are found.
+
+            - "data": Pandas dataframe with the location data for each location in the projectsite.
+            - "exists": Boolean indicating whether matching records are found.
         """
         url_params = {}  # type: Dict[str, str]
         url_params = {**url_params, **kwargs}
@@ -85,9 +88,10 @@ class LocationsAPI(API):
         :param projectsite: Name of the projectsite (e.g. "Nobelwind").
         :param assetlocation: Title of the asset location (e.g. "BBK05").
         :return: Dictionary with the following keys:
-            - 'id': id of the selected projectsite site.
-            - 'data': Pandas dataframe with the location data for the individual location.
-            - 'exists': Boolean indicating whether a matching location is found.
+
+            - "id": id of the selected projectsite site.
+            - "data": Pandas dataframe with the location data for the individual location.
+            - "exists": Boolean indicating whether a matching location is found.
         """
         url_params = {"projectsite": projectsite, "assetlocation": assetlocation}
         url_params = {**url_params, **kwargs}
@@ -102,7 +106,7 @@ class LocationsAPI(API):
         """Retrieve asset locations and generates a Plotly plot to show them.
 
         :param return_fig: Boolean indicating whether the Plotly figure object needs to be returned
-        (default is False which simply shows the plot)
+          (default is False which simply shows the plot)
         :param kwargs: Keyword arguments for the search (see ``get_assetlocations``).
         :return: Plotly figure object with selected asset locations plotted on OpenStreetMap tiles (if requested).
         """
