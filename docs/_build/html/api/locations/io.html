@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Locations API &mdash; Owimetadatabase preprocessor  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="Base API class" href="../io.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Owimetadatabase preprocessor
+          </a>
+              <div class="version">
+                0.1.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../io.html">Base API class</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Locations API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#owimetadatabase_preprocessor.locations.io.LocationsAPI"><code class="docutils literal notranslate"><span class="pre">LocationsAPI</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.locations.io.LocationsAPI.get_assetlocation_detail"><code class="docutils literal notranslate"><span class="pre">LocationsAPI.get_assetlocation_detail()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.locations.io.LocationsAPI.get_assetlocations"><code class="docutils literal notranslate"><span class="pre">LocationsAPI.get_assetlocations()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.locations.io.LocationsAPI.get_projectsite_detail"><code class="docutils literal notranslate"><span class="pre">LocationsAPI.get_projectsite_detail()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.locations.io.LocationsAPI.get_projectsites"><code class="docutils literal notranslate"><span class="pre">LocationsAPI.get_projectsites()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.locations.io.LocationsAPI.plot_assetlocations"><code class="docutils literal notranslate"><span class="pre">LocationsAPI.plot_assetlocations()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Owimetadatabase preprocessor</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">API</a></li>
+      <li class="breadcrumb-item active">Locations API</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/api/locations/io.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-owimetadatabase_preprocessor.locations.io">
+<span id="locations-api"></span><h1>Locations API<a class="headerlink" href="#module-owimetadatabase_preprocessor.locations.io" title="Permalink to this heading"></a></h1>
+<p>Module to connect to the database API to retrieve and operate on locations data.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.locations.io.LocationsAPI">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">owimetadatabase_preprocessor.locations.io.</span></span><span class="sig-name descname"><span class="pre">LocationsAPI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#owimetadatabase_preprocessor.locations.io.LocationsAPI" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../io.html#owimetadatabase_preprocessor.io.API" title="owimetadatabase_preprocessor.io.API"><code class="xref py py-class docutils literal notranslate"><span class="pre">API</span></code></a></p>
+<p>Class to connect to the location data API with methods to retrieve data.</p>
+<p>A number of methods are provided to query the database via the owimetadatabase API.
+In the majority of cases, the methods return a dataframe based on the URL parameters provided.
+The methods are written such that a number of mandatory URL parameters are required (see documentation of the methods).
+The URL parameters can be expanded with Django-style additional filtering arguments (e.g.
+<code class="docutils literal notranslate"><span class="pre">location__title__icontains=&quot;BB&quot;</span></code>) as optional keyword arguments. Knowledge of the Django models is required for this
+(see <code class="docutils literal notranslate"><span class="pre">owimetadatabase</span></code> code).</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.locations.io.LocationsAPI.get_assetlocation_detail">
+<span class="sig-name descname"><span class="pre">get_assetlocation_detail</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">projectsite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assetlocation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int64</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.locations.io.LocationsAPI.get_assetlocation_detail" title="Permalink to this definition"></a></dt>
+<dd><p>Get a selected turbine.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>projectsite</strong> – Name of the projectsite (e.g. “Nobelwind”).</p></li>
+<li><p><strong>assetlocation</strong> – Title of the asset location (e.g. “BBK05”).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>Dictionary with the following keys:</p>
+<ul class="simple">
+<li><p>”id”: id of the selected projectsite site.</p></li>
+<li><p>”data”: Pandas dataframe with the location data for the individual location.</p></li>
+<li><p>”exists”: Boolean indicating whether a matching location is found.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.locations.io.LocationsAPI.get_assetlocations">
+<span class="sig-name descname"><span class="pre">get_assetlocations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">projectsite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int64</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.locations.io.LocationsAPI.get_assetlocations" title="Permalink to this definition"></a></dt>
+<dd><p>Get all available asset locations for all projectsites or a specific projectsite.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>projectsite</strong> – String with the projectsite title (e.g. “Nobelwind”).</p></li>
+<li><p><strong>assetlocation</strong> – String with the asset location title (e.g. “NW2A04”).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>Dictionary with the following keys:</p>
+<ul class="simple">
+<li><p>”data”: Pandas dataframe with the location data for each location in the projectsite.</p></li>
+<li><p>”exists”: Boolean indicating whether matching records are found.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.locations.io.LocationsAPI.get_projectsite_detail">
+<span class="sig-name descname"><span class="pre">get_projectsite_detail</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">projectsite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int64</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.locations.io.LocationsAPI.get_projectsite_detail" title="Permalink to this definition"></a></dt>
+<dd><p>Get details for a specific projectsite.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>projectsite</strong> – Title of the projectsite.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>Dictionary with the following keys:</p>
+<ul class="simple">
+<li><p>”id”: id of the selected project site.</p></li>
+<li><p>”data”: Pandas dataframe with the location data for each projectsite.</p></li>
+<li><p>”exists”: Boolean indicating whether matching records are found.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.locations.io.LocationsAPI.get_projectsites">
+<span class="sig-name descname"><span class="pre">get_projectsites</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int64</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.locations.io.LocationsAPI.get_projectsites" title="Permalink to this definition"></a></dt>
+<dd><p>Get all available projects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Param<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p></dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>Dictionary with the following keys:</p>
+<ul class="simple">
+<li><p>”data”: Pandas dataframe with the location data for each project</p></li>
+<li><p>”exists”: Boolean indicating whether matching records are found</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.locations.io.LocationsAPI.plot_assetlocations">
+<span class="sig-name descname"><span class="pre">plot_assetlocations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">return_fig</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Figure</span></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.locations.io.LocationsAPI.plot_assetlocations" title="Permalink to this definition"></a></dt>
+<dd><p>Retrieve asset locations and generates a Plotly plot to show them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>return_fig</strong> – Boolean indicating whether the Plotly figure object needs to be returned
+(default is False which simply shows the plot)</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the search (see <code class="docutils literal notranslate"><span class="pre">get_assetlocations</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Plotly figure object with selected asset locations plotted on OpenStreetMap tiles (if requested).</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../io.html" class="btn btn-neutral float-left" title="Base API class" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, OWI-Lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

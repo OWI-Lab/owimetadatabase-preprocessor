@@ -1,0 +1,8 @@
+API
+===
+
+.. automodule:: owimetadatabase_preprocessor.io
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :special-members:
