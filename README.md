@@ -1,6 +1,6 @@
 # Owimetadatabase preprocessor
 
-Tools for preprocessing geometries from the metadatabase.
+Tools for preprocessing geometries from the metadatabase. Read the documentation [here](https://arsmlnkv.github.io/owimetadatabase-preprocessor/).
 
 ## Installation
 
