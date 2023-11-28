@@ -1,3 +1,6 @@
+from typing import Dict, Union
+from unittest import mock
+
 import pandas as pd
 import pytest
 import requests
@@ -6,21 +9,21 @@ from owimetadatabase_preprocessor.io import API
 
 
 @pytest.fixture
-def mock_requests_get(mocker):
+def mock_requests_get(mocker: mock.Mock) -> mock.Mock:
     mock = mocker.patch("requests.get")
     mock.return_value = requests.Response()
     return mock
 
 
 @pytest.fixture
-def api_root():
+def api_root() -> str:
     return "https://test.api/test"
 
 
 class TestAPIAuth:
     """Tests of authentication setup."""
 
-    def test_API_header(self, api_root) -> None:
+    def test_API_header(self, api_root: str) -> None:
         """Test parent API class with header that it initializes everything correctly."""
         header = {"Authorization": "Token 12345"}
         api_test = API(api_root, header=header)
@@ -30,7 +33,7 @@ class TestAPIAuth:
         assert api_test.password is None
         assert api_test.auth is None
 
-    def test_API_user(self, api_root) -> None:
+    def test_API_user(self, api_root: str) -> None:
         """Test parent API class with user credentials that it initializes everything correctly."""
         name = "test"
         pswd = "12345"
@@ -42,7 +45,7 @@ class TestAPIAuth:
         assert api_test.auth == requests.auth.HTTPBasicAuth(name, pswd)
 
 
-def test_send_request_with_token(mock_requests_get, api_root) -> None:
+def test_send_request_with_token(mock_requests_get: mock.Mock, api_root: str) -> None:
     header = {"Authorization": "Token 12345"}
     url_data_type = "/test/"
     url_params = {"test": "test"}
@@ -51,7 +54,9 @@ def test_send_request_with_token(mock_requests_get, api_root) -> None:
     assert isinstance(response, requests.models.Response)
 
 
-def test_send_request_with_name_pass(mock_requests_get, api_root) -> None:
+def test_send_request_with_name_pass(
+    mock_requests_get: mock.Mock, api_root: str
+) -> None:
     name = "test"
     pswd = "12345"
     url_data_type = "/test/"
@@ -127,7 +132,12 @@ def test_output_to_df() -> None:
         ),
     ],
 )
-def test_postprocess_data(df, output_type, expected_result, expected_exception) -> None:
+def test_postprocess_data(
+    df: pd.DataFrame,
+    output_type: str,
+    expected_result: Union[None, Dict[str, Union[bool, int]]],
+    expected_exception: None,
+) -> None:
     if expected_exception is not None:
         with pytest.raises(expected_exception):
             result = API.postprocess_data(df, output_type)
@@ -137,10 +147,10 @@ def test_postprocess_data(df, output_type, expected_result, expected_exception) 
 
 
 @pytest.fixture
-def mock_requests_get_advanced(mocker):
+def mock_requests_get_advanced(mocker: mock.Mock) -> mock.Mock:
     mock = mocker.patch("requests.get")
 
-    def response():
+    def response() -> requests.Response:
         resp = requests.Response()
         resp.status_code = 200
         resp._content = (
@@ -153,7 +163,7 @@ def mock_requests_get_advanced(mocker):
     return mock
 
 
-def test_process_data(mock_requests_get_advanced, api_root) -> None:
+def test_process_data(mock_requests_get_advanced: mock.Mock, api_root: str) -> None:
     header = {"Authorization": "Token 12345"}
     url_data_type = "/test/"
     url_params = {"test": "test"}

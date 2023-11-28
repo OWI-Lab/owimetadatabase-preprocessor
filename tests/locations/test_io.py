@@ -1,3 +1,6 @@
+from typing import Dict
+from unittest import mock
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -7,20 +10,20 @@ from owimetadatabase_preprocessor.locations.io import LocationsAPI
 
 
 @pytest.fixture
-def api_root():
+def api_root() -> str:
     return "https://test.api/test"
 
 
 @pytest.fixture
-def header():
+def header() -> Dict[str, str]:
     return {"Authorization": "Token 12345"}
 
 
 @pytest.fixture
-def mock_requests_get_projectsites(mocker):
+def mock_requests_get_projectsites(mocker: mock.Mock) -> mock.Mock:
     mock = mocker.patch("requests.get")
 
-    def response():
+    def response() -> requests.Response:
         resp = requests.Response()
         resp.status_code = 200
         resp._content = (
@@ -33,7 +36,9 @@ def mock_requests_get_projectsites(mocker):
     return mock
 
 
-def test_get_projectsites(api_root, header, mock_requests_get_projectsites) -> None:
+def test_get_projectsites(
+    api_root: str, header: Dict[str, str], mock_requests_get_projectsites: mock.Mock
+) -> None:
     api_test = LocationsAPI(api_root, header)
     data = api_test.get_projectsites()
     assert isinstance(data["data"], pd.DataFrame)
@@ -42,10 +47,10 @@ def test_get_projectsites(api_root, header, mock_requests_get_projectsites) -> N
 
 
 @pytest.fixture
-def mock_requests_get_projectsite_detail(mocker):
+def mock_requests_get_projectsite_detail(mocker: mock.Mock) -> mock.Mock:
     mock = mocker.patch("requests.get")
 
-    def response():
+    def response() -> requests.Response:
         resp = requests.Response()
         resp.status_code = 200
         resp._content = ('[{"id": 239, "col_2": "text 1", "col_3": "text 2"}]').encode(
@@ -58,7 +63,9 @@ def mock_requests_get_projectsite_detail(mocker):
 
 
 def test_get_projectsite_detail(
-    api_root, header, mock_requests_get_projectsite_detail
+    api_root: str,
+    header: Dict[str, str],
+    mock_requests_get_projectsite_detail: mock.Mock,
 ) -> None:
     api_test = LocationsAPI(api_root, header)
     data = api_test.get_projectsite_detail(projectsite="Nobelwind")
@@ -70,8 +77,8 @@ def test_get_projectsite_detail(
 
 
 @pytest.fixture
-def mock_requests_get_assetlocations(mocker):
-    def custom_side_effect(*args, **kwargs):
+def mock_requests_get_assetlocations(mocker: mock.Mock) -> mock.Mock:
+    def custom_side_effect(*args, **kwargs) -> requests.Response:
         if kwargs.get("params") == {"projectsite__title": "Nobelwind"}:
             resp = requests.Response()
             resp.status_code = 200
@@ -94,7 +101,7 @@ def mock_requests_get_assetlocations(mocker):
 
 
 def test_get_assetlocations_single(
-    api_root, header, mock_requests_get_assetlocations
+    api_root: str, header: Dict[str, str], mock_requests_get_assetlocations: mock.Mock
 ) -> None:
     api_test = LocationsAPI(api_root, header)
     data = api_test.get_assetlocations(projectsite="Nobelwind")
@@ -107,7 +114,9 @@ def test_get_assetlocations_single(
 
 
 def test_get_assetlocations_all(
-    api_root, header, mock_requests_get_assetlocations
+    api_root: str,
+    header: Dict[str, str],
+    mock_requests_get_assetlocations: mock.Mock,
 ) -> None:
     api_test = LocationsAPI(api_root, header)
     data = api_test.get_assetlocations()
@@ -121,7 +130,9 @@ def test_get_assetlocations_all(
 
 
 def test_get_assetlocation_detail(
-    api_root, header, mock_requests_get_projectsite_detail
+    api_root: str,
+    header: Dict[str, str],
+    mock_requests_get_projectsite_detail: mock.Mock,
 ) -> None:
     api_test = LocationsAPI(api_root, header)
     data = api_test.get_assetlocation_detail(
