@@ -3,28 +3,14 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Owimetadatabase preprocessor's documentation!
-========================================================
+Owimetadatabase preprocessor documentation
+==========================================
+
+The package provides tools to query owimetadatabase and do some basic preprocessing of the data.
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 1
 
-
-Indices and tables
-==================
-
-.. * :ref:`genindex`
-.. * :ref:`modindex`
-.. * :ref:`search`
-
-
-.. automodule:: ../owimetadatabase_preprocessor
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. .. autosummary:: ../../owimetadatabase_preprocessor
-   :toctree: generated/
-
-.. owimetadatabase-preprocessor
+   installation
+   usage
+   api/index
