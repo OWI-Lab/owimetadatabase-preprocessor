@@ -52,5 +52,6 @@ jobs:
         poetry run pytest ./tests
 
   deploy-docs:
-
+    
+    needs: build
     uses: ./.github/workflows/docs.yml
