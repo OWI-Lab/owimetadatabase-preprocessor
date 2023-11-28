@@ -39,12 +39,13 @@ types-requests = { version = "*", optional = true }
 pydocstyle = { version = "*", optional = true }
 sphinx = { version = "^6.0.0", optional = true }
 bump2version =  { version = "^1.0.1", optional = true }
+nox = { version = "^2023.4.22", optional = true }
 
 
 [tool.poetry.extras]
 dev = ["pytest", "pytest-mock", "pytest-xdist", "pytest-clarity", "pytest-cov", 
     "isort", "black", "flake8", "mypy", "pydocstyle", "sphinx", "pandas-stubs",
-    "types-requests", "requests-mock", "bump2version"]
+    "types-requests", "requests-mock", "bump2version", "nox"]
 
 
 [build-system]
