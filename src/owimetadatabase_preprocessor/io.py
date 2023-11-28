@@ -102,6 +102,12 @@ class API(object):
             else:
                 exists = True
             data_add = {"existance": exists}
+        else:
+            raise ValueError(
+                "Output type must be either 'single' or 'list', not "
+                + output_type
+                + "."
+            )
         return data_add
 
     def process_data(
