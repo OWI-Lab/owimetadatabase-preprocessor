@@ -1,15 +1,31 @@
 """Module to connect to the database API to retrieve and operate on geometry data."""
 
+from typing import Dict, Union
+
+import numpy as np
+import pandas as pd
+
 from owimetadatabase_preprocessor.io import API
 
 
 class GeometryAPI(API):
+    """Class to connect to the geometry data API with methods to retrieve data."""
+
     def get_subassemblies(
-        self, projectsite=None, assetlocation=None, subassembly_type=None
-    ):
-        """
-        Get all structure subassemblies blocks for a given location
-        :return:
+        self,
+        projectsite: Union[str, None] = None,
+        assetlocation: Union[str, None] = None,
+        subassembly_type: Union[str, None] = None,
+    ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
+        """Get all structure subassemblies blocks for a given location.
+
+        :param projectsite: Title of the projectsite.
+        :param assetlocation: Title of the asset location.
+        :param subassembly_type: Type of the subassembly.
+        :return: Dictionary with the following keys:
+
+            - "data": Pandas dataframe with the location data for each project
+            - "exists": Boolean indicating whether matching records are found
         """
         url_params = {}
         if projectsite is not None:
@@ -25,14 +41,22 @@ class GeometryAPI(API):
 
     def get_buildingblocks(
         self,
-        projectsite=None,
-        assetlocation=None,
-        buildingblock_type=None,
-        subassembly_id=None,
-    ):
+        projectsite: Union[str, None] = None,
+        assetlocation: Union[str, None] = None,
+        buildingblock_type: Union[str, None] = None,
+        subassembly_id: Union[str, None] = None,
+    ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
         """
-        Get all building blocks for a given location
-        :return:
+        Get all building blocks for a given location.
+
+        :param projectsite: Title of the projectsite.
+        :param assetlocation: Title of the asset location.
+        :param buildingblock_type: Type of the building block.
+        :param subassembly_id: ID of the subassembly.
+        :return: Dictionary with the following keys:
+
+            - "data": Pandas dataframe with the location data for each project
+            - "exists": Boolean indicating whether matching records are found
         """
         url_params = {}
         if projectsite is not None:
@@ -48,18 +72,16 @@ class GeometryAPI(API):
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
 
-    def get_materials(
-        self,
-        projectsite=None,
-        assetlocation=None,
-        buildingblock_type=None,
-        subassembly_id=None,
-    ):
+    def get_materials(self) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
         """
-        Get all the materials of building block.
-        :return:
+        Get all the materials of building blocks.
+
+        :return: Dictionary with the following keys:
+
+            - "data": Pandas dataframe with the location data for each project
+            - "exists": Boolean indicating whether matching records are found
         """
-        url_params = {}
+        url_params = {}  # type: Dict[str, str]
         url_data_type = "/geometry/userroutes/materials"
         output_type = "list"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
