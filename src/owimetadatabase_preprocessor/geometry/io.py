@@ -1,16 +1,12 @@
 """Module to connect to the database API to retrieve and operate on geometry data."""
 
-import requests
-import numpy as np
-import pandas as pd
-import json
-
 from owimetadatabase_preprocessor.io import API
 
 
 class GeometryAPI(API):
-
-    def get_subassemblies(self, projectsite=None, assetlocation=None, subassembly_type=None):
+    def get_subassemblies(
+        self, projectsite=None, assetlocation=None, subassembly_type=None
+    ):
         """
         Get all structure subassemblies blocks for a given location
         :return:
@@ -21,13 +17,19 @@ class GeometryAPI(API):
         if assetlocation is not None:
             url_params["asset__title"] = assetlocation
         if subassembly_type is not None:
-            url_params["subassembly_type"] = subassembly_type         
+            url_params["subassembly_type"] = subassembly_type
         url_data_type = "/geometry/userroutes/subassemblies"
         output_type = "list"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
 
-    def get_buildingblocks(self, projectsite=None, assetlocation=None, buildingblock_type=None, subassembly_id=None):
+    def get_buildingblocks(
+        self,
+        projectsite=None,
+        assetlocation=None,
+        buildingblock_type=None,
+        subassembly_id=None,
+    ):
         """
         Get all building blocks for a given location
         :return:
@@ -46,7 +48,13 @@ class GeometryAPI(API):
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
 
-    def get_materials(self, projectsite=None, assetlocation=None, buildingblock_type=None, subassembly_id=None):
+    def get_materials(
+        self,
+        projectsite=None,
+        assetlocation=None,
+        buildingblock_type=None,
+        subassembly_id=None,
+    ):
         """
         Get all the materials of building block.
         :return:
