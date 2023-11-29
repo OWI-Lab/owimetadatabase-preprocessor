@@ -16,6 +16,9 @@ def type_check(session):
     session.install("pandas-stubs")
     session.install("types-requests")
     session.install("pytest-stub")
+    session.install("types-colorama")
+    session.install("types-Pygments")
+    session.install("types-setuptools")
     session.run("mypy", "--install-types", "--non-interactive")
     session.run("mypy", "./src", "./tests")
 
