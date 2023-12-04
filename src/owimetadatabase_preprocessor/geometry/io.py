@@ -43,7 +43,7 @@ class GeometryAPI(API):
         self,
         projectsite: Union[str, None] = None,
         assetlocation: Union[str, None] = None,
-        buildingblock_type: Union[str, None] = None,
+        subassembly_type: Union[str, None] = None,
         subassembly_id: Union[str, None] = None,
     ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
         """
@@ -51,7 +51,7 @@ class GeometryAPI(API):
 
         :param projectsite: Title of the projectsite.
         :param assetlocation: Title of the asset location.
-        :param buildingblock_type: Type of the building block.
+        :param subassembly_type: Type of the subassemblies.
         :param subassembly_id: ID of the subassembly.
         :return: Dictionary with the following keys:
 
@@ -63,8 +63,8 @@ class GeometryAPI(API):
             url_params["sub_assembly__asset__projectsite__title"] = projectsite
         if assetlocation is not None:
             url_params["sub_assembly__asset__title"] = assetlocation
-        if buildingblock_type is not None:
-            url_params["sub_assembly__subassembly_type"] = buildingblock_type
+        if subassembly_type is not None:
+            url_params["sub_assembly__subassembly_type"] = subassembly_type
         if subassembly_id is not None:
             url_params["sub_assembly__id"] = subassembly_id
         url_data_type = "/geometry/userroutes/buildingblocks"
