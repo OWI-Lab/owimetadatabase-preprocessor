@@ -51,10 +51,10 @@ jobs:
         poetry run pytest ./tests
         poetry run pytest --cov=./tests
 
-  deploy-docs:    
+  build-deploy-docs:    
     needs: build
     uses: ./.github/workflows/docs.yml
 
   deploy-package:  
-    needs: build
+    needs: [build, build-deploy-docs]
     uses: ./.github/workflows/publish.yml
