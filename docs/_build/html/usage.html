@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Usage &mdash; Owimetadatabase preprocessor  documentation</title>
+  <title>Getting started &mdash; Owimetadatabase preprocessor  documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
 
@@ -47,10 +47,9 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul class="current">
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API</a></li>
 </ul>
 
@@ -68,7 +67,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Usage</li>
+      <li class="breadcrumb-item active">Getting started</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/usage.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -78,24 +77,31 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="usage">
-<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h1>
-<p>To use this library, you need to acquire authorization token and know the database API endpoint URL.
-Please contact responsible person from OWI-lab team to get them.</p>
-<p>Once you have this information, you can use the library as follows:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">owimetadatabase_preprocessor.locations.io</span> <span class="kn">import</span> <span class="n">LocationsAPI</span>
-
-
-<span class="n">api_root</span> <span class="o">=</span> <span class="s1">&#39;&lt;API endpoint URL&gt;&#39;</span>
-<span class="n">head</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="s1">&#39;Token xxx&#39;</span><span class="p">}</span> <span class="c1"># where xxx is the authorization token</span>
-
-<span class="n">locations_api</span> <span class="o">=</span> <span class="n">LocationsAPI</span><span class="p">(</span><span class="n">api_root</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">head</span><span class="p">)</span>
-
-<span class="c1"># Time to use methods from the API</span>
-<span class="c1"># E.g. to plot all asset locations (recommended to use in Jupyter notebook)</span>
-<span class="n">locations_api</span><span class="o">.</span><span class="n">plot_assetlocations</span><span class="p">()</span>
+  <section id="getting-started">
+<h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this heading"></a></h1>
+<p>To use this library, you need to acquire authorization token and know the database API endpoint URL. Please contact responsible person from OWI-lab team to get them.</p>
+<p>Once you have this information and you installed the package according to the instructions (preferably into your virtual environment) with appropriate Python version, e.g. in your command line/terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>owimetadatabase-preprocessor
 </pre></div>
 </div>
+<p>Then, in your Python code, you can start using (import) the library as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">owimetadatabase_preprocessor.locations.io</span> <span class="kn">import</span> <span class="n">LocationsAPI</span>
+</pre></div>
+</div>
+<p>This command will import the suitable API class (LocationsAPI here for the data about locations, see reference for others). Now, for convenience, you can store the API endpoint URL and authorization token in some variables:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">api_root</span> <span class="o">=</span> <span class="s1">&#39;&lt;API endpoint URL&gt;&#39;</span>
+<span class="n">head</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="s1">&#39;Token xxx&#39;</span><span class="p">}</span>  <span class="c1">#  where xxx is the authorization token</span>
+</pre></div>
+</div>
+<p>, and create an instance of the API class with this information to later establish connection to the database:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">locations_api</span> <span class="o">=</span> <span class="n">LocationsAPI</span><span class="p">(</span><span class="n">api_root</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">head</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This class has several methods for convenient access/processing of the data from the database. E.g. to plot all asset locations (recommended to use in Jupyter notebook):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">locations_api</span><span class="o">.</span><span class="n">plot_assetlocations</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>And others (see reference) to operate on the information about locations/geometry.</p>
 </section>
 
 
