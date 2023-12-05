@@ -58,3 +58,4 @@ jobs:
   deploy-package:  
     needs: [build, build-deploy-docs]
     uses: ./.github/workflows/publish.yml
+    secrets: inherit
