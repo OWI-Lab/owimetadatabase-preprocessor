@@ -5,6 +5,7 @@ __pycache__
 .coverage
 .pytest_cache
 .mypy_cache
+.nox
 
 # Log files
 *.log
