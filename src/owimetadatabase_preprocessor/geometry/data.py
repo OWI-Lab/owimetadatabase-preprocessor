@@ -15,7 +15,7 @@ PLOT_SETTINGS_SUBASSEMBLY = {
 
 
 class Material(object):
-    """Materials derived from the raw data."""
+    """Material derived from the raw data."""
 
     def __init__(self, json: Dict[str, str]) -> None:
         self.title = json["title"]
@@ -44,13 +44,22 @@ class Material(object):
 
 
 class Position(object):
-    def __init__(self, x=0, y=0, z=0, alpha=0, beta=0, gamma=0, reference_system="LAT"):
+    """Position of the components."""
+
+    def __init__(
+        self,
+        x: int = 0, 
+        y: int = 0, 
+        z: int = 0, 
+        alpha: int = 0, 
+        beta: int = 0, 
+        gamma: int = 0, 
+        reference_system: str = "LAT"
+    ) -> None:
         self.x = x
         self.y = y
         self.z = z
-
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma
-
         self.reference_system = reference_system
