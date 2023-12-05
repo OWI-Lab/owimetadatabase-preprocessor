@@ -1,24 +1,39 @@
-name: Deploy documentation page
+name: Build and deploy documentation
 
 on:
   workflow_call:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: "pages"
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python "3.10"
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+    - uses: snok/install-poetry@v1
+      with:
+        version: 1.7.0
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+    - name: Install dependencies
+      run: poetry install --all-extras
+    - name: Build documentation
+      run: |
+        cd docs
+        make html
 
+  deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - name: Checkout
         uses: actions/checkout@v4

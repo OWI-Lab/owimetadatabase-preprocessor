@@ -11,15 +11,13 @@ permissions:
   pages: write
   id-token: write
 
-jobs:
+jobs:  
   build:
-
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11"]
-
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -37,12 +35,13 @@ jobs:
       #  python -m pip install --upgrade pip
       #  python -m pip install -e ./[dev]
     - name: Type checking with mypy
-      run: | # poetry run mypy --install-types --non-interactive
+      run: | #  poetry run mypy --install-types --non-interactive
         poetry run mypy ./src ./tests
     - name: Lint with flake8
       run: |
-        poetry run flake8 ./src ./tests --count --select=E9,F63,F7,F82 --show-source --statistics
-        poetry run flake8 ./src ./tests --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        poetry run flake8 ./src ./tests --count --max-line-length=127 --show-source --statistics
+      #  poetry run flake8 ./src ./tests --count --select=E9,F63,F7,F82 --show-source --statistics
+      #  poetry run flake8 ./src ./tests --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Format with black and isort
       run: |
         poetry run isort ./src ./tests
@@ -50,8 +49,12 @@ jobs:
     - name: Test with pytest
       run: |
         poetry run pytest ./tests
+        poetry run pytest --cov=./tests
 
-  deploy-docs:
-    
+  build-deploy-docs:    
     needs: build
     uses: ./.github/workflows/docs.yml
+
+  deploy-package:  
+    needs: [build, build-deploy-docs]
+    uses: ./.github/workflows/publish.yml
