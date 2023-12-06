@@ -1,12 +1,8 @@
 """Module containing the data classes for the geometry module."""
 
-from typing import Dict, Union
+from typing import Dict
 
-import json
 import numpy as np
-import pandas as pd
-import requests
-
 
 PLOT_SETTINGS_SUBASSEMBLY = {
     "MP": {"color": "brown"},
@@ -28,7 +24,7 @@ class Material(object):
 
     def as_dict(self) -> Dict[str, str]:
         """Transform data into dictionary.
-        
+
         :return: Dictionary with the following keys:
 
             - "title": Name of the material.
@@ -49,13 +45,13 @@ class Position(object):
 
     def __init__(
         self,
-        x: np.float64 = 0, 
-        y: np.float64 = 0, 
-        z: np.float64 = 0, 
-        alpha: np.float64 = 0, 
-        beta: np.float64 = 0, 
-        gamma: np.float64 = 0, 
-        reference_system: str = "LAT"
+        x: np.float64 = np.float64(0.0),
+        y: np.float64 = np.float64(0.0),
+        z: np.float64 = np.float64(0.0),
+        alpha: np.float64 = np.float64(0.0),
+        beta: np.float64 = np.float64(0.0),
+        gamma: np.float64 = np.float64(0.0),
+        reference_system: str = "LAT",
     ) -> None:
         self.x = x
         self.y = y
