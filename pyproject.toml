@@ -1,11 +1,11 @@
 [tool.poetry]
 name = "owimetadatabase-preprocessor"
-version = "0.2.1"
+version = "0.2.2"
 description = "Package for preprocessing data from owimetadatabase."
 authors = ["arsmlnkv <melnikov.arsene@gmail.com>"]
 readme = "README.md"
-homepage = "https://arsmlnkv.github.io/owimetadatabase-preprocessor/"
-repository = "https://github.com/arsmlnkv/owimetadatabase-preprocessor"
+homepage = "https://owi-lab.github.io/owimetadatabase-preprocessor/"
+repository = "https://github.com/OWI-Lab/owimetadatabase-preprocessor"
 license = "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License"
 keywords = ["owimetadatabase"]
 

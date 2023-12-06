@@ -30,4 +30,4 @@ branches:
     is-release-branch: false
 # ignore:
 # merge-message-formats: {}
-next-version: 0.2.1
+next-version: 0.2.2
