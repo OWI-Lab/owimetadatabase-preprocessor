@@ -3,6 +3,7 @@
 from typing import Dict, Union
 
 import json
+import numpy as np
 import pandas as pd
 import requests
 
@@ -48,12 +49,12 @@ class Position(object):
 
     def __init__(
         self,
-        x: int = 0, 
-        y: int = 0, 
-        z: int = 0, 
-        alpha: int = 0, 
-        beta: int = 0, 
-        gamma: int = 0, 
+        x: np.float64 = 0, 
+        y: np.float64 = 0, 
+        z: np.float64 = 0, 
+        alpha: np.float64 = 0, 
+        beta: np.float64 = 0, 
+        gamma: np.float64 = 0, 
         reference_system: str = "LAT"
     ) -> None:
         self.x = x
