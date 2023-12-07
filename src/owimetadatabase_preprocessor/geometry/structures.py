@@ -1,6 +1,6 @@
 """Module containing the data classes for the geometry module."""
 
-from typing import Dict, List, Tuple, Type, TypedDict, Union
+from typing import Dict, List, Tuple, TypedDict, Union
 
 import matplotlib.patches as mpatches  # type: ignore
 import matplotlib.pyplot as plt  # type: ignore
@@ -19,7 +19,7 @@ PLOT_SETTINGS_SUBASSEMBLY = {
 
 
 class DataMat(TypedDict):
-    title: str 
+    title: str
     slug: str
     id: np.int64
     description: str
@@ -65,18 +65,18 @@ class DataBB(TypedDict):
 
 
 class DataSA(TypedDict):
-    id: np.int64  
-    title: str 
-    description: str 
-    slug: str 
+    id: np.int64
+    title: str
+    description: str
+    slug: str
     x_position: np.float64
     y_position: np.float64
     z_position: np.float64
-    vertical_position_reference_system: str  
-    subassembly_type: str  
-    source: str  
-    asset: np.int64  
-    model_definition: np.int64 
+    vertical_position_reference_system: str
+    subassembly_type: str
+    source: str
+    asset: np.int64
+    model_definition: np.int64
 
 
 class Material(object):
@@ -396,12 +396,17 @@ class BuildingBlock(object):
 
     def __str__(self) -> str:
         return self.title + " (" + self.type + ")"
-    
+
 
 class SubAssembly(object):
     """Subassemblies description."""
 
-    def __init__(self, materials: pd.DataFrame, json: DataSA, api_object: Union[GeometryAPI, None] = None) -> None:
+    def __init__(
+        self,
+        materials: pd.DataFrame,
+        json: DataSA,
+        api_object: Union[GeometryAPI, None] = None,
+    ) -> None:
         self.api = api_object
         self.id = json["id"]
         self.title = json["title"]
@@ -453,7 +458,7 @@ class SubAssembly(object):
 
     @property
     def building_blocks(self) -> Union[List[BuildingBlock], None]:
-        """ Building blocks of the subassembly
+        """Building blocks of the subassembly
 
         :return: List of instances of building block class.
         """
@@ -501,7 +506,7 @@ class SubAssembly(object):
         z_absolute = [z + self.position.z for z in z_all]
         return x_all, z_absolute
 
-    def plot(self, x_offset: np.float64 =  np.float64(0.0)) -> None:
+    def plot(self, x_offset: np.float64 = np.float64(0.0)) -> None:
         """Plot the subassembly."""
         x0, z = self.outline
         plt.plot(
@@ -536,8 +541,8 @@ class SubAssembly(object):
 
     def plotly(
         self,
-        x_offset: np.float64 =  np.float64(0.0),
-        y_offset: np.float64 =  np.float64(0.0)
+        x_offset: np.float64 = np.float64(0.0),
+        y_offset: np.float64 = np.float64(0.0),
     ):
         """Plot the subassembly."""
         x0, z = self.outline
@@ -609,9 +614,7 @@ class SubAssembly(object):
         temp_df = self.as_df(include_absolute_postion=True)
         temp_df.dropna(inplace=True, how="any", axis=0)
         return np.float64(
-            round(
-                temp_df["absolute_position, m"][0] + temp_df["height"][0] / 1000, 3
-            )
+            round(temp_df["absolute_position, m"][0] + temp_df["height"][0] / 1000, 3)
         )
 
     @property
