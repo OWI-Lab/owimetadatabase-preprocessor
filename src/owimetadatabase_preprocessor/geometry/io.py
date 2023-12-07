@@ -66,7 +66,7 @@ class GeometryAPI(API):
         if subassembly_type is not None:
             url_params["sub_assembly__subassembly_type"] = subassembly_type
         if subassembly_id is not None:
-            url_params["sub_assembly__id"] = subassembly_id
+            url_params["sub_assembly__id"] = str(subassembly_id)
         url_data_type = "/geometry/userroutes/buildingblocks"
         output_type = "list"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
