@@ -1,0 +1,364 @@
+"""Module containing the data classes for the geometry module."""
+
+from typing import Dict, List, Tuple, Type, TypedDict, Union
+
+import numpy as np
+import pandas as pd
+from numpy import pi
+
+from owimetadatabase_preprocessor.geometry.io import GeometryAPI
+
+PLOT_SETTINGS_SUBASSEMBLY = {
+    "MP": {"color": "brown"},
+    "TP": {"color": "goldenrod"},
+    "TW": {"color": "grey"},
+}
+
+
+class Data(TypedDict):
+    id: np.int64
+    description: str
+    slug: str
+    alpha: np.float64
+    beta: np.float64
+    gamma: np.float64
+    x_position: np.float64
+    y_position: np.float64
+    z_position: np.float64
+    vertical_position_reference_system: str
+    title: str
+    height: np.float64
+    mass_distribution: np.float64
+    volume_distribution: np.float64
+    area_distribution: np.float64
+    c_d: np.float64
+    c_m: np.float64
+    sub_assembly: np.int64
+    projectsite_name: str
+    asset_name: str
+    subassembly_name: str
+    material_name: str
+    youngs_modulus: np.float64
+    density: np.float64
+    poissons_ratio: np.float64
+    bottom_outer_diameter: np.float64
+    top_outer_diameter: np.float64
+    wall_thickness: np.float64
+    material: np.float64
+    moment_of_inertia_x: np.float64
+    moment_of_inertia_y: np.float64
+    moment_of_inertia_z: np.float64
+    mass: np.float64
+
+
+class Material(object):
+    """Material derived from the raw data."""
+
+    def __init__(self, json: Data) -> None:
+        self.title = json["title"]
+        self.description = json["description"]
+        self.density = json["density"]
+        self.poisson_ratio = json["poissons_ratio"]
+        self.young_modulus = json["youngs_modulus"]
+        self.id = json["id"]
+
+    def as_dict(self) -> Dict[str, Union[str, np.float64]]:
+        """Transform data into dictionary.
+
+        :return: Dictionary with the following keys:
+
+            - "title": Name of the material.
+            - "description": Description of the material.
+            - "poisson_ratio": Poisson ratio of the material.
+            - "young_modulus": Young modulus of the material.
+        """
+        return {
+            "title": self.title,
+            "description": self.description,
+            "poisson_ratio": self.poisson_ratio,
+            "young_modulus": self.young_modulus,
+        }
+
+
+class Position(object):
+    """Position of the components."""
+
+    def __init__(
+        self,
+        x: np.float64 = np.float64(0.0),
+        y: np.float64 = np.float64(0.0),
+        z: np.float64 = np.float64(0.0),
+        alpha: np.float64 = np.float64(0.0),
+        beta: np.float64 = np.float64(0.0),
+        gamma: np.float64 = np.float64(0.0),
+        reference_system: str = "LAT",
+    ) -> None:
+        self.x = x
+        self.y = y
+        self.z = z
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma = gamma
+        self.reference_system = reference_system
+
+
+class BuildingBlock(object):
+    """Building blocks description."""
+
+    def __init__(
+        self, json: Data, subassembly: Union[Type[SubAssembly], None] = None
+    ) -> None:
+        self.id = json["id"]
+        self.title = json["title"]
+        if json["description"]:
+            self.description = json["description"]
+        else:
+            self.description = ""
+        self.position = Position(
+            x=json["x_position"],
+            y=json["y_position"],
+            z=json["z_position"],
+            alpha=json["alpha"],
+            beta=json["beta"],
+            gamma=json["gamma"],
+            reference_system=json["vertical_position_reference_system"],
+        )
+        self.subassembly = subassembly
+        self.material = None
+        if "material" in json and self.subassembly:
+            material_id = json["material"]
+            for mat in self.subassembly.materials:
+                if mat.id == material_id:
+                    self.material = mat
+                    break
+        self.json = json
+
+    @property
+    def type(self) -> str:
+        """Type of the building block."""
+        if "bottom_outer_diameter" in self.json:
+            return "tubular_section"
+        elif "mass" in self.json:
+            return "lumped_mass"
+        elif "mass_distribution" in self.json:
+            return "distributed_mass"
+        else:
+            raise ValueError("Could not find supported building block type.")
+
+    @property
+    def wall_thickness(self) -> Union[np.float64, None]:
+        """Wall thickness of the building block (if exists), mm."""
+        if self.type == "tubular_section":
+            return self.json["wall_thickness"]
+        else:
+            return None
+
+    @property
+    def bottom_outer_diameter(self) -> Union[np.float64, None]:
+        """Bottom outer diameter of the building block (if exists), mm."""
+        if self.type == "tubular_section":
+            return self.json["bottom_outer_diameter"]
+        else:
+            return None
+
+    @property
+    def top_outer_diameter(self) -> Union[np.float64, None]:
+        """Top outer diameter of the building block (if exists), mm."""
+        if self.type == "tubular_section":
+            return self.json["top_outer_diameter"]
+        else:
+            return None
+
+    @property
+    def diameter_str(self) -> str:
+        """Diameter of the building block as a string (if exists), mm."""
+        if self.top_outer_diameter and self.bottom_outer_diameter:
+            if self.top_outer_diameter != self.bottom_outer_diameter:
+                return (
+                    str(round(self.bottom_outer_diameter))
+                    + "/"
+                    + str(round(self.top_outer_diameter))
+                )
+            else:
+                return str(round(self.bottom_outer_diameter))
+        else:
+            return ""
+
+    @property
+    def volume(self) -> Union[np.float64, None]:
+        """Volume of the building block, m³."""
+        if self.type == "tubular_section":
+
+            def _calc_cone_volume(r_bottom, r_top, height):
+                """Calculate the volume of a cone frustum.
+                Source: https://mathworld.wolfram.com/ConicalFrustum.html
+
+                :param r_bottom: Radius of the bottom circle, mm.
+                :param r_top: Radius of the top circle, mm.
+                :param height: Height of the cone frustum, mm.
+                :return: Volume of the cone frustum, mm³.
+                """
+                volume = (
+                    pi * height / 3 * (r_bottom**2 + r_bottom * r_top + r_top**2)
+                )
+                return volume
+
+            r_bottom_inner = (
+                self.json["bottom_outer_diameter"] / 2 - self.json["wall_thickness"]
+            )
+            r_bottom_outer = self.json["bottom_outer_diameter"] / 2
+            r_top_inner = (
+                self.json["top_outer_diameter"] / 2 - self.json["wall_thickness"]
+            )
+            r_top_outer = self.json["top_outer_diameter"] / 2
+            volume_inner_cone = _calc_cone_volume(
+                r_bottom_inner, r_top_inner, self.json["height"]
+            )
+            volume_outer_cone = _calc_cone_volume(
+                r_bottom_outer, r_top_outer, self.json["height"]
+            )
+            return (volume_outer_cone - volume_inner_cone) / 1e9
+        elif self.type == "distributed_mass":
+            if self.height is not None:
+                return np.float64(
+                    round(self.json["volume_distribution"] * self.height / 1000)
+                )
+            else:
+                raise ValueError("Height data is missing.")
+        else:
+            return None
+
+    @property
+    def mass(self) -> np.float64:
+        """Mass of the building block, kg."""
+        if self.type == "lumped_mass":
+            return self.json["mass"]
+        elif self.type == "distributed_mass":
+            if self.height is not None:
+                return np.float64(
+                    round(self.json["mass_distribution"] * self.height / 1000)
+                )
+            else:
+                raise ValueError("Height data is missing.")
+        elif self.type == "tubular_section":
+            return np.float64(round(self.volume * self.material.density, 1))
+        else:
+            raise ValueError("Unsupported building block type.")
+
+    @property
+    def moment_of_inertia(self) -> Dict[str, Union[np.float64, None]]:
+        """Moment of inertia of the building block, kg*m².
+        IMPORTANT! Only works for building blocks of the type lumped_mass.
+
+        :return: Dictionary containing the moment of inertia around the three axis, x,y,z
+        """
+        if self.type == "lumped_mass":
+            return {
+                "x": self.json["moment_of_inertia_x"],
+                "y": self.json["moment_of_inertia_y"],
+                "z": self.json["moment_of_inertia_z"],
+            }
+        else:
+            return {"x": None, "y": None, "z": None}
+
+    @property
+    def outline(self) -> Union[None, Tuple[List[np.float64], List[np.float64]]]:
+        """Trace of the outlines.
+
+        :return: A tuple of two lists containing the x and corresponding z coordinates of the outline.
+        """
+        if self.type == "tubular_section":
+            z_pos_bottom = self.position.z
+            z_pos_top = self.position.z + self.json["height"]
+            x_pos_bottom = self.json["bottom_outer_diameter"] / 2
+            x_pos_top = self.json["top_outer_diameter"] / 2
+            x = [x_pos_bottom, -x_pos_bottom, -x_pos_top, x_pos_top, x_pos_bottom]
+            z = [z_pos_bottom, z_pos_bottom, z_pos_top, z_pos_top, z_pos_bottom]
+            return x, z
+        else:
+            return None
+
+    @property
+    def marker(self) -> Union[None, Dict[str, Union[np.float64, str]]]:
+        """Indication for the lumped mass in the building block.
+
+        :return: Dictionary containing the x,y,z coordinates of the marker and the radius of the marker.
+        """
+        if self.type == "lumped_mass":
+            return {
+                "x": self.position.x,
+                "y": self.position.y,
+                "z": self.position.z,
+                "radius": np.float64(round(self.json["mass"]) / 10),
+                "hovertext": "<br>".join(
+                    [
+                        self.title,
+                        "Mass: " + str(self.json["mass"]) + "kg",
+                        "x: " + str(self.position.x),
+                        "y: " + str(self.position.y),
+                        "z: " + str(self.position.z),
+                    ]
+                ),
+            }
+        else:
+            return None
+
+    @property
+    def line(self) -> Union[None, Dict[str, Union[List[np.float64], str]]]:
+        """Line for the distributed mass in the building block.
+
+        :return: Dictionary containing the x,y,z coordinates of the line and the color of the line.
+        """
+        if self.type == "distributed_mass" and self.height is not None:
+            return {
+                "x": [self.position.x, self.position.x],
+                "y": [self.position.y, self.position.y],
+                "z": [self.position.z, self.position.z + self.height],
+                "color": "black",
+            }
+        else:
+            return None
+
+    @property
+    def height(self) -> Union[np.float64, None]:
+        """Height of the building block , mm."""
+        if "height" in self.json:
+            return self.json["height"]
+        else:
+            return None
+
+    def as_dict(
+        self,
+    ) -> Dict[str, Union[str, np.float64, Dict[str, Union[np.float64, None]], None]]:
+        """Transform data into dictionary.
+
+        :return: Dictionary with the following keys:
+
+            - "title": Name of the building block.
+            - "x": X coordinate of the building block.
+            - "y": Y coordinate of the building block.
+            - "z": Z coordinate of the building block.
+            - "OD": Outer diameter of the building block.
+            - "wall_thickness": Wall thickness of the building block.
+            - "height": Height of the building block.
+            - "volume": Volume of the building block.
+            - "mass": Mass of the building block.
+            - "moment_of_inertia": Moment of inertia of the building block.
+            - "description": Description of the building block.
+        """
+        return {
+            "title": self.title,
+            "x": self.position.x,
+            "y": self.position.y,
+            "z": self.position.z,
+            "OD": self.diameter_str,
+            "wall_thickness": self.wall_thickness,
+            "height": self.height,
+            "volume": self.volume,
+            "mass": self.mass,
+            "moment_of_inertia": self.moment_of_inertia,
+            "description": self.description,
+        }
+
+    def __str__(self) -> str:
+        return self.title + " (" + self.type + ")"
