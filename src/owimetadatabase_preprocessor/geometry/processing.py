@@ -116,31 +116,19 @@ class OWT(object):
         :return: Dataframe consisting of the required data to build FE models.
         """
         df = self.set_df_structure(idx)
-        df.height = pd.to_numeric(df.height)
-        df.wall_thickness = pd.to_numeric(df.wall_thickness)
+        df["height"] = pd.to_numeric(df["height"] )
+        df["wall_thickness"] = pd.to_numeric(df["wall_thickness"])
         df.rename(columns={"wall_thickness": "Wall thickness [mm]"}, inplace=True)
         df.rename(columns={"volume": "Volume [m3]"}, inplace=True)
-        # Outer diameter saved as string, need to be split an converted to float
-        od = df.OD.values
-        d_to = [d.split("/", 1)[0] for d in od]
-        d_from = []
-        for d in od:
-            d_i = d.split("/", 1)
-            if len(d_i) > 1:
-                d_from.append(d_i[1])
-            else:
-                d_from.append(d_i[0])
-        df["Diameter from [m]"] = np.array(d_from, dtype=float) * 1e-3  # to meters
-        df["Diameter to [m]"] = np.array(d_to, dtype=float) * 1e-3  # to meters
-
-        # Creating additional columns with required mechanical properties to build up tbe FE model
-        df["rho [t/m]"] = df.mass / df.height
-        df["Mass [t]"] = df.mass * 1e-3
-        df["Height [m]"] = df.height * 1e-3
+        d_to = [d.split("/", 1)[0] for d in df["OD"].values]
+        d_from = [d.split("/", 1)[1] if len(d.split("/", 1)) > 1 else d.split("/", 1)[0] for d in df["OD"].values]
+        df["Diameter from [m]"] = np.array(d_from, dtype=float) * 1e-3
+        df["Diameter to [m]"] = np.array(d_to, dtype=float) * 1e-3
+        df["rho [t/m]"] = df["mass"] / df["height"]
+        df["Mass [t]"] = df["mass"] * 1e-3
+        df["Height [m]"] = df["height"] * 1e-3
         df["Youngs modulus [GPa]"] = 210
         df["Poissons ratio [-]"] = 0.3
-
-        # Selecting only needed columns for FE modelling
         cols = [
             "Depth from [mLAT]",
             "Depth to [mLAT]",
