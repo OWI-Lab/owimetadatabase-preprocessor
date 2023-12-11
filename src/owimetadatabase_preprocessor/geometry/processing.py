@@ -1,7 +1,7 @@
 "Module containing the processing functions for the geometry data."
 
 from copy import deepcopy
-from typing import Type
+from typing import Dict, Union
 
 import numpy as np
 import pandas as pd
@@ -17,7 +17,6 @@ class OWT(object):
         subassemblies: pd.DataFrame,
         tower_base=None,
         pile_head=None,
-
     ) -> None:
         """Get all subassemblies for a given Turbine.
 
@@ -27,83 +26,29 @@ class OWT(object):
 
         :return:
         """
-        subassemblies_types = [
-            sa["subassembly_type"] for _, sa in subassemblies.iterrows()
-        ]
-        subassemblies_list = [
-            SubAssembly(materials, sa.to_dict(), api_object=api)
-            for _, sa in subassemblies.iterrows()
-        ]
-        subassemblies_ = {k: v for (k, v) in zip(subassemblies_types, subassemblies_list)}
         self.api = api
         self.materials = materials
-        self.sub_assemblies = subassemblies_
-
-        # Creating dataframes for each structural member (TW, TP, MP)
+        self.sub_assemblies = self._get_subassemblies(materials, subassemblies)
         self.tower_sub_assemblies = None
         self.tp_sub_assemblies = None
         self.mp_sub_assemblies = None
-        self.set_members()
-
-        # Tower structure geometry
+        self._set_members()
         self.tower_base = tower_base
         self.pile_head = pile_head
-
-        # MP structure geometry
         self.pile_toe = None
-
-        # DataFrames containing OWT structure properties
         self.rna = None
         self.tower_geometry = None
         self.transition_piece = None
         self.monopile = None
         self.substructure = None
         self.tp_skirt = None
-
-        # DataFrames containing lumped masses
         self.tower_lumped_mass = None
         self.tp_lumped_mass = None
         self.mp_lumped_mass = None
-
-        # DataFrames containing uniformly Distributed Appurtenances
         self.tp_distributed_mass = None
         self.mp_distributed_mass = None
 
-    @staticmethod
-    def can_properties(row: pd.Series) -> pd.Series:
-        """Recalculation of can properties based on section properties and can elevations: height [m],
-        volume [m3], mass [t], rho [t/m].
-
-        :param row: Original can properties.
-        :return: Recalculated can properties.
-        """
-        density = (
-            row["Mass [t]"] / row["Volume [m3]"]
-        )
-
-        # Volume calculation (truncated cone)
-        height = row["Depth from [mLAT]"] - row["Depth to [mLAT]"]
-        r1 = row["Diameter from [m]"] / 2
-        r2 = row["Diameter to [m]"] / 2
-        volume_out = 1 / 3 * np.pi * (r1**2 + r1 * r2 + r2**2) * height
-
-        # Hollow volume
-        wall_thickness = row["Wall thickness [mm]"] * 1e-3
-        r1 = r1 - wall_thickness
-        r2 = r2 - wall_thickness
-        volume_in = 1 / 3 * np.pi * (r1**2 + r1 * r2 + r2**2) * height
-
-        # Final volume
-        volume = volume_out - volume_in
-        mass = volume * density
-        rho_m = mass / height
-        can_properties = pd.Series(
-            data=[height, volume, mass, rho_m],
-            index=["Height [m]", "Volume [m3]", "Mass [t]", "rho [t/m]"],
-        )
-        return can_properties
-
-    def set_members(self) -> None:
+    def _set_members(self) -> None:
         """Identifies and stores in separate data frames each part of the support structure (tower=TW, transition piece=TP,
         monopile=MP).
         """
@@ -115,44 +60,75 @@ class OWT(object):
             if k == "MP":
                 self.mp_sub_assemblies = v.as_df()
 
+    def _get_subassemblies(self, materials: pd.DataFrame, subassemblies: pd.DataFrame) -> Dict[str, SubAssembly]:
+        """Creates a dictionary containing the subassemblies of the OWT."""
+        subassemblies_types = [
+            sa["subassembly_type"] for _, sa in subassemblies.iterrows()
+        ]
+        subassemblies_list = [
+            SubAssembly(materials, sa.to_dict(), api_object=self.api)
+            for _, sa in subassemblies.iterrows()
+        ]
+        subassemblies = {
+            k: v for (k, v) in zip(subassemblies_types, subassemblies_list)
+        }
+        return subassemblies
+
+    @staticmethod
+    def can_properties(row: pd.Series) -> pd.Series:
+        """Recalculation of can properties based on section properties and can elevations: height [m],
+        volume [m3], mass [t], rho [t/m].
+
+        :param row: Original can properties.
+        :return: Recalculated can properties.
+        """
+        density = row["Mass [t]"] / row["Volume [m3]"]
+        height = row["Depth from [mLAT]"] - row["Depth to [mLAT]"]
+        r1 = row["Diameter from [m]"] / 2
+        r2 = row["Diameter to [m]"] / 2
+        volume_out = 1 / 3 * np.pi * (r1**2 + r1 * r2 + r2**2) * height
+        wall_thickness = row["Wall thickness [mm]"] * 1e-3
+        r1 = r1 - wall_thickness
+        r2 = r2 - wall_thickness
+        volume_in = 1 / 3 * np.pi * (r1**2 + r1 * r2 + r2**2) * height
+        volume = volume_out - volume_in
+        mass = volume * density
+        rho_m = mass / height
+        can_properties = pd.Series(
+            data=[height, volume, mass, rho_m],
+            index=["Height [m]", "Volume [m3]", "Mass [t]", "rho [t/m]"],
+        )
+        return can_properties
+
     def set_df_structure(self, idx: str) -> pd.DataFrame:
         """Calculates and/or converts geometrical data of subassemblies from the database.
 
-        :param idx: Possible index t oidentify corresponding subassembly.
+        :param idx: Possible index to identify corresponding subassembly.
         :return: Data frame containing geometry data from database wth z in mLAT system.
         """
-        # Keys to get back
         cols = ["OD", "height", "mass", "volume", "wall_thickness", "x", "y", "z"]
         if idx == "tw":
-            # Tower geometry data
             df_index = self.tower_sub_assemblies.index.str.contains(idx)
-            df = deepcopy(self.tower_sub_assemblies.loc[df_index, cols])
-            # Conversion of local z coordinates to elevation in mLAT system
+            df = deepcopy(self.tower_sub_assemblies.loc[df_index, cols])            
             depth_to = self.tower_base + df.z * 1e-3
             depth_from = depth_to + df.height * 1e-3
             df["Depth from [mLAT]"] = depth_from
             df["Depth to [mLAT]"] = depth_to
         elif idx == "tp":
-            # Transition piece geometry data
-            # NOTE : we don't take into account the grout, this element will be modelled as a distributed lumped mass
-            df_index = (
-                (self.tp_sub_assemblies.index.str.contains(idx))
-                & (~self.tp_sub_assemblies.index.str.contains("grout"))
+            # We don't take into account the grout, this element will be modelled as a distributed lumped mass.
+            df_index = (self.tp_sub_assemblies.index.str.contains(idx)) & (
+                ~self.tp_sub_assemblies.index.str.contains("grout")
             )
             df = deepcopy(self.tp_sub_assemblies.loc[df_index, cols])
-            # Conversion of local z coordinates to elevation in mLAT system
             bottom_tp = self.tower_base - round(df.height.sum() * 1e-3, 3)
             depth_to = bottom_tp + df.z * 1e-3
             depth_from = depth_to + df.height * 1e-3
             df["Depth from [mLAT]"] = depth_from
             df["Depth to [mLAT]"] = depth_to
         elif idx == "mp":
-            # Monopile foundation data
             df_index = self.mp_sub_assemblies.index.str.contains(idx)
             df = deepcopy(self.mp_sub_assemblies.loc[df_index, cols])
-            # Conversion of local z coordinates to elevation in mLAT system
             toe = self.pile_head - df["height"].sum() * 1e-3
-            # Saving coordinates pile toe
             self.pile_toe = round(toe, 3)
             depth_to = toe + df.z * 1e-3
             depth_from = depth_to + df.height * 1e-3
@@ -160,13 +136,13 @@ class OWT(object):
             df["Depth to [mLAT]"] = depth_to
         else:
             raise ValueError("Unknown index.")
-        # Round elevations to mm to avoid numerical inconsistencies later when setting altitude values to apply loads
+        # Round elevations to mm to avoid numerical inconsistencies later when setting altitude values to apply loads.
         df = df.round({"Depth from [mLAT]": 3, "Depth to [mLAT]": 3})
         return df
 
     def process_structure_geometry(self, idx: str) -> pd.DataFrame:
         """Calculates and/or converts geometrical data of subassemblies from the database to use as input for FE models.
-        
+
         :param idx: Possible index to identify corresponding subassembly.
         :return: Dataframe consisting of the required data to build FE models.
         """

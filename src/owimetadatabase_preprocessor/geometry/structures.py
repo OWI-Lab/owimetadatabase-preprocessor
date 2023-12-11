@@ -9,7 +9,6 @@ import pandas as pd
 import plotly.graph_objs as go  # type: ignore
 from numpy import pi
 
-
 PLOT_SETTINGS_SUBASSEMBLY = {
     "MP": {"color": "brown"},
     "TP": {"color": "goldenrod"},
@@ -132,9 +131,7 @@ class Position(object):
 class BuildingBlock(object):
     """Building blocks description."""
 
-    def __init__(
-        self, json: DataBB, subassembly: Union[Any, None] = None
-    ) -> None:
+    def __init__(self, json: DataBB, subassembly: Union[Any, None] = None) -> None:
         self.id = json["id"]
         self.title = json["title"]
         if json["description"]:
