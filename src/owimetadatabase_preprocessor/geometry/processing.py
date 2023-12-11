@@ -144,7 +144,7 @@ class OWT(object):
         ]
         return df[cols]
 
-    def process_rna(self) -> pd.DataFrame:
+    def process_rna(self) -> None:
         """Sets dataframe containing the required properties to model the RNA system.
 
         :return:
@@ -155,26 +155,19 @@ class OWT(object):
                 rna_index, ["mass", "moment_of_inertia", "x", "y", "z"]
             ]
         )
-        # Moments of Inertia - [tonnes m2]
         mi = rna["moment_of_inertia"].values
-        i_xx = []
-        i_yy = []
-        i_zz = []
-        for i in range(len(mi)):
-            i_xx.append(mi[i]["x"] * 1e-3)
-            i_yy.append(mi[i]["y"] * 1e-3)
-            i_zz.append(mi[i]["z"] * 1e-3)
-
-        # Adding columns
+        i_xx, i_yy, i_zz = [], [], []
+        for m in mi:
+            i_xx.append(m["x"] * 1e-3)
+            i_yy.append(m["y"] * 1e-3)
+            i_zz.append(m["z"] * 1e-3)
         rna["Ixx [tm2]"] = i_xx
         rna["Iyy [tm2]"] = i_yy
         rna["Izz [tm2]"] = i_zz
-        rna["Mass [t]"] = rna.mass * 1e-3
-        rna["X [m]"] = rna.x * 1e-3
-        rna["Y [m]"] = rna.y * 1e-3
-        rna["Z [mLAT]"] = self.tower_base + rna.z * 1e-3
-
-        # Setting DataFrame
+        rna["Mass [t]"] = rna["mass"] * 1e-3
+        rna["X [m]"] = rna["x"] * 1e-3
+        rna["Y [m]"] = rna["y"] * 1e-3
+        rna["Z [mLAT]"] = self.tower_base + rna["z"] * 1e-3
         cols = [
             "X [m]",
             "Y [m]",
@@ -186,84 +179,62 @@ class OWT(object):
         ]
         self.rna = rna[cols]
 
-    def set_df_appurtenances(self, idx):
-        """
-        Sets dataframe containing the required properties to model concentrated masses from database subassemblies.
+    def set_df_appurtenances(self, idx: str) -> pd.DataFrame:
+        """Sets dataframe containing the required properties to model concentrated masses from database subassemblies.
 
-        :param idx: string. Possible values:
-            * 'TW'
-            * 'TP'
-            * 'MP'
-
-        :return: data frame containing lumped masses data from database. Z coordinates in mLAT system.
+        :param idx: Index to identify corresponding subassembly with possible values: 'TW', 'TP', 'MP'.
+        :return: Data frame containing lumped masses data from database with Z coordinates in mLAT system.
         """
+        cols = ["mass", "x", "y", "z"]
         if idx == "TW":
-            # Tower appurtenances
             df_index = self.tower_sub_assemblies.index.str.contains(idx)
             df = deepcopy(
-                self.tower_sub_assemblies.loc[df_index, ["mass", "x", "y", "z"]]
+                self.tower_sub_assemblies.loc[df_index, cols]
             )
-            # Conversion of local z coordinates to elevation in mLAT system
-            df["Z [mLAT]"] = self.tower_base + df.z * 1e-3
+            df["Z [mLAT]"] = self.tower_base + df["z"] * 1e-3
         elif idx == "TP":
-            # Transition piece
             df_index = self.tp_sub_assemblies.index.str.contains(idx)
             df = deepcopy(
-                self.tp_sub_assemblies.loc[df_index, ["mass", "x", "y", "z", "height"]]
+                self.tp_sub_assemblies.loc[df_index, cols + ["height"]]
             )
             # Lumped masses have 'None' height whereas distributed masses present not 'None' values
-            df.height = pd.to_numeric(df.height)
-            df = df[df.height.isnull()]
-            # Conversion of local z coordinates to elevation in mLAT system
+            df["height"] = pd.to_numeric(df["height"])
+            df = df[df["height"].isnull()]
             bottom = self.tower_base - self.tp_sub_assemblies.iloc[0]["z"] * 1e-3
-            df["Z [mLAT]"] = bottom + df.z * 1e-3
+            df["Z [mLAT]"] = bottom + df["z"] * 1e-3
         elif idx == "MP":
-            # Monopile
             df_index = self.mp_sub_assemblies.index.str.contains(idx)
             df = deepcopy(
-                self.mp_sub_assemblies.loc[df_index, ["mass", "x", "y", "z", "height"]]
+                self.mp_sub_assemblies.loc[df_index, cols + ["height"]]
             )
             # Lumped masses have 'None' height whereas distributed masses present not 'None' values
-            df.height = pd.to_numeric(df.height)
-            df = df[df.height.isnull()]
-            # Conversion of local z coordinates to elevation in mLAT system
+            df["height"] = pd.to_numeric(df["height"])
+            df = df[df["height"].isnull()]
             bottom = self.pile_toe
-            df["Z [mLAT]"] = bottom + df.z * 1e-3
+            df["Z [mLAT]"] = bottom + df["z"] * 1e-3
         else:
             raise ValueError("Unknown index.")
-
         return df
 
-    def process_lumped_masses(self, idx):
-        """
-        Creates dataframe containing the required properties to model lumped mass appurtenances. Note that
+    def process_lumped_masses(self, idx: str) -> pd.DataFrame:
+        """Creates dataframe containing the required properties to model lumped mass appurtenances. Note that
         if the preprocessor package does not find any appurtenances it'll return an empty dataframe.
 
-        :param idx: string. Possible values:
-            * 'TW'
-            * 'TP'
-            * 'MP'
-
-        :return: dataframe.
+        :param idx:  Index to identify corresponding subassembly with possible values: 'TW', 'TP', 'MP'.
+        :return: Dataframe.
         """
         df = self.set_df_appurtenances(idx)
-        # Setting units
         df["Mass [t]"] = df.mass * 1e-3
         df["X [m]"] = df.x * 1e-3
         df["Y [m]"] = df.y * 1e-3
-
-        # Setting DataFrame
         cols = ["X [m]", "Y [m]", "Z [mLAT]", "Mass [t]"]
-
         return df[cols]
 
-    def set_df_distributed_appurtenances(self, idx):
-        """
-        :param idx: string. Possible values:
-            * 'TP'
-            * 'MP'
+    def set_df_distributed_appurtenances(self, idx: str) -> pd.DataFrame:
+        """Sets dataframe containing the required properties to model distributed lumped masses from database.
 
-        :return: data frame containing distributed lumped masses data from database. Z coordinates in mLAT system.
+        :param idx: Index to identify corresponding subassembly with possible values: 'TW', 'TP', 'MP'.
+        :return: Dataframe containing distributed lumped masses data from database. Z coordinates in mLAT system.
         """
         if idx == "TP":
             # Transition piece
@@ -300,7 +271,6 @@ class OWT(object):
             raise ValueError(
                 "Unknown index or non distributed lumped masses located outside the transition piece."
             )
-
         return df
 
     def process_distributed_lumped_masses(self, idx):
