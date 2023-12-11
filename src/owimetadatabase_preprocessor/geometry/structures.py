@@ -1,6 +1,6 @@
 """Module containing the data classes for the geometry module."""
 
-from typing import Dict, List, Tuple, TypedDict, Union
+from typing import Any, Dict, List, Tuple, TypedDict, Union
 
 import matplotlib.patches as mpatches  # type: ignore
 import matplotlib.pyplot as plt  # type: ignore
@@ -9,7 +9,6 @@ import pandas as pd
 import plotly.graph_objs as go  # type: ignore
 from numpy import pi
 
-from owimetadatabase_preprocessor.geometry.io import GeometryAPI
 
 PLOT_SETTINGS_SUBASSEMBLY = {
     "MP": {"color": "brown"},
@@ -134,7 +133,7 @@ class BuildingBlock(object):
     """Building blocks description."""
 
     def __init__(
-        self, json: DataBB, subassembly: Union[SubAssembly, None] = None
+        self, json: DataBB, subassembly: Union[Any, None] = None
     ) -> None:
         self.id = json["id"]
         self.title = json["title"]
@@ -200,7 +199,12 @@ class BuildingBlock(object):
     @property
     def diameter_str(self) -> str:
         """Diameter of the building block as a string (if exists), mm."""
-        if self.top_outer_diameter and self.bottom_outer_diameter:
+        if (
+            self.top_outer_diameter
+            and self.bottom_outer_diameter
+            and not np.isnan(self.top_outer_diameter)
+            and not np.isnan(self.bottom_outer_diameter)
+        ):
             if self.top_outer_diameter != self.bottom_outer_diameter:
                 return (
                     str(round(self.bottom_outer_diameter))
@@ -405,7 +409,7 @@ class SubAssembly(object):
         self,
         materials: pd.DataFrame,
         json: DataSA,
-        api_object: Union[GeometryAPI, None] = None,
+        api_object: Union[Any, None] = None,
     ) -> None:
         self.api = api_object
         self.id = json["id"]
