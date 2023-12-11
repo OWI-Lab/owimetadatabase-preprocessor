@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 from owimetadatabase_preprocessor.io import API
+from owimetadatabase_preprocessor.geometry.processing import OWT
 
 
 class GeometryAPI(API):
@@ -86,3 +87,9 @@ class GeometryAPI(API):
         output_type = "list"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
+
+    def processing(self, turbine: str) -> OWT:
+        """Return the processing class."""
+        materials = self.get_materials()["data"]
+        subassemblies = self.get_subassemblies(assetlocation=turbine)["data"]
+        return OWT(self, materials, subassemblies)
