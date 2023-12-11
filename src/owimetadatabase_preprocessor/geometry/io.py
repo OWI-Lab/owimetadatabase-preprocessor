@@ -5,8 +5,8 @@ from typing import Dict, Union
 import numpy as np
 import pandas as pd
 
-from owimetadatabase_preprocessor.io import API
 from owimetadatabase_preprocessor.geometry.processing import OWT
+from owimetadatabase_preprocessor.io import API
 
 
 class GeometryAPI(API):
