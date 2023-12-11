@@ -28,7 +28,7 @@ class OWT(object):
         """
         self.api = api
         self.materials = materials
-        self.sub_assemblies = self._get_subassemblies(materials, subassemblies)
+        self._set_subassemblies(subassemblies)
         self.tower_sub_assemblies = None
         self.tp_sub_assemblies = None
         self.mp_sub_assemblies = None
@@ -60,45 +60,18 @@ class OWT(object):
             if k == "MP":
                 self.mp_sub_assemblies = v.as_df()
 
-    def _get_subassemblies(self, materials: pd.DataFrame, subassemblies: pd.DataFrame) -> Dict[str, SubAssembly]:
+    def _set_subassemblies(self, subassemblies: pd.DataFrame) -> None:
         """Creates a dictionary containing the subassemblies of the OWT."""
         subassemblies_types = [
             sa["subassembly_type"] for _, sa in subassemblies.iterrows()
         ]
         subassemblies_list = [
-            SubAssembly(materials, sa.to_dict(), api_object=self.api)
+            SubAssembly(self.materials, sa.to_dict(), api_object=self.api)
             for _, sa in subassemblies.iterrows()
         ]
-        subassemblies = {
+        self.sub_assemblies = {
             k: v for (k, v) in zip(subassemblies_types, subassemblies_list)
         }
-        return subassemblies
-
-    @staticmethod
-    def can_properties(row: pd.Series) -> pd.Series:
-        """Recalculation of can properties based on section properties and can elevations: height [m],
-        volume [m3], mass [t], rho [t/m].
-
-        :param row: Original can properties.
-        :return: Recalculated can properties.
-        """
-        density = row["Mass [t]"] / row["Volume [m3]"]
-        height = row["Depth from [mLAT]"] - row["Depth to [mLAT]"]
-        r1 = row["Diameter from [m]"] / 2
-        r2 = row["Diameter to [m]"] / 2
-        volume_out = 1 / 3 * np.pi * (r1**2 + r1 * r2 + r2**2) * height
-        wall_thickness = row["Wall thickness [mm]"] * 1e-3
-        r1 = r1 - wall_thickness
-        r2 = r2 - wall_thickness
-        volume_in = 1 / 3 * np.pi * (r1**2 + r1 * r2 + r2**2) * height
-        volume = volume_out - volume_in
-        mass = volume * density
-        rho_m = mass / height
-        can_properties = pd.Series(
-            data=[height, volume, mass, rho_m],
-            index=["Height [m]", "Volume [m3]", "Mass [t]", "rho [t/m]"],
-        )
-        return can_properties
 
     def set_df_structure(self, idx: str) -> pd.DataFrame:
         """Calculates and/or converts geometrical data of subassemblies from the database.
@@ -112,19 +85,15 @@ class OWT(object):
             df = deepcopy(self.tower_sub_assemblies.loc[df_index, cols])            
             depth_to = self.tower_base + df.z * 1e-3
             depth_from = depth_to + df.height * 1e-3
-            df["Depth from [mLAT]"] = depth_from
-            df["Depth to [mLAT]"] = depth_to
         elif idx == "tp":
             # We don't take into account the grout, this element will be modelled as a distributed lumped mass.
             df_index = (self.tp_sub_assemblies.index.str.contains(idx)) & (
                 ~self.tp_sub_assemblies.index.str.contains("grout")
             )
             df = deepcopy(self.tp_sub_assemblies.loc[df_index, cols])
-            bottom_tp = self.tower_base - round(df.height.sum() * 1e-3, 3)
+            bottom_tp = self.tower_base - df["height"].sum() * 1e-3
             depth_to = bottom_tp + df.z * 1e-3
             depth_from = depth_to + df.height * 1e-3
-            df["Depth from [mLAT]"] = depth_from
-            df["Depth to [mLAT]"] = depth_to
         elif idx == "mp":
             df_index = self.mp_sub_assemblies.index.str.contains(idx)
             df = deepcopy(self.mp_sub_assemblies.loc[df_index, cols])
@@ -132,10 +101,10 @@ class OWT(object):
             self.pile_toe = round(toe, 3)
             depth_to = toe + df.z * 1e-3
             depth_from = depth_to + df.height * 1e-3
-            df["Depth from [mLAT]"] = depth_from
-            df["Depth to [mLAT]"] = depth_to
         else:
             raise ValueError("Unknown index.")
+        df["Depth from [mLAT]"] = depth_from
+        df["Depth to [mLAT]"] = depth_to
         # Round elevations to mm to avoid numerical inconsistencies later when setting altitude values to apply loads.
         df = df.round({"Depth from [mLAT]": 3, "Depth to [mLAT]": 3})
         return df
@@ -426,6 +395,32 @@ class OWT(object):
             # Uniformly distributed appurtenances
             self.mp_distributed_mass = self.process_distributed_lumped_masses("MP")
 
+    @staticmethod
+    def can_properties(row: pd.Series) -> pd.Series:
+        """Recalculation of can properties based on section properties and can elevations: height [m],
+        volume [m3], mass [t], rho [t/m].
+
+        :param row: Original can properties.
+        :return: Recalculated can properties.
+        """
+        density = row["Mass [t]"] / row["Volume [m3]"]
+        height = row["Depth from [mLAT]"] - row["Depth to [mLAT]"]
+        r1 = row["Diameter from [m]"] / 2
+        r2 = row["Diameter to [m]"] / 2
+        volume_out = 1 / 3 * np.pi * (r1**2 + r1 * r2 + r2**2) * height
+        wall_thickness = row["Wall thickness [mm]"] * 1e-3
+        r1 = r1 - wall_thickness
+        r2 = r2 - wall_thickness
+        volume_in = 1 / 3 * np.pi * (r1**2 + r1 * r2 + r2**2) * height
+        volume = volume_out - volume_in
+        mass = volume * density
+        rho_m = mass / height
+        can_properties = pd.Series(
+            data=[height, volume, mass, rho_m],
+            index=["Height [m]", "Volume [m3]", "Mass [t]", "rho [t/m]"],
+        )
+        return can_properties
+
     def can_modification(self, df, altitude, position="bottom"):
         """
         Args:
@@ -454,7 +449,6 @@ class OWT(object):
         # Recalculating other properties to match geometry & Substitution
         cols = ["Height [m]", "Volume [m3]", "Mass [t]", "rho [t/m]"]
         df.loc[df.index[ind], cols] = self.can_properties(df.iloc[ind])
-
         return df
 
     def assembly_tp_mp(self):
