@@ -49,7 +49,7 @@ class OWT(object):
         self.mp_distributed_mass = None
 
     def _set_members(self) -> None:
-        """Identifies and stores in separate data frames each part of the support structure (tower=TW, transition piece=TP,
+        """Identify and stores in separate data frames each part of the support structure (tower=TW, transition piece=TP,
         monopile=MP).
         """
         for k, v in self.sub_assemblies.items():
@@ -61,7 +61,7 @@ class OWT(object):
                 self.mp_sub_assemblies = v.as_df()
 
     def _set_subassemblies(self, subassemblies: pd.DataFrame) -> None:
-        """Creates a dictionary containing the subassemblies of the OWT."""
+        """Create a dictionary containing the subassemblies of the OWT."""
         subassemblies_types = [
             sa["subassembly_type"] for _, sa in subassemblies.iterrows()
         ]
@@ -74,7 +74,7 @@ class OWT(object):
         }
 
     def set_df_structure(self, idx: str) -> pd.DataFrame:
-        """Calculates and/or converts geometrical data of subassemblies from the database.
+        """Calculate and/or converts geometrical data of subassemblies from the database.
 
         :param idx: Possible index to identify corresponding subassembly.
         :return: Data frame containing geometry data from database wth z in mLAT system.
@@ -110,7 +110,7 @@ class OWT(object):
         return df
 
     def process_structure_geometry(self, idx: str) -> pd.DataFrame:
-        """Calculates and/or converts geometrical data of subassemblies from the database to use as input for FE models.
+        """Calculate and/or converts geometrical data of subassemblies from the database to use as input for FE models.
 
         :param idx: Possible index to identify corresponding subassembly.
         :return: Dataframe consisting of the required data to build FE models.
@@ -145,7 +145,7 @@ class OWT(object):
         return df[cols]
 
     def process_rna(self) -> None:
-        """Sets dataframe containing the required properties to model the RNA system.
+        """Set dataframe containing the required properties to model the RNA system.
 
         :return:
         """
@@ -180,7 +180,7 @@ class OWT(object):
         self.rna = rna[cols]
 
     def set_df_appurtenances(self, idx: str) -> pd.DataFrame:
-        """Sets dataframe containing the required properties to model concentrated masses from database subassemblies.
+        """Set dataframe containing the required properties to model concentrated masses from database subassemblies.
 
         :param idx: Index to identify corresponding subassembly with possible values: 'TW', 'TP', 'MP'.
         :return: Data frame containing lumped masses data from database with Z coordinates in mLAT system.
@@ -217,7 +217,7 @@ class OWT(object):
         return df
 
     def process_lumped_masses(self, idx: str) -> pd.DataFrame:
-        """Creates dataframe containing the required properties to model lumped mass appurtenances. Note that
+        """Create dataframe containing the required properties to model lumped mass appurtenances. Note that
         if the preprocessor package does not find any appurtenances it'll return an empty dataframe.
 
         :param idx:  Index to identify corresponding subassembly with possible values: 'TW', 'TP', 'MP'.
@@ -231,68 +231,50 @@ class OWT(object):
         return df[cols]
 
     def set_df_distributed_appurtenances(self, idx: str) -> pd.DataFrame:
-        """Sets dataframe containing the required properties to model distributed lumped masses from database.
+        """Set dataframe containing the required properties to model distributed lumped masses from database.
 
         :param idx: Index to identify corresponding subassembly with possible values: 'TW', 'TP', 'MP'.
         :return: Dataframe containing distributed lumped masses data from database. Z coordinates in mLAT system.
         """
+        cols = ["mass", "x", "y", "z", "height", "volume", "description"]
         if idx == "TP":
-            # Transition piece
             # Grout is included here
             df_index = (self.tp_sub_assemblies.index.str.contains(idx)) | (
                 self.tp_sub_assemblies.index.str.contains("grout")
             )
-            df = deepcopy(
-                self.tp_sub_assemblies.loc[
-                    df_index, ["mass", "x", "y", "z", "height", "volume", "description"]
-                ]
-            )
+            df = deepcopy(self.tp_sub_assemblies.loc[df_index, cols])
             # Lumped masses have 'None' height whereas distributed masses present not 'None' values
-            df.height = pd.to_numeric(df.height)
-            df = df[df.height.notnull()]
-            # Conversion of local z coordinates to elevation in mLAT system
+            df["height"] = pd.to_numeric(df["height"])
+            df = df[df["height"].notnull()]
             bottom_tp = self.tower_base - self.tp_sub_assemblies.iloc[0]["z"] * 1e-3
-            df["Z [mLAT]"] = bottom_tp + df.z * 1e-3
+            df["Z [mLAT]"] = bottom_tp + df["z"] * 1e-3
         elif idx == "MP":
-            # Monopile
             df_index = self.mp_sub_assemblies.index.str.contains(idx)
-            df = deepcopy(
-                self.mp_sub_assemblies.loc[
-                    df_index, ["mass", "x", "y", "z", "height", "volume", "description"]
-                ]
-            )
+            df = deepcopy(self.mp_sub_assemblies.loc[df_index, cols])
             # Lumped masses have 'None' height whereas distributed masses present not 'None' values
-            df.height = pd.to_numeric(df.height)
-            df = df[df.height.notnull()]
-            # Conversion of local z coordinates to elevation in mLAT system
+            df["height"] = pd.to_numeric(df["height"])
+            df = df[df["height"].notnull()]
             bottom = self.pile_toe
-            df["Z [mLAT]"] = bottom + df.z * 1e-3
+            df["Z [mLAT]"] = bottom + df["z"] * 1e-3
         else:
             raise ValueError(
                 "Unknown index or non distributed lumped masses located outside the transition piece."
             )
         return df
 
-    def process_distributed_lumped_masses(self, idx):
-        """
-        Creates dataframe containing the required properties to model uniformly distributed appurtenances. Note that
+    def process_distributed_lumped_masses(self, idx: str) -> pd.DataFrame:
+        """Create dataframe containing the required properties to model uniformly distributed appurtenances. Note that
         if the preprocessor package does not find any appurtenances it'll return an empty dataframe.
 
-        :param idx: string. Possible values:
-            * 'TP'
-            * 'MP'
-
-        :return: dataframe.
+        :param idx: Index to identify corresponding subassembly with possible values: 'TP', 'MP'.
+        :return: Dataframe.
         """
         df = self.set_df_distributed_appurtenances(idx)
-        # Setting units
-        df["Mass [t]"] = df.mass * 1e-3
-        df["X [m]"] = df.x * 1e-3
-        df["Y [m]"] = df.y * 1e-3
-        df["Height [m]"] = df.height * 1e-3
+        df["Mass [t]"] = df["mass"] * 1e-3
+        df["X [m]"] = df["x"]  * 1e-3
+        df["Y [m]"] = df["y"] * 1e-3
+        df["Height [m]"] = df["height"] * 1e-3
         df.rename(columns={"volume": "Volume [m3]"}, inplace=True)
-
-        # Setting DataFrame
         cols = [
             "X [m]",
             "Y [m]",
@@ -302,55 +284,40 @@ class OWT(object):
             "Volume [m3]",
             "description",
         ]
-
         return df[cols]
 
-    def process_structure(self, option="full"):
-        """
-        Sets dataframe containing the required properties to model the tower geometry, including the RNA system.
+    def process_structure(self, option="full") -> None:
+        """Set dataframe containing the required properties to model the tower geometry, including the RNA system.
 
-        :param option: string. Possible values:
-            * 'full': process all the data for all subassemblies.
-            * 'tower': only process the data for the tower subassembly.
-            * 'TP': only process the data for the transition piece subassembly.
-            * 'monopile': only process the data for the monopile foundation subassembly.
+        :param option: Option to process the data for a specific subassembly. Possible values:
 
-        :return:
+            - "full": To process all the data for all subassemblies.
+            - "tower": To process only the data for the tower subassembly.
+            - "TP": To process only the data for the transition piece subassembly.
+            - "monopile": To process only the data for the monopile foundation subassembly.
+        :return: 
         """
         if option == "full":
-            # RNA system
             self.process_rna()
-            # Support structure
             self.tower_geometry = self.process_structure_geometry("tw")
             self.transition_piece = self.process_structure_geometry("tp")
             self.monopile = self.process_structure_geometry("mp")
-            # Lumped mass appurtenances
             self.tower_lumped_mass = self.process_lumped_masses("TW")
             self.tp_lumped_mass = self.process_lumped_masses("TP")
             self.mp_lumped_mass = self.process_lumped_masses("MP")
-            # Uniformly distributed appurtenances
             self.tp_distributed_mass = self.process_distributed_lumped_masses("TP")
             self.mp_distributed_mass = self.process_distributed_lumped_masses("MP")
         elif option == "tower":
-            # RNA system
             self.process_rna()
-            # Support structure
             self.tower_geometry = self.process_structure_geometry("tw")
-            # Lumped mass appurtenances
             self.tower_lumped_mass = self.process_lumped_masses("TW")
         elif option == "TP":
-            # Support structure
             self.transition_piece = self.process_structure_geometry("tp")
-            # Lumped mass appurtenances
             self.tp_lumped_mass = self.process_lumped_masses("TP")
-            # Uniformly distributed appurtenances
             self.tp_distributed_mass = self.process_distributed_lumped_masses("TP")
         elif option == "monopile":
-            # Support structure
             self.monopile = self.process_structure_geometry("mp")
-            # Lumped mass appurtenances
             self.mp_lumped_mass = self.process_lumped_masses("MP")
-            # Uniformly distributed appurtenances
             self.mp_distributed_mass = self.process_distributed_lumped_masses("MP")
 
     @staticmethod
