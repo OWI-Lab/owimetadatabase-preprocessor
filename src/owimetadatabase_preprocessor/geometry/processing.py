@@ -321,7 +321,7 @@ class OWT(object):
             self.mp_distributed_mass = self.process_distributed_lumped_masses("MP")
 
     @staticmethod
-    def can_properties(row: pd.Series) -> pd.Series:
+    def can_adjust_properties(row: pd.Series) -> pd.Series:
         """Recalculation of can properties based on section properties and can elevations: height [m],
         volume [m3], mass [t], rho [t/m].
 
@@ -346,108 +346,95 @@ class OWT(object):
         )
         return can_properties
 
-    def can_modification(self, df, altitude, position="bottom"):
-        """
-        Args:
-            df (DataFrame) :
-            altitude (float):
-            position (str):
+    def can_modification(
+        self,
+        df: pd.DataFrame,
+        altitude: np.float64,
+        position: str = "bottom"
+    ) -> pd.DataFrame:
+        """Change can properties based on the altitude.
+
+        :param df: Dataframe containing the can properties.
+        :param altitude: Altitude in mLAT.
+        :param position: Position of the can with respect to the altitude with possible values: "bottom" or "top".
+        :return: Dataframe with the modified can properties.
         """
         if position == "bottom":
-            # Last can to be modified
             ind = -1
             _col = " to "
         else:
-            # First can to be modified
             ind = 0
             _col = " from "
-        # Altitude substitution
         df.loc[df.index[ind], "Depth" + _col + "[mLAT]"] = altitude
-        # Interpolating diameter
         elevation = [df.iloc[ind]["Depth from [mLAT]"], df.iloc[ind]["Depth to [mLAT]"]]
         diameters = [df.iloc[ind]["Diameter from [m]"], df.iloc[ind]["Diameter to [m]"]]
-        df.loc[df.index[ind], "Diameter" + _col + "[m]"] = np.interp(
-            [altitude], elevation, diameters
-        )[
-            0
-        ]  # interpolated D
-        # Recalculating other properties to match geometry & Substitution
+        df.loc[df.index[ind], "Diameter" + _col + "[m]"] = np.interp([altitude], elevation, diameters)[0]
         cols = ["Height [m]", "Volume [m3]", "Mass [t]", "rho [t/m]"]
-        df.loc[df.index[ind], cols] = self.can_properties(df.iloc[ind])
+        df.loc[df.index[ind], cols] = self.can_adjust_properties(df.iloc[ind])
         return df
 
-    def assembly_tp_mp(self):
-        """
-        Further processing TP structural item to assembly with MP foundation ensuring continuity. Tp skirt is processed
+    def assembly_tp_mp(self) -> None:
+        """Process TP structural item to assembly with MP foundation ensuring continuity. TP skirt is processed
         as well.
+
+        :return:
         """
-        # Assembly TP + MP
-        if (self.transition_piece is not None) and (self.transition_piece is not None):
-            # Substructure
+        if (self.transition_piece is not None) and (self.monopile is not None):
             mp_head = self.pile_head
             tp = self.transition_piece
             df = deepcopy(tp[tp["Depth from [mLAT]"] > mp_head])
             if df.loc[df.index[0], "Depth to [mLAT]"] != mp_head:
                 # Not bolted connection (i.e. Rentel) preprocessing needed
                 tp1 = self.can_modification(df, mp_head, position="bottom")
-                # Concatenate with MP
                 self.substructure = pd.concat([tp1, deepcopy(self.monopile)])
             else:
                 # Bolted connection, nothing to do
                 self.substructure = pd.concat([df, deepcopy(self.monopile)])
-            # TP skirt
             df = deepcopy(tp[tp["Depth to [mLAT]"] < mp_head])
             self.tp_skirt = self.can_modification(df, mp_head, position="top")
         else:
             raise TypeError("TP or MP items need to be processed before!")
 
+    def get_monopile_pyles(
+        self,
+        water_depth: float,
+        projectsite: str,
+        assetlocation: str,
+        cutoff_point: np.float64 = np.nan
+    ) -> pd.DataFrame:
+        """Returns a dataframe with the monopile geometry with the mudline as reference
 
-def get_monopile_pyles(
-    self, water_depth, projectsite, assetlocation, cutoff_point=np.nan
-):
-    """
-    Returns a dataframe with the monopile geometry with the mudline as reference
-
-    :param water_depth: Water depth in mLAT
-    :param projectsite:
-    :param assetlocation:
-    :return:
-    """
-    # Retrieve the monopile cans
-    bbs = self.get_buildingblocks(
-        projectsite=projectsite, assetlocation=assetlocation, buildingblock_type="MP"
-    )
-    # Retrieve the monopile subassembly
-    sas = self.get_subassemblies(
-        projectsite=projectsite, assetlocation=assetlocation, subassembly_type="MP"
-    )
-    # Calculate the pile penetration
-    toe_depth_lat = sas["data"]["z_position"].iloc[0]
-    penetration = -((1e-3 * toe_depth_lat) - water_depth)
-
-    # Create the pile for subsequent response analysis
-    pile = pd.DataFrame()
-
-    for i, row in bbs["data"].iterrows():
-        if i != 0:
-            pile.loc[i, "Depth from [m]"] = (
-                penetration - 1e-3 * bbs["data"].loc[i - 1, "z_position"]
-            )
-            pile.loc[i, "Depth to [m]"] = penetration - 1e-3 * row["z_position"]
-            pile.loc[i, "Pile material"] = row["material_name"]
-            pile.loc[i, "Pile material submerged unit weight [kN/m3]"] = (
-                1e-2 * row["density"] - 10
-            )
-            pile.loc[i, "Wall thickness [mm]"] = row["wall_thickness"]
-            pile.loc[i, "Diameter [m]"] = (
-                1e-3 * 0.5 * (row["bottom_outer_diameter"] + row["top_outer_diameter"])
-            )
-            pile.loc[i, "Youngs modulus [GPa]"] = row["youngs_modulus"]
-            pile.loc[i, "Poissons ratio [-]"] = row["poissons_ratio"]
-
-    # Cut off at the mudline
-    if not np.math.isnan(cutoff_point):
-        pile = pile.loc[pile["Depth to [m]"] > cutoff_point].reset_index(drop=True)
-        pile.loc[0, "Depth from [m]"] = cutoff_point
-
-    return pile
+        :param water_depth: Water depth in mLAT.
+        :param projectsite: Title of the projectsite.
+        :param assetlocation: Title of the turbine.
+        :return: Dataframe with the monopile geometry.
+        """
+        building_blocks = self.api.get_buildingblocks(
+            projectsite=projectsite, assetlocation=assetlocation, subassembly_type="MP"
+        )
+        subassemblies = self.api.get_subassemblies(
+            projectsite=projectsite, assetlocation=assetlocation, subassembly_type="MP"
+        )
+        toe_depth_lat = subassemblies["data"]["z_position"].iloc[0]
+        penetration = -((1e-3 * toe_depth_lat) - water_depth)
+        pile = pd.DataFrame()
+        for i, row in building_blocks["data"].iterrows():
+            if i != 0:
+                pile.loc[i, "Depth from [m]"] = (
+                    penetration - 1e-3 * building_blocks["data"].loc[i - 1, "z_position"]
+                )
+                pile.loc[i, "Depth to [m]"] = penetration - 1e-3 * row["z_position"]
+                pile.loc[i, "Pile material"] = row["material_name"]
+                pile.loc[i, "Pile material submerged unit weight [kN/m3]"] = (
+                    1e-2 * row["density"] - 10
+                )
+                pile.loc[i, "Wall thickness [mm]"] = row["wall_thickness"]
+                pile.loc[i, "Diameter [m]"] = (
+                    1e-3 * 0.5 * (row["bottom_outer_diameter"] + row["top_outer_diameter"])
+                )
+                pile.loc[i, "Youngs modulus [GPa]"] = row["youngs_modulus"]
+                pile.loc[i, "Poissons ratio [-]"] = row["poissons_ratio"]
+        if not np.math.isnan(cutoff_point):
+            pile = pile.loc[pile["Depth to [m]"] > cutoff_point].reset_index(drop=True)
+            pile.loc[0, "Depth from [m]"] = cutoff_point
+        return pile
