@@ -116,15 +116,9 @@ class TestPosition:
 
 class TestBuildingBlock:
 
-    def test_init_no_sa(self, data_bb, data_bb_init_no_sa) -> None:
+    def test_init_no_sa(self, data_bb, data_bb_init_no_sa, data_pos) -> None:
         bb = BuildingBlock(json=data_bb)
         _assert_attributes(bb, data_bb_init_no_sa, exclude=["position"])
         assert bb.subassembly is None
         assert isinstance(bb.position, Position)
-        assert bb.position.x == data_bb["x_position"]
-        assert bb.position.y == data_bb["y_position"]
-        assert bb.position.z == data_bb["z_position"]
-        assert bb.position.alpha == data_bb["alpha"]
-        assert bb.position.beta == data_bb["beta"]
-        assert bb.position.gamma == data_bb["gamma"]
-        assert bb.position.reference_system == data_bb["vertical_position_reference_system"]
+        _assert_attributes(bb.position, data_pos)
