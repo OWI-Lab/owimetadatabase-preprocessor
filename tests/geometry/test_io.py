@@ -8,6 +8,8 @@ import pytest
 import requests
 
 from owimetadatabase_preprocessor.geometry.io import GeometryAPI
+from owimetadatabase_preprocessor.geometry.processing import OWT
+from owimetadatabase_preprocessor.geometry.structures import SubAssembly
 
 
 @pytest.fixture
@@ -316,7 +318,7 @@ def mock_requests_get_buildingblocks(
                 data = data_buildingblocks_call("asset")
             elif kwargs.get("params") == {"sub_assembly__subassembly_type": "TW"}:
                 data = data_buildingblocks_call("subassembly")
-            elif kwargs.get("params") == {"sub_assembly__id": 235}:
+            elif kwargs.get("params") == {"sub_assembly__id": "235"}:
                 data = data_buildingblocks_call("id")
             elif kwargs.get("params") == {
                 "sub_assembly__asset__projectsite__title": "Nobelwind",
@@ -343,40 +345,40 @@ def mock_requests_get_buildingblocks(
                 "sub_assembly__asset__projectsite__title": "Nobelwind",
                 "sub_assembly__asset__title": "BBK01",
                 "sub_assembly__subassembly_type": "TW",
-                "sub_assembly__id": 235,
+                "sub_assembly__id": "235",
             }:
                 data = data_buildingblocks_call("project_asset_subassembly_id")
             elif kwargs.get("params") == {
                 "sub_assembly__asset__projectsite__title": "Nobelwind",
-                "sub_assembly__id": 235,
+                "sub_assembly__id": "235",
             }:
                 data = data_buildingblocks_call("project_id")
             elif kwargs.get("params") == {
                 "sub_assembly__asset__title": "BBK01",
-                "sub_assembly__id": 235,
+                "sub_assembly__id": "235",
             }:
                 data = data_buildingblocks_call("asset_id")
             elif kwargs.get("params") == {
                 "sub_assembly__subassembly_type": "TW",
-                "sub_assembly__id": 235,
+                "sub_assembly__id": "235",
             }:
                 data = data_buildingblocks_call("subassembly_id")
             elif kwargs.get("params") == {
                 "sub_assembly__asset__projectsite__title": "Nobelwind",
                 "sub_assembly__subassembly_type": "TW",
-                "sub_assembly__id": 235,
+                "sub_assembly__id": "235",
             }:
                 data = data_buildingblocks_call("project_subassembly_id")
             elif kwargs.get("params") == {
                 "sub_assembly__asset__title": "BBK01",
                 "sub_assembly__subassembly_type": "TW",
-                "sub_assembly__id": 235,
+                "sub_assembly__id": "235",
             }:
                 data = data_buildingblocks_call("asset_subassembly_id")
             elif kwargs.get("params") == {
                 "sub_assembly__asset__projectsite__title": "Nobelwind",
                 "sub_assembly__asset__title": "BBK01",
-                "sub_assembly__id": 235,
+                "sub_assembly__id": "235",
             }:
                 data = data_buildingblocks_call("project_asset_id")
             else:
@@ -395,7 +397,7 @@ def mock_requests_get_buildingblocks(
         ({"projectsite": "Nobelwind"}, "project"),
         ({"assetlocation": "BBK01"}, "asset"),
         ({"subassembly_type": "TW"}, "subassembly"),
-        ({"subassembly_id": 235}, "id"),
+        ({"subassembly_id": str(235)}, "id"),
         (
             {"projectsite": "Nobelwind", "assetlocation": "BBK01"},
             "project_asset",
@@ -484,3 +486,70 @@ def test_get_materials(
     assert isinstance(data["data"], pd.DataFrame)
     assert isinstance(data["exists"], bool)
     assert data["exists"]
+
+
+@pytest.fixture
+def mat() -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {"col_1": 11, "col_2": 12, "col_3": 13},
+            {"col_1": 21, "col_2": 22, "col_3": 23}
+        ]
+    )
+
+
+@pytest.fixture
+def sa() -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {"id": 11, "project": "Nobelwind", "type": "TW", "turbine": "BBK01"},
+            {"id": 11, "project": "Nobelwind", "type": "TP", "turbine": "BBK01"},
+            {"id": 11, "project": "Nobelwind", "type": "MP", "turbine": "BBK01"},
+        ]
+    )
+
+
+@pytest.fixture
+def OWT_mock(
+    api_root: str,
+    header: Dict[str, str],
+    mat: pd.DataFrame,
+    sa: pd.DataFrame,
+) -> mock.Mock:
+    
+    def OWT_mock_init(self, *args, **kwargs):
+        self.api = GeometryAPI(args[0], args[1])
+        self.materials = args[2]
+        self.sub_assemblies = args[3]
+        self.tower_base = 10.0
+        self.monopile_head = 5.0
+
+    #  mocked_OWT = mock.create_autospec(OWT, instance=True)
+    mocked_OWT = mock.Mock(spec=OWT)
+    OWT_mock_init(mocked_OWT, api_root, header, mat, sa)
+    #  mocked_OWT.side_effect = lambda *args, **kwargs: OWT_mock_init(mocked_OWT, api_root, header, mat, sa)
+    #  mocked_OWT.__init__ = mock.Mock(return_value=None)
+    return mocked_OWT
+
+
+def test_process_geometry(
+    api_root: str,
+    header: Dict[str, str],
+    mat: pd.DataFrame,
+    sa: pd.DataFrame,
+    OWT_mock: mock.Mock,
+    mock_requests_get_materials: mock.Mock,
+    mock_requests_get_subassemblies: mock.Mock,
+) -> None:
+    with mock.patch("owimetadatabase_preprocessor.geometry.io.OWT", return_value=OWT_mock):
+        api_test = GeometryAPI(api_root, header)
+        processor = api_test.process_geometry(turbine="BBK01", tower_base=10.0, monopile_head=5.0)
+        assert isinstance(processor, type(OWT_mock))
+        assert isinstance(processor.api, GeometryAPI)
+        assert isinstance(processor.materials, pd.DataFrame)
+        assert isinstance(processor.sub_assemblies, pd.DataFrame)
+        assert isinstance(processor.tower_base, float)
+        assert isinstance(processor.monopile_head, float)
+        #  assert isinstance(processor.sub_assemblies, Dict[str, List[SubAssembly]])
+        pd_testing.assert_frame_equal(processor.materials, mat)
+        pd_testing.assert_frame_equal(processor.sub_assemblies, sa)
