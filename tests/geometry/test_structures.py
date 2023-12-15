@@ -86,6 +86,47 @@ def data_bb_init_no_sa(data_bb, data_pos) -> Dict[str, Union[str, np.int64, np.f
     }
 
 
+@pytest.fixture(scope="module")
+def data_bb_init_with_sa(data_bb, data_pos, Mat, SA) -> Dict[str, Union[str, np.int64, np.float64]]:
+    return {
+        "id": np.int64(1),
+        "title": "BBG01_TW_FLANGE",
+        "description": "Something 1",
+        "json": data_bb,
+        "position": data_pos,
+        "subassembly": SA,
+        "material": Mat,
+    }
+
+    
+@pytest.fixture(scope="module")
+def Mat(data_mat) -> mock.Mock:
+    
+    def Mat_mock_init(self, *args, **kwargs):
+        materials = args[0]
+        self.title = materials["title"]
+        self.description = materials["description"]
+        self.young_modulus = materials["young_modulus"]
+        self.density = materials["density"]
+        self.poisson_ratio = materials["poisson_ratio"]
+        self.id = materials["id"]                    
+
+    mocked_Mat = mock.Mock()
+    Mat_mock_init(mocked_Mat, data_mat)
+    return mocked_Mat
+
+
+@pytest.fixture(scope="module")
+def SA(Mat) -> mock.Mock:
+    
+    def SA_mock_init(self, *args, **kwargs):
+        self.materials = [Mat]
+
+    mocked_SA = mock.Mock()
+    SA_mock_init(mocked_SA)
+    return mocked_SA
+
+
 def _assert_attributes(class_, dict_, exclude=None) -> None:
     for key, value in dict_.items():
         if exclude is not None:
@@ -120,5 +161,11 @@ class TestBuildingBlock:
         bb = BuildingBlock(json=data_bb)
         _assert_attributes(bb, data_bb_init_no_sa, exclude=["position"])
         assert bb.subassembly is None
+        assert isinstance(bb.position, Position)
+        _assert_attributes(bb.position, data_pos)
+
+    def test_init_with_sa(self, data_bb, data_bb_init_with_sa, data_pos, SA) -> None:
+        bb = BuildingBlock(json=data_bb, subassembly=SA)
+        _assert_attributes(bb, data_bb_init_with_sa, exclude=["position"])
         assert isinstance(bb.position, Position)
         _assert_attributes(bb.position, data_pos)
