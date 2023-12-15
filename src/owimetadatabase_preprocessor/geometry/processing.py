@@ -48,18 +48,6 @@ class OWT(object):
         self.tp_distributed_mass = None
         self.mp_distributed_mass = None
 
-    def _set_members(self) -> None:
-        """Identify and stores in separate data frames each part of the support structure (tower=TW, transition piece=TP,
-        monopile=MP).
-        """
-        for k, v in self.sub_assemblies.items():
-            if k == "TW":
-                self.tower_sub_assemblies = v.as_df()
-            if k == "TP":
-                self.tp_sub_assemblies = v.as_df()
-            if k == "MP":
-                self.mp_sub_assemblies = v.as_df()
-
     def _set_subassemblies(self, subassemblies: pd.DataFrame) -> None:
         """Create a dictionary containing the subassemblies of the OWT."""
         subassemblies_types = [
@@ -72,6 +60,18 @@ class OWT(object):
         self.sub_assemblies = {
             k: v for (k, v) in zip(subassemblies_types, subassemblies_list)
         }
+
+    def _set_members(self) -> None:
+        """Identify and stores in separate data frames each part of the support structure (tower=TW, transition piece=TP,
+        monopile=MP).
+        """
+        for k, v in self.sub_assemblies.items():
+            if k == "TW":
+                self.tower_sub_assemblies = v.as_df()
+            if k == "TP":
+                self.tp_sub_assemblies = v.as_df()
+            if k == "MP":
+                self.mp_sub_assemblies = v.as_df()
 
     def set_df_structure(self, idx: str) -> pd.DataFrame:
         """Calculate and/or converts geometrical data of subassemblies from the database.
