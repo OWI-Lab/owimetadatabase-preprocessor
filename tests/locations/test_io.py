@@ -10,16 +10,6 @@ from owimetadatabase_preprocessor.locations.io import LocationsAPI
 
 
 @pytest.fixture
-def api_root() -> str:
-    return "https://test.api/test"
-
-
-@pytest.fixture
-def header() -> Dict[str, str]:
-    return {"Authorization": "Token 12345"}
-
-
-@pytest.fixture
 def mock_requests_get_projectsites(mocker: mock.Mock) -> mock.Mock:
     mock = mocker.patch("requests.get")
 

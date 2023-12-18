@@ -14,25 +14,28 @@ from owimetadatabase_preprocessor.geometry.structures import Material, Position,
 
 
 @pytest.fixture(scope="module")
-def api_root() -> str:
-    return "https://test.api/test"
+def mass() -> np.float64:
+    return 1500.0
 
 
 @pytest.fixture(scope="module")
-def header() -> Dict[str, str]:
-    return {"Authorization": "Token 12345"}
+def outer_diameter() -> np.float64:
+    return 1000.0
 
 
 @pytest.fixture(scope="module")
-def data_mat() -> Dict[str, Union[str, np.int64, np.float64]]:    
-    return {
-        "title": "steel",
-        "id": np.int64(1),
-        "description": "Structural steel",
-        "young_modulus": np.float64(210.0),
-        "density": np.float64(7850.0),
-        "poisson_ratio": np.float64(0.3),
-    }
+def outer_diameter_alt() -> np.float64:
+    return 1250.0
+
+
+@pytest.fixture(scope="module")
+def wall_t() -> np.float64:
+    return 0.2
+
+
+@pytest.fixture(scope="module")
+def height() -> np.float64:
+    return 10.0
 
 
 @pytest.fixture(scope="module")
@@ -43,6 +46,14 @@ def data_mat_dict() -> Dict[str, Union[str, np.float64]]:
         "young_modulus": np.float64(210.0),
         "poisson_ratio": np.float64(0.3),
     }
+
+
+@pytest.fixture(scope="module")
+def data_mat(data_mat_dict) -> Dict[str, Union[str, np.int64, np.float64]]:    
+    data_mat_dict = dict(data_mat_dict)
+    data_mat_dict["id"] = np.int64(1)
+    data_mat_dict["density"] = np.float64(7850.0)
+    return data_mat_dict
 
 
 @pytest.fixture(scope="module")
@@ -87,18 +98,91 @@ def data_bb_init_no_sa(data_bb, data_pos) -> Dict[str, Union[str, np.int64, np.f
 
 
 @pytest.fixture(scope="module")
-def data_bb_init_with_sa(data_bb, data_pos, Mat, SA) -> Dict[str, Union[str, np.int64, np.float64]]:
-    return {
-        "id": np.int64(1),
-        "title": "BBG01_TW_FLANGE",
-        "description": "Something 1",
-        "json": data_bb,
-        "position": data_pos,
-        "subassembly": SA,
-        "material": Mat,
-    }
+def data_bb_init_with_sa(data_bb_init_no_sa, Mat, SA) -> Dict[str, Union[str, np.int64, np.float64]]:
+    data_bb_init_with_sa_dict = dict(data_bb_init_no_sa)
+    data_bb_init_with_sa_dict["subassembly"] = SA
+    data_bb_init_with_sa_dict["material"] = Mat
+    return data_bb_init_with_sa_dict
 
-    
+
+@pytest.fixture(scope="module")
+def data_bb_mass(data_bb, mass) -> Dict[str, Union[str, np.int64, np.float64]]:
+    dict_bb_new = dict(data_bb)
+    dict_bb_new["mass"] = mass
+    return dict_bb_new
+
+
+@pytest.fixture(scope="module")
+def data_bb_mass_distr(data_bb, mass) -> Dict[str, Union[str, np.int64, np.float64]]:
+    dict_bb_new = dict(data_bb)
+    dict_bb_new["mass_distribution"] = mass
+    return dict_bb_new
+
+
+@pytest.fixture(scope="module")
+def data_bb_mass_distr_h(data_bb_mass_distr, height) -> Dict[str, Union[str, np.int64, np.float64]]:
+    dict_bb_new = dict(data_bb_mass_distr)
+    dict_bb_new["height"] = height
+    dict_bb_new["volume_distribution"] = np.float64(100.0)
+    return dict_bb_new
+
+
+@pytest.fixture(scope="module")
+def data_bb_bottom_out_d(data_bb, outer_diameter, wall_t) -> Dict[str, Union[str, np.int64, np.float64]]:
+    dict_bb_new = dict(data_bb)
+    dict_bb_new["bottom_outer_diameter"] = outer_diameter
+    dict_bb_new["top_outer_diameter"] = outer_diameter
+    dict_bb_new["wall_thickness"] = wall_t
+    return dict_bb_new
+
+
+@pytest.fixture(scope="module")
+def data_bb_bottom_out_d_top_nan(
+    data_bb,
+    outer_diameter,
+    wall_t
+) -> Dict[str, Union[str, np.int64, np.float64]]:
+    dict_bb_new = dict(data_bb)
+    dict_bb_new["bottom_outer_diameter"] = outer_diameter
+    dict_bb_new["top_outer_diameter"] = np.nan
+    dict_bb_new["wall_thickness"] = wall_t
+    return dict_bb_new
+
+
+@pytest.fixture(scope="module")
+def data_bb_bottom_out_d_bot_nan(
+    data_bb,
+    outer_diameter,
+    wall_t
+) -> Dict[str, Union[str, np.int64, np.float64]]:
+    dict_bb_new = dict(data_bb)
+    dict_bb_new["bottom_outer_diameter"] = np.nan
+    dict_bb_new["top_outer_diameter"] = outer_diameter
+    dict_bb_new["wall_thickness"] = wall_t
+    return dict_bb_new
+
+
+@pytest.fixture(scope="module")
+def data_bb_bottom_out_d_alt(
+    data_bb,
+    outer_diameter,
+    outer_diameter_alt,
+    wall_t
+) -> Dict[str, Union[str, np.int64, np.float64]]:
+    dict_bb_new = dict(data_bb)
+    dict_bb_new["bottom_outer_diameter"] = outer_diameter_alt
+    dict_bb_new["top_outer_diameter"] = outer_diameter
+    dict_bb_new["wall_thickness"] = wall_t
+    return dict_bb_new
+
+
+@pytest.fixture(scope="module")
+def data_bb_h() -> Dict[str, Union[str, np.int64, np.float64]]:
+    dict_bb_new = dict(data_bb)
+    dict_bb_new["height"] = np.float64(10.0)
+    return dict_bb_new
+
+
 @pytest.fixture(scope="module")
 def Mat(data_mat) -> mock.Mock:
     
@@ -169,3 +253,116 @@ class TestBuildingBlock:
         _assert_attributes(bb, data_bb_init_with_sa, exclude=["position"])
         assert isinstance(bb.position, Position)
         _assert_attributes(bb.position, data_pos)
+    
+
+    @pytest.mark.parametrize(
+        "data_bb_var, expected_type", 
+        [
+            ("data_bb_mass", "lumped_mass"),
+            ("data_bb_mass_distr", "distributed_mass"),
+            ("data_bb_bottom_out_d", "tubular_section"),
+            ("data_bb", ValueError)
+        ]
+    )
+    def test_type(self, request, data_bb_var, expected_type) -> None:
+        data_bb_ = request.getfixturevalue(data_bb_var)
+        if expected_type == ValueError:
+            with pytest.raises(ValueError):
+                bb = BuildingBlock(json=data_bb_)
+                bb.type
+        else:
+            bb = BuildingBlock(json=data_bb_)
+            assert bb.type == expected_type
+
+
+    @pytest.mark.parametrize(
+        "data_bb_var, expected_wt", 
+        [
+            ("data_bb_mass", None),
+            ("data_bb_mass_distr", None),
+            ("data_bb_bottom_out_d", "wall_thickness"),
+        ]
+    )
+    def test_wall_thickness(self, request, data_bb_var, expected_wt) -> None:
+        data_bb_ = request.getfixturevalue(data_bb_var)
+        bb = BuildingBlock(json=data_bb_)
+        expected_wt_ = data_bb_[expected_wt] if expected_wt is not None else None
+        assert bb.wall_thickness == expected_wt_
+
+
+    @pytest.mark.parametrize(
+        "data_bb_var, expected_bod", 
+        [
+            ("data_bb_mass", None),
+            ("data_bb_mass_distr", None),
+            ("data_bb_bottom_out_d", "bottom_outer_diameter"),
+        ]
+    )
+    def test_bottom_outer_diameter(self, request, data_bb_var, expected_bod) -> None:
+        data_bb_ = request.getfixturevalue(data_bb_var)
+        bb = BuildingBlock(json=data_bb_)
+        expected_bod_ = data_bb_[expected_bod] if expected_bod is not None else None
+        assert bb.bottom_outer_diameter == expected_bod_
+
+
+    @pytest.mark.parametrize(
+        "data_bb_var, expected_tod", 
+        [
+            ("data_bb_mass", None),
+            ("data_bb_mass_distr", None),
+            ("data_bb_bottom_out_d", "top_outer_diameter"),
+        ]
+    )
+    def test_top_outer_diameter(self, request, data_bb_var, expected_tod) -> None:
+        data_bb_ = request.getfixturevalue(data_bb_var)
+        bb = BuildingBlock(json=data_bb_)
+        expected_tod_ = data_bb_[expected_tod] if expected_tod is not None else None
+        assert bb.top_outer_diameter == expected_tod_
+
+
+    @pytest.mark.parametrize(
+        "data_bb_var, expected_od", 
+        [
+            ("data_bb_mass", None),
+            ("data_bb_bottom_out_d_top_nan", None),
+            ("data_bb_bottom_out_d_bot_nan", None),
+            ("data_bb_bottom_out_d", lambda _, od: str(round(od))),
+            (
+                "data_bb_bottom_out_d_alt",
+                lambda oda, od: str(round(oda)) + "/" + str(round(od))
+            ),
+        ],
+    )
+    def test_diameter_str(self, request, data_bb_var, expected_od, outer_diameter, outer_diameter_alt) -> None:
+        data_bb_ = request.getfixturevalue(data_bb_var)
+        bb = BuildingBlock(json=data_bb_)
+        expected_od_ = expected_od(outer_diameter_alt, outer_diameter) if expected_od is not None else ""
+        assert bb.diameter_str == expected_od_
+
+    @pytest.mark.parametrize(
+        "data_bb_var, expected_h", 
+        [
+            ("data_bb", None),
+            ("data_bb_h", "height"),
+        ]
+    )
+    def height(self, request, data_bb_var, expected_h) -> None:
+        data_bb_ = request.getfixturevalue(data_bb_var)
+        bb = BuildingBlock(json=data_bb_)
+        expected_h_ = data_bb_[expected_h] if expected_h is not None else None
+        assert bb.height == expected_h_
+
+    # @pytest.mark.parametrize(
+    #     "data_bb_var, expected_v", 
+    #     [
+    #         ("data_bb_mass", None),
+    #         ("data_bb_mass_distr_h", None),
+    #         ("data_bb_mass_distr", ValueError),
+    #         ("data_bb_bottom_out_d", None),
+    #     ],
+    # )
+    # def volume(self, request, data_bb_var, outer_diameter, wall_t) -> None:
+    #     data_bb_ = request.getfixturevalue(data_bb_var)
+    #     bb = BuildingBlock(json=data_bb_)
+    #     expected_vol = np.pi * (outer_diameter**2 - (outer_diameter - 2*wall_t)**2) / 4
+    #     assert bb.volume == expected_vol

@@ -13,16 +13,6 @@ from owimetadatabase_preprocessor.geometry.structures import SubAssembly
 
 
 @pytest.fixture
-def api_root() -> str:
-    return "https://test.api/test"
-
-
-@pytest.fixture
-def header() -> Dict[str, str]:
-    return {"Authorization": "Token 12345"}
-
-
-@pytest.fixture
 def data_subassemblies(request) -> List[Dict[str, object]]:
     if request.param is not None:
         params = request.param
