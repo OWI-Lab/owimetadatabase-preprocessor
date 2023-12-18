@@ -15,11 +15,6 @@ def mock_requests_get(mocker: mock.Mock) -> mock.Mock:
     return mock
 
 
-@pytest.fixture
-def api_root() -> str:
-    return "https://test.api/test"
-
-
 class TestAPIAuth:
     """Tests of authentication setup."""
 
