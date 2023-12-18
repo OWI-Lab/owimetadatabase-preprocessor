@@ -212,7 +212,15 @@ class BuildingBlock(object):
                 return str(round(self.bottom_outer_diameter))
         else:
             return ""
-
+        
+    @property
+    def height(self) -> Union[np.float64, None]:
+        """Height of the building block , mm."""
+        if "height" in self.json:
+            return self.json["height"]
+        else:
+            return None
+        
     @property
     def volume(self) -> Union[np.float64, None]:
         """Volume of the building block, m³."""
@@ -351,14 +359,6 @@ class BuildingBlock(object):
                 "z": [self.position.z, self.position.z + self.height],
                 "color": "black",
             }
-        else:
-            return None
-
-    @property
-    def height(self) -> Union[np.float64, None]:
-        """Height of the building block , mm."""
-        if "height" in self.json:
-            return self.json["height"]
         else:
             return None
 
