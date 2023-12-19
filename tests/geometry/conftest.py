@@ -70,55 +70,6 @@ def data_bb_init_with_sa(data_bb_init_no_sa, Mat, SA) -> Dict[str, Union[str, np
     data_bb_init_with_sa_dict["subassembly"] = SA
     data_bb_init_with_sa_dict["material"] = Mat
     return data_bb_init_with_sa_dict
-
-
-def data_bb_flex(param, data_bb):
-    height = np.float64(10.0)
-    mass = np.float64(1500.0)
-    outer_diameter = np.float64(1000.0)
-    outer_diameter_alt = np.float64(1250.0)
-    wall_t = np.float64(0.2)
-    if param == "h":
-        data_bb_ = dict(data_bb)
-        data_bb_["height"] = height
-        return data_bb_
-    elif param == "mass":
-        data_bb_ = dict(data_bb)
-        data_bb_["mass"] = mass
-        return data_bb_
-    elif param == "mass_distr":
-        data_bb_ = dict(data_bb)
-        data_bb_["mass_distribution"] = mass
-        return data_bb_
-    elif param == "bottom_out_d":
-        data_bb_ = dict(data_bb)
-        data_bb_["bottom_outer_diameter"] = outer_diameter
-        data_bb_["top_outer_diameter"] = outer_diameter
-        data_bb_["wall_thickness"] = wall_t
-        return data_bb_
-    elif param == "bottom_out_d_alt":
-        data_bb_ = dict(data_bb)
-        data_bb_["bottom_outer_diameter"] = outer_diameter_alt
-        data_bb_["top_outer_diameter"] = outer_diameter
-        data_bb_["wall_thickness"] = wall_t
-        return data_bb_
-    elif param == "bottom_out_d_top_nan":
-        data_bb_ = dict(data_bb)
-        data_bb_["bottom_outer_diameter"] = outer_diameter
-        data_bb_["top_outer_diameter"] = np.nan
-        data_bb_["wall_thickness"] = wall_t
-        return data_bb_
-    elif param == "bottom_out_d_bot_nan":
-        data_bb_ = dict(data_bb)
-        data_bb_["bottom_outer_diameter"] = np.nan
-        data_bb_["top_outer_diameter"] = outer_diameter
-        data_bb_["wall_thickness"] = wall_t
-        return data_bb_
-    elif param == "mass_distr_h":
-        data_bb_ = dict(data_bb)
-        data_bb_["volume_distribution"] = mass
-        data_bb_["height"] = height
-        return data_bb_
     
 
 @pytest.fixture(scope="module")
@@ -147,3 +98,57 @@ def SA(Mat) -> mock.Mock:
     mocked_SA = mock.Mock()
     SA_mock_init(mocked_SA)
     return mocked_SA
+
+
+@pytest.fixture(scope="module")
+def data_bb_flex(request):
+    param = request.param
+    data_bb = request.getfixturevalue("data_bb")
+    height = np.float64(10.0)
+    mass = np.float64(1500.0)
+    outer_diameter = np.float64(1000.0)
+    outer_diameter_alt = np.float64(1250.0)
+    wall_t = np.float64(0.2)
+    if param == "h":
+        data_bb_ = dict(data_bb)
+        data_bb_["height"] = height
+        return data_bb_
+    elif param == "m":
+        data_bb_ = dict(data_bb)
+        data_bb_["mass"] = mass
+        return data_bb_
+    elif param == "m_distr":
+        data_bb_ = dict(data_bb)
+        data_bb_["mass_distribution"] = mass
+        return data_bb_
+    elif param == "bot_od":
+        data_bb_ = dict(data_bb)
+        data_bb_["bottom_outer_diameter"] = outer_diameter
+        data_bb_["top_outer_diameter"] = outer_diameter
+        data_bb_["wall_thickness"] = wall_t
+        return data_bb_
+    elif param == "bot_od_alt":
+        data_bb_ = dict(data_bb)
+        data_bb_["bottom_outer_diameter"] = outer_diameter_alt
+        data_bb_["top_outer_diameter"] = outer_diameter
+        data_bb_["wall_thickness"] = wall_t
+        return data_bb_
+    elif param == "bot_od_top_nan":
+        data_bb_ = dict(data_bb)
+        data_bb_["bottom_outer_diameter"] = outer_diameter
+        data_bb_["top_outer_diameter"] = np.nan
+        data_bb_["wall_thickness"] = wall_t
+        return data_bb_
+    elif param == "bot_od_bot_nan":
+        data_bb_ = dict(data_bb)
+        data_bb_["bottom_outer_diameter"] = np.nan
+        data_bb_["top_outer_diameter"] = outer_diameter
+        data_bb_["wall_thickness"] = wall_t
+        return data_bb_
+    elif param == "m_distr_h":
+        data_bb_ = dict(data_bb)
+        data_bb_["volume_distribution"] = mass
+        data_bb_["height"] = height
+        return data_bb_
+    else:
+        return data_bb

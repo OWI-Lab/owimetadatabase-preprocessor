@@ -58,16 +58,17 @@ class TestBuildingBlock:
     
 
     @pytest.mark.parametrize(
-        "data_bb_var, expected_type", 
+        "data_bb_flex, expected_type", 
         [
-            ("data_bb_mass", "lumped_mass"),
-            ("data_bb_mass_distr", "distributed_mass"),
-            ("data_bb_bottom_out_d", "tubular_section"),
-            ("data_bb", ValueError)
-        ]
+            ("m", "lumped_mass"),
+            ("m_distr", "distributed_mass"),
+            ("bot_od", "tubular_section"),
+            ("", ValueError)
+        ],
+        indirect=["data_bb_flex"]
     )
-    def test_type(self, request, data_bb_var, expected_type) -> None:
-        data_bb_ = request.getfixturevalue(data_bb_var)
+    def test_type(self, data_bb_flex, expected_type) -> None:
+        data_bb_ = data_bb_flex
         if expected_type == ValueError:
             with pytest.raises(ValueError):
                 bb = BuildingBlock(json=data_bb_)
@@ -78,81 +79,88 @@ class TestBuildingBlock:
 
 
     @pytest.mark.parametrize(
-        "data_bb_var, expected_wt", 
+        "data_bb_flex, expected_wt", 
         [
-            ("data_bb_mass", None),
-            ("data_bb_mass_distr", None),
-            ("data_bb_bottom_out_d", "wall_thickness"),
-        ]
+            ("m", None),
+            ("m_distr", None),
+            ("bot_od", "wall_thickness"),
+        ],
+        indirect=["data_bb_flex"]
     )
-    def test_wall_thickness(self, request, data_bb_var, expected_wt) -> None:
-        data_bb_ = request.getfixturevalue(data_bb_var)
+    def test_wall_thickness(self, data_bb_flex, expected_wt) -> None:
+        data_bb_ = data_bb_flex
         bb = BuildingBlock(json=data_bb_)
         expected_wt_ = data_bb_[expected_wt] if expected_wt is not None else None
         assert bb.wall_thickness == expected_wt_
 
 
     @pytest.mark.parametrize(
-        "data_bb_var, expected_bod", 
+        "data_bb_flex, expected_bod", 
         [
-            ("data_bb_mass", None),
-            ("data_bb_mass_distr", None),
-            ("data_bb_bottom_out_d", "bottom_outer_diameter"),
-        ]
+            ("m", None),
+            ("m_distr", None),
+            ("bot_od", "bottom_outer_diameter"),
+        ],
+        indirect=["data_bb_flex"]
     )
-    def test_bottom_outer_diameter(self, request, data_bb_var, expected_bod) -> None:
-        data_bb_ = request.getfixturevalue(data_bb_var)
+    def test_bottom_outer_diameter(self, data_bb_flex, expected_bod) -> None:
+        data_bb_ = data_bb_flex
         bb = BuildingBlock(json=data_bb_)
         expected_bod_ = data_bb_[expected_bod] if expected_bod is not None else None
         assert bb.bottom_outer_diameter == expected_bod_
 
 
     @pytest.mark.parametrize(
-        "data_bb_var, expected_tod", 
+        "data_bb_flex, expected_tod", 
         [
-            ("data_bb_mass", None),
-            ("data_bb_mass_distr", None),
-            ("data_bb_bottom_out_d", "top_outer_diameter"),
-        ]
+            ("m", None),
+            ("m_distr", None),
+            ("bot_od", "top_outer_diameter"),
+        ],
+        indirect=["data_bb_flex"]
     )
-    def test_top_outer_diameter(self, request, data_bb_var, expected_tod) -> None:
-        data_bb_ = request.getfixturevalue(data_bb_var)
+    def test_top_outer_diameter(self, data_bb_flex, expected_tod) -> None:
+        data_bb_ = data_bb_flex
         bb = BuildingBlock(json=data_bb_)
         expected_tod_ = data_bb_[expected_tod] if expected_tod is not None else None
         assert bb.top_outer_diameter == expected_tod_
 
 
     @pytest.mark.parametrize(
-        "data_bb_var, expected_od", 
+        "data_bb_flex, expected_od", 
         [
-            ("data_bb_mass", None),
-            ("data_bb_bottom_out_d_top_nan", None),
-            ("data_bb_bottom_out_d_bot_nan", None),
-            ("data_bb_bottom_out_d", lambda _, od: str(round(od))),
+            ("m", None),
+            ("bot_od_top_nan", None),
+            ("bot_od_bot_nan", None),
+            ("bot_od", lambda _, od: str(round(od))),
             (
-                "data_bb_bottom_out_d_alt",
+                "bot_od_alt",
                 lambda oda, od: str(round(oda)) + "/" + str(round(od))
             ),
         ],
+        indirect=["data_bb_flex"]
     )
-    def test_diameter_str(self, request, data_bb_var, expected_od, outer_diameter, outer_diameter_alt) -> None:
-        data_bb_ = request.getfixturevalue(data_bb_var)
+    def test_diameter_str(self, data_bb_flex, expected_od) -> None:
+        data_bb_ = data_bb_flex
         bb = BuildingBlock(json=data_bb_)
-        expected_od_ = expected_od(outer_diameter_alt, outer_diameter) if expected_od is not None else ""
+        expected_od_ = expected_od(data_bb_["bottom_outer_diameter"], data_bb_["top_outer_diameter"]) if expected_od is not None else ""
         assert bb.diameter_str == expected_od_
 
+
     @pytest.mark.parametrize(
-        "data_bb_var, expected_h", 
+        "data_bb_flex, expected_h", 
         [
-            ("data_bb", None),
-            ("data_bb_h", "height"),
-        ]
+            ("", None),
+            ("h", "height"),
+        ],
+        indirect=["data_bb_flex"]
     )
-    def height(self, request, data_bb_var, expected_h) -> None:
-        data_bb_ = request.getfixturevalue(data_bb_var)
+    def height(self, data_bb_flex, expected_h) -> None:
+        data_bb_ = data_bb_flex
         bb = BuildingBlock(json=data_bb_)
         expected_h_ = data_bb_[expected_h] if expected_h is not None else None
         assert bb.height == expected_h_
+
 
     # @pytest.mark.parametrize(
     #     "data_bb_var, expected_v", 
