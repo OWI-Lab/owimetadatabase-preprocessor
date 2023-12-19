@@ -145,9 +145,17 @@ def data_bb_flex(request):
         data_bb_["top_outer_diameter"] = outer_diameter
         data_bb_["wall_thickness"] = wall_t
         return data_bb_
-    elif param == "m_distr_h":
+    elif param == "m_distr_vh":
         data_bb_ = dict(data_bb)
         data_bb_["volume_distribution"] = mass
+        data_bb_["mass_distribution"] = mass
+        data_bb_["height"] = height
+        return data_bb_
+    elif param == "bot_od_h":
+        data_bb_ = dict(data_bb)
+        data_bb_["bottom_outer_diameter"] = outer_diameter
+        data_bb_["top_outer_diameter"] = outer_diameter
+        data_bb_["wall_thickness"] = wall_t
         data_bb_["height"] = height
         return data_bb_
     else:

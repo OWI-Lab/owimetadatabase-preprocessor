@@ -155,24 +155,55 @@ class TestBuildingBlock:
         ],
         indirect=["data_bb_flex"]
     )
-    def height(self, data_bb_flex, expected_h) -> None:
+    def test_height(self, data_bb_flex, expected_h) -> None:
         data_bb_ = data_bb_flex
         bb = BuildingBlock(json=data_bb_)
         expected_h_ = data_bb_[expected_h] if expected_h is not None else None
         assert bb.height == expected_h_
 
 
-    # @pytest.mark.parametrize(
-    #     "data_bb_var, expected_v", 
-    #     [
-    #         ("data_bb_mass", None),
-    #         ("data_bb_mass_distr_h", None),
-    #         ("data_bb_mass_distr", ValueError),
-    #         ("data_bb_bottom_out_d", None),
-    #     ],
-    # )
-    # def volume(self, request, data_bb_var, outer_diameter, wall_t) -> None:
-    #     data_bb_ = request.getfixturevalue(data_bb_var)
-    #     bb = BuildingBlock(json=data_bb_)
-    #     expected_vol = np.pi * (outer_diameter**2 - (outer_diameter - 2*wall_t)**2) / 4
-    #     assert bb.volume == expected_vol
+    @pytest.mark.parametrize(
+        "data_bb_flex, expected_v", 
+        [
+            ("m", None),
+            ("m_distr_vh", ["volume_distribution", "height"]),
+            ("m_distr", ValueError),
+        ],
+        indirect=["data_bb_flex"]
+    )
+    def test_volume_no_tube(self, data_bb_flex, expected_v) -> None:
+        data_bb_ = data_bb_flex
+        if expected_v == ValueError:
+            with pytest.raises(ValueError):
+                bb = BuildingBlock(json=data_bb_)
+                bb.volume
+        else:
+            bb = BuildingBlock(json=data_bb_)
+            expected_vol = (
+                np.float64(
+                    round(data_bb_[expected_v[0]] * data_bb_[expected_v[1]]/1000)
+                ) if expected_v is not None else None
+            )
+            assert bb.volume == expected_vol
+
+
+    @pytest.mark.parametrize(
+        "data_bb_flex, expected_v", 
+        [
+            ("bot_od_h", ["bottom_outer_diameter", "top_outer_diameter", "wall_thickness", "height"]),
+        ],
+        indirect=["data_bb_flex"]
+    )
+    def test_volume_tube(self, data_bb_flex, expected_v) -> None:
+        data_bb_ = data_bb_flex
+        bot_od = data_bb_[expected_v[0]]
+        top_od = data_bb_[expected_v[1]]
+        wt = data_bb_[expected_v[2]]
+        h = data_bb_[expected_v[3]]
+        rbo = bot_od/2
+        rto = top_od/2
+        rbi = rbo - wt
+        rti = rto - wt
+        bb = BuildingBlock(json=data_bb_)
+        expected_vol = np.float64(((np.pi*h/3*(rbo**2+rbo*rto+rto**2)) - (np.pi*h/3*(rbi**2+rbi*rti+rti**2)))/1e9)
+        assert bb.volume == expected_vol
