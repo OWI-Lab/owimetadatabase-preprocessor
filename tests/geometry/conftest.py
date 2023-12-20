@@ -49,7 +49,7 @@ def data_bb() -> Dict[str, Union[str, np.int64, np.float64]]:
         "beta": np.float64(5.0),
         "gamma": np.float64(6.0),
         "vertical_position_reference_system": "LAT",
-        "material": np.float64(1.0),
+        "material": np.float64(1.0)
     }
 
 
@@ -116,6 +116,42 @@ def data_bb_flex(request):
     elif param == "m":
         data_bb_ = dict(data_bb)
         data_bb_["mass"] = mass
+        data_bb_["height"] = height
+        data_bb_["moment_of_inertia_x"] = np.float64(0.1)
+        data_bb_["moment_of_inertia_y"] = np.float64(0.2)
+        data_bb_["moment_of_inertia_z"] = np.float64(0.3)
+        data_bb_["marker"] = {
+            "x": data_bb_["x_position"],
+            "y": data_bb_["y_position"],
+            "z": data_bb_["z_position"],
+            "radius": np.float64(round(data_bb_["mass"]) / 10),
+            "hovertext": "<br>".join(
+                [
+                    data_bb_["title"],
+                    "Mass: " + str(data_bb_["mass"]) + "kg",
+                    "x: " + str(data_bb_["x_position"]),
+                    "y: " + str(data_bb_["y_position"]),
+                    "z: " + str(data_bb_["z_position"]),
+                ]
+            ),
+        }
+        data_bb_["dict"] = {
+            "title": data_bb_["title"],
+            "x": data_bb_["x_position"],
+            "y": data_bb_["y_position"],
+            "z": data_bb_["z_position"],
+            "OD": "",
+            "wall_thickness": None,
+            "height": data_bb_["height"],
+            "volume": None,
+            "mass": data_bb_["mass"],
+            "moment_of_inertia": {
+                k: data_bb_["moment_of_inertia_" + k] for i, k in zip([0, 1, 2], ["x", "y", "z"])
+            },
+            "description": data_bb_["description"],
+        }
+        data_bb_["type"] = "lumped_mass"
+        data_bb_["str"] = data_bb_["title"] + " (" + data_bb_["type"] + ")"
         return data_bb_
     elif param == "m_distr":
         data_bb_ = dict(data_bb)
@@ -150,6 +186,33 @@ def data_bb_flex(request):
         data_bb_["volume_distribution"] = mass
         data_bb_["mass_distribution"] = mass
         data_bb_["height"] = height
+        data_bb_["mass_calc"] = np.float64(
+            round(data_bb_["mass_distribution"]*data_bb_["height"]/1000)
+        )
+        data_bb_["volume_calc"] = np.float64(
+            round(data_bb_["volume_distribution"]*data_bb_["height"]/1000)
+        )
+        data_bb_["line"] = {
+            "x": [data_bb_["x_position"], data_bb_["x_position"]],
+            "y": [data_bb_["y_position"], data_bb_["y_position"]],
+            "z": [data_bb_["z_position"], data_bb_["z_position"] + data_bb_["height"]],
+            "color": "black",
+        }
+        data_bb_["dict"] = {
+            "title": data_bb_["title"],
+            "x": data_bb_["x_position"],
+            "y": data_bb_["y_position"],
+            "z": data_bb_["z_position"],
+            "OD": "",
+            "wall_thickness": None,
+            "height": data_bb_["height"],
+            "volume": data_bb_["volume_calc"],
+            "mass": data_bb_["mass_calc"],
+            "moment_of_inertia": {"x": None, "y": None, "z": None},
+            "description": data_bb_["description"],
+        }
+        data_bb_["type"] = "distributed_mass"
+        data_bb_["str"] = data_bb_["title"] + " (" + data_bb_["type"] + ")"
         return data_bb_
     elif param == "bot_od_h":
         data_bb_ = dict(data_bb)
@@ -157,6 +220,40 @@ def data_bb_flex(request):
         data_bb_["top_outer_diameter"] = outer_diameter
         data_bb_["wall_thickness"] = wall_t
         data_bb_["height"] = height
+        data_bb_["volume_calc"] = np.float64(6.2819286701185626e-06)
+        data_bb_["density_calc"] = np.float64(7850.0)
+        data_bb_["mass_calc"] = np.float64(round(data_bb_["volume_calc"]*data_bb_["density_calc"], 1))
+        data_bb_["outline"] = (
+            [
+                data_bb_["bottom_outer_diameter"] / 2,
+                -data_bb_["bottom_outer_diameter"] / 2,
+                -data_bb_["top_outer_diameter"] / 2,
+                data_bb_["top_outer_diameter"] / 2,
+                data_bb_["bottom_outer_diameter"] / 2,
+            ],
+            [
+                data_bb_["z_position"],
+                data_bb_["z_position"],
+                data_bb_["z_position"] + data_bb_["height"],
+                data_bb_["z_position"] + data_bb_["height"],
+                data_bb_["z_position"]
+            ]
+        )
+        data_bb_["dict"] = {
+            "title": data_bb_["title"],
+            "x": data_bb_["x_position"],
+            "y": data_bb_["y_position"],
+            "z": data_bb_["z_position"],
+            "OD": str(round(data_bb_["bottom_outer_diameter"])),
+            "wall_thickness": data_bb_["wall_thickness"],
+            "height": data_bb_["height"],
+            "volume": data_bb_["volume_calc"],
+            "mass": data_bb_["mass_calc"],
+            "moment_of_inertia": {"x": None, "y": None, "z": None},
+            "description": data_bb_["description"],
+        }
+        data_bb_["type"] = "tubular_section"
+        data_bb_["str"] = data_bb_["title"] + " (" + data_bb_["type"] + ")"
         return data_bb_
     else:
         return data_bb

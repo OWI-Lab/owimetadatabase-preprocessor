@@ -62,19 +62,19 @@ class TestBuildingBlock:
         [
             ("m", "lumped_mass"),
             ("m_distr", "distributed_mass"),
+            ("m_distr_vh", "distributed_mass"),
             ("bot_od", "tubular_section"),
             ("", ValueError)
         ],
         indirect=["data_bb_flex"]
     )
     def test_type(self, data_bb_flex, expected_type) -> None:
-        data_bb_ = data_bb_flex
         if expected_type == ValueError:
             with pytest.raises(ValueError):
-                bb = BuildingBlock(json=data_bb_)
+                bb = BuildingBlock(json=data_bb_flex)
                 bb.type
         else:
-            bb = BuildingBlock(json=data_bb_)
+            bb = BuildingBlock(json=data_bb_flex)
             assert bb.type == expected_type
 
 
@@ -88,9 +88,8 @@ class TestBuildingBlock:
         indirect=["data_bb_flex"]
     )
     def test_wall_thickness(self, data_bb_flex, expected_wt) -> None:
-        data_bb_ = data_bb_flex
-        bb = BuildingBlock(json=data_bb_)
-        expected_wt_ = data_bb_[expected_wt] if expected_wt is not None else None
+        bb = BuildingBlock(json=data_bb_flex)
+        expected_wt_ = data_bb_flex[expected_wt] if expected_wt is not None else None
         assert bb.wall_thickness == expected_wt_
 
 
@@ -104,9 +103,8 @@ class TestBuildingBlock:
         indirect=["data_bb_flex"]
     )
     def test_bottom_outer_diameter(self, data_bb_flex, expected_bod) -> None:
-        data_bb_ = data_bb_flex
-        bb = BuildingBlock(json=data_bb_)
-        expected_bod_ = data_bb_[expected_bod] if expected_bod is not None else None
+        bb = BuildingBlock(json=data_bb_flex)
+        expected_bod_ = data_bb_flex[expected_bod] if expected_bod is not None else None
         assert bb.bottom_outer_diameter == expected_bod_
 
 
@@ -120,9 +118,8 @@ class TestBuildingBlock:
         indirect=["data_bb_flex"]
     )
     def test_top_outer_diameter(self, data_bb_flex, expected_tod) -> None:
-        data_bb_ = data_bb_flex
-        bb = BuildingBlock(json=data_bb_)
-        expected_tod_ = data_bb_[expected_tod] if expected_tod is not None else None
+        bb = BuildingBlock(json=data_bb_flex)
+        expected_tod_ = data_bb_flex[expected_tod] if expected_tod is not None else None
         assert bb.top_outer_diameter == expected_tod_
 
 
@@ -141,9 +138,8 @@ class TestBuildingBlock:
         indirect=["data_bb_flex"]
     )
     def test_diameter_str(self, data_bb_flex, expected_od) -> None:
-        data_bb_ = data_bb_flex
-        bb = BuildingBlock(json=data_bb_)
-        expected_od_ = expected_od(data_bb_["bottom_outer_diameter"], data_bb_["top_outer_diameter"]) if expected_od is not None else ""
+        bb = BuildingBlock(json=data_bb_flex)
+        expected_od_ = expected_od(data_bb_flex["bottom_outer_diameter"], data_bb_flex["top_outer_diameter"]) if expected_od is not None else ""
         assert bb.diameter_str == expected_od_
 
 
@@ -156,9 +152,8 @@ class TestBuildingBlock:
         indirect=["data_bb_flex"]
     )
     def test_height(self, data_bb_flex, expected_h) -> None:
-        data_bb_ = data_bb_flex
-        bb = BuildingBlock(json=data_bb_)
-        expected_h_ = data_bb_[expected_h] if expected_h is not None else None
+        bb = BuildingBlock(json=data_bb_flex)
+        expected_h_ = data_bb_flex[expected_h] if expected_h is not None else None
         assert bb.height == expected_h_
 
 
@@ -172,16 +167,15 @@ class TestBuildingBlock:
         indirect=["data_bb_flex"]
     )
     def test_volume_no_tube(self, data_bb_flex, expected_v) -> None:
-        data_bb_ = data_bb_flex
         if expected_v == ValueError:
             with pytest.raises(ValueError):
-                bb = BuildingBlock(json=data_bb_)
+                bb = BuildingBlock(json=data_bb_flex)
                 bb.volume
         else:
-            bb = BuildingBlock(json=data_bb_)
+            bb = BuildingBlock(json=data_bb_flex)
             expected_vol = (
                 np.float64(
-                    round(data_bb_[expected_v[0]] * data_bb_[expected_v[1]]/1000)
+                    round(data_bb_flex[expected_v[0]] * data_bb_flex[expected_v[1]]/1000)
                 ) if expected_v is not None else None
             )
             assert bb.volume == expected_vol
@@ -195,15 +189,151 @@ class TestBuildingBlock:
         indirect=["data_bb_flex"]
     )
     def test_volume_tube(self, data_bb_flex, expected_v) -> None:
-        data_bb_ = data_bb_flex
-        bot_od = data_bb_[expected_v[0]]
-        top_od = data_bb_[expected_v[1]]
-        wt = data_bb_[expected_v[2]]
-        h = data_bb_[expected_v[3]]
+        bot_od = data_bb_flex[expected_v[0]]
+        top_od = data_bb_flex[expected_v[1]]
+        wt = data_bb_flex[expected_v[2]]
+        h = data_bb_flex[expected_v[3]]
         rbo = bot_od/2
         rto = top_od/2
         rbi = rbo - wt
         rti = rto - wt
-        bb = BuildingBlock(json=data_bb_)
+        bb = BuildingBlock(json=data_bb_flex)
         expected_vol = np.float64(((np.pi*h/3*(rbo**2+rbo*rto+rto**2)) - (np.pi*h/3*(rbi**2+rbi*rti+rti**2)))/1e9)
         assert bb.volume == expected_vol
+
+
+    @pytest.mark.parametrize(
+        "data_bb_flex, expected_m", 
+        [
+            ("m", "mass"),
+            ("m_distr", ValueError),
+            ("m_distr_vh", "mass_calc"),
+            ("bot_od_h", ValueError),
+        ],
+        indirect=["data_bb_flex"]
+    )
+    def test_mass_1(self, data_bb_flex, expected_m):
+        if expected_m == ValueError:
+            with pytest.raises(ValueError):
+                bb = BuildingBlock(json=data_bb_flex)
+                bb.mass
+        else:
+            bb = BuildingBlock(json=data_bb_flex)
+            assert bb.mass == data_bb_flex[expected_m]
+
+
+    @pytest.mark.parametrize(
+        "data_bb_flex, expected_m", 
+        [
+            ("bot_od_h", ValueError),
+        ],
+        indirect=["data_bb_flex"]
+    )
+    def test_mass_2(self, data_bb_flex, expected_m):
+        if expected_m == ValueError:
+            with pytest.raises(ValueError):
+                bb = BuildingBlock(json=data_bb_flex)
+                bb.mass
+
+
+    @pytest.mark.parametrize(
+        "data_bb_flex, expected_m", 
+        [
+            ("bot_od_h", "mass_calc"),
+        ],
+        indirect=["data_bb_flex"]
+    )
+    def test_mass_3(self, data_bb_flex, expected_m, SA):
+        bb = BuildingBlock(json=data_bb_flex, subassembly=SA)
+        assert bb.mass == data_bb_flex[expected_m]
+
+
+    @pytest.mark.parametrize(
+        "data_bb_flex, expected_mi", 
+        [
+            ("bot_od_h", None),
+            ("m", ["moment_of_inertia_x", "moment_of_inertia_y", "moment_of_inertia_z"])
+        ],
+        indirect=["data_bb_flex"]
+    )
+    def test_moment_inertia(self, data_bb_flex, expected_mi):
+        bb = BuildingBlock(json=data_bb_flex)
+        expected_mi_ = (
+            {
+                k: data_bb_flex[expected_mi[i]] for i, k in zip([0, 1, 2], ["x", "y", "z"])
+            } if expected_mi is not None 
+            else {
+                k: None for k in ["x", "y", "z"]
+            }
+        )
+        assert bb.moment_of_inertia == expected_mi_
+
+
+    @pytest.mark.parametrize(
+        "data_bb_flex, expected_out", 
+        [
+            ("bot_od_h", "outline"),
+            ("m", None)
+        ],
+        indirect=["data_bb_flex"]
+    )
+    def test_outline(self, data_bb_flex, expected_out):
+        bb = BuildingBlock(json=data_bb_flex)
+        expected_outline = data_bb_flex[expected_out] if expected_out is not None else None
+        assert bb.outline == expected_outline
+
+
+    @pytest.mark.parametrize(
+        "data_bb_flex, expected_mark", 
+        [
+            ("bot_od_h", None),
+            ("m", "marker")
+        ],
+        indirect=["data_bb_flex"]
+    )
+    def test_marker(self, data_bb_flex, expected_mark):
+        bb = BuildingBlock(json=data_bb_flex)
+        expected_marker = data_bb_flex[expected_mark] if expected_mark is not None else None
+        assert bb.marker == expected_marker
+
+
+    @pytest.mark.parametrize(
+        "data_bb_flex, expected_l", 
+        [
+            ("m_distr_vh", "line"),
+            ("m", None)
+        ],
+        indirect=["data_bb_flex"]
+    )
+    def test_line(self, data_bb_flex, expected_l):
+        bb = BuildingBlock(json=data_bb_flex)
+        expected_line = data_bb_flex[expected_l] if expected_l is not None else None
+        assert bb.line == expected_line
+
+
+    @pytest.mark.parametrize(
+        "data_bb_flex", 
+        [
+            ("m_distr_vh"),
+            ("m"),
+            ("bot_od_h")
+        ],
+        indirect=["data_bb_flex"]
+    )
+    def test_as_dict(self, data_bb_flex, SA) -> None:
+        bb = BuildingBlock(json=data_bb_flex, subassembly=SA)
+        assert bb.as_dict() == data_bb_flex["dict"]
+
+
+    @pytest.mark.parametrize(
+        "data_bb_flex", 
+        [
+            ("m_distr_vh"),
+            ("m"),
+            ("bot_od_h")
+        ],
+        indirect=["data_bb_flex"]
+    )
+    def test_str(self, data_bb_flex):
+        bb = BuildingBlock(json=data_bb_flex)
+        assert str(bb) == data_bb_flex["str"]
