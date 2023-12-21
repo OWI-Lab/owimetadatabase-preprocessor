@@ -353,5 +353,27 @@ class TestSubAssembly:
         assert isinstance(sa.api, GeometryAPI)
         _assert_attributes(sa.materials[0], data_mat_df.iloc[0].to_dict())
 
-    def test_color():
-        pass
+    @pytest.mark.parametrize(
+        "data_sa_flex", 
+        [
+            ("tw"),
+            ("tp"),
+            ("mp")
+        ],
+        indirect=["data_sa_flex"]
+    )
+    def test_color(self, api_root, header, data_sa_flex, data_mat_df) -> None:
+        api_test = GeometryAPI(api_root, header)
+        sa = SubAssembly(data_mat_df, data_sa_flex, api_test)
+        assert sa.color == data_sa_flex["color"]
+
+    @pytest.mark.parametrize()
+    def test_bb(self, api_root, header, data_sa, data_mat_df, mock_requests_get_buildingblocks_sa) -> None:
+        api_test = GeometryAPI(api_root, header)
+        sa = SubAssembly(data_mat_df, data_sa, api_test)
+        assert isinstance(sa.bb, List[BuildingBlock])
+        assert len(sa.bb) == 3
+        assert isinstance(sa.bb[0], BuildingBlock)
+        assert isinstance(sa.bb[1], BuildingBlock)
+        assert isinstance(sa.bb[2], BuildingBlock)
+        _assert_attributes(sa.bb[0], data_sa["bb"][0])

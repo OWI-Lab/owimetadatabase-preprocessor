@@ -483,12 +483,11 @@ def data_bb_flex(request):
     outer_diameter = np.float64(1000.0)
     outer_diameter_alt = np.float64(1250.0)
     wall_t = np.float64(0.2)
+    data_bb_ = dict(data_bb)
     if param == "h":
-        data_bb_ = dict(data_bb)
         data_bb_["height"] = height
         return data_bb_
     elif param == "m":
-        data_bb_ = dict(data_bb)
         data_bb_["mass"] = mass
         data_bb_["height"] = height
         data_bb_["moment_of_inertia_x"] = np.float64(0.1)
@@ -528,35 +527,29 @@ def data_bb_flex(request):
         data_bb_["str"] = data_bb_["title"] + " (" + data_bb_["type"] + ")"
         return data_bb_
     elif param == "m_distr":
-        data_bb_ = dict(data_bb)
         data_bb_["mass_distribution"] = mass
         return data_bb_
     elif param == "bot_od":
-        data_bb_ = dict(data_bb)
         data_bb_["bottom_outer_diameter"] = outer_diameter
         data_bb_["top_outer_diameter"] = outer_diameter
         data_bb_["wall_thickness"] = wall_t
         return data_bb_
     elif param == "bot_od_alt":
-        data_bb_ = dict(data_bb)
         data_bb_["bottom_outer_diameter"] = outer_diameter_alt
         data_bb_["top_outer_diameter"] = outer_diameter
         data_bb_["wall_thickness"] = wall_t
         return data_bb_
     elif param == "bot_od_top_nan":
-        data_bb_ = dict(data_bb)
         data_bb_["bottom_outer_diameter"] = outer_diameter
         data_bb_["top_outer_diameter"] = np.nan
         data_bb_["wall_thickness"] = wall_t
         return data_bb_
     elif param == "bot_od_bot_nan":
-        data_bb_ = dict(data_bb)
         data_bb_["bottom_outer_diameter"] = np.nan
         data_bb_["top_outer_diameter"] = outer_diameter
         data_bb_["wall_thickness"] = wall_t
         return data_bb_
     elif param == "m_distr_vh":
-        data_bb_ = dict(data_bb)
         data_bb_["volume_distribution"] = mass
         data_bb_["mass_distribution"] = mass
         data_bb_["height"] = height
@@ -589,7 +582,6 @@ def data_bb_flex(request):
         data_bb_["str"] = data_bb_["title"] + " (" + data_bb_["type"] + ")"
         return data_bb_
     elif param == "bot_od_h":
-        data_bb_ = dict(data_bb)
         data_bb_["bottom_outer_diameter"] = outer_diameter
         data_bb_["top_outer_diameter"] = outer_diameter
         data_bb_["wall_thickness"] = wall_t
@@ -636,7 +628,7 @@ def data_bb_flex(request):
 @pytest.fixture(scope="module")
 def data_sa() -> Dict[str, Union[str, np.int64, np.float64]]:
     return {
-        "id": np.int64(1),
+        "id": np.int64(235),
         "title": "BBG01_TW",
         "description": "Something 2",
         "x_position": np.float64(0.0),
@@ -658,7 +650,7 @@ def data_mat_df(data_mat):
 def data_sa_init(api_root, header, data_mat_df) -> Dict[str, Union[str, np.int64, np.float64]]:
     return {
         "api": GeometryAPI(api_root, header),
-        "id": np.int64(1),
+        "id": np.int64(235),
         "title": "BBG01_TW",
         "description": "Something 2",
         "position": {"x": np.float64(0.0), "y": np.float64(0.0), "z": np.float64(17000.0), "reference_system": "LAT"},
@@ -668,3 +660,131 @@ def data_sa_init(api_root, header, data_mat_df) -> Dict[str, Union[str, np.int64
         "bb": None,
         "materials": [m.to_dict() for _, m in data_mat_df.iterrows()],
     }
+
+
+@pytest.fixture(scope="module")
+def data_sa_flex(request) -> Dict[str, Union[str, np.int64, np.float64]]:
+    param = request.param
+    data_sa = request.getfixturevalue("data_sa")
+    data_sa_ = dict(data_sa)
+    if param == "tw":
+        data_sa_["subassembly_type"] = "TW"
+        data_sa_["color"] = "grey"
+        return data_sa_
+    elif param == "tp":
+        data_sa_["subassembly_type"] = "TP"
+        data_sa_["color"] = "goldenrod"
+        return data_sa_
+    elif param == "mp":
+        data_sa_["subassembly_type"] = "MP"
+        data_sa_["color"] = "brown"
+        return data_sa_
+
+
+@pytest.fixture
+def data_bb_real() -> List[Dict[str, Union[str, np.int64, np.float64]]]:
+    return [
+        {
+            "id": 13442,
+            "description": "None",
+            "slug": "bbg01_tw_10",
+            "alpha": 0.0,
+            "beta": 0.0,
+            "gamma": 0.0,
+            "x_position": 0.0,
+            "y_position": 0.0,
+            "z_position": 35169.0,
+            "vertical_position_reference_system": "SUB",
+            "subassembly_name": "BBG01_TW",
+            "material_name": "S355 WTG TOWER",
+            "youngs_modulus": 210.0,
+            "density": 7952.0,
+            "poissons_ratio": 0.2,
+            "bottom_outer_diameter": 4035.8,
+            "top_outer_diameter": 3946.8,
+            "height": 2773.0,
+            "wall_thickness": 15.8,
+            "material": 2.0
+        },
+        {
+            "id": 13447,
+            "description": "None",
+            "slug": "bbg01_tw_05",
+            "alpha": 0.0,
+            "beta": 0.0,
+            "gamma": 0.0,
+            "x_position": 0.0,
+            "y_position": 0.0,
+            "z_position": 49071.0,
+            "vertical_position_reference_system": "SUB",
+            "subassembly_name": "BBG01_TW",
+            "material_name": "S355 WTG TOWER",
+            "youngs_modulus": 210.0,
+            "density": 7952.0,
+            "poissons_ratio": 0.2,
+            "bottom_outer_diameter": 3584.3,
+            "top_outer_diameter": 3494.3,
+            "height": 2791.0,
+            "wall_thickness": 12.3,
+            "material": 2.0
+        },
+        {
+            "id": 13446,
+            "description": "None",
+            "slug": "bbg01_tw_06",
+            "alpha": 0.0,
+            "beta": 0.0,
+            "gamma": 0.0,
+            "x_position": 0.0,
+            "y_position": 0.0,
+            "z_position": 46283.0,
+            "vertical_position_reference_system": "SUB",
+            "subassembly_name": "BBG01_TW",
+            "material_name": "S355 WTG TOWER",
+            "youngs_modulus": 210.0,
+            "density": 7952.0,
+            "poissons_ratio": 0.2,
+            "bottom_outer_diameter": 3675.5,
+            "top_outer_diameter": 3585.5,
+            "height": 2788.0,
+            "wall_thickness": 13.5,
+            "material": 2.0
+        }
+    ]
+
+
+
+@pytest.fixture
+def mock_requests_get_buildingblocks_sa(
+    mocker: mock.Mock, data_bb_real
+) -> mock.Mock:
+    def custom_side_effect(*args, **kwargs) -> requests.Response:
+        resp = requests.Response()
+        resp.status_code = 200
+        data = data_bb_real
+        resp._content = json.dumps(data).encode("utf-8")
+        return resp
+
+    mock = mocker.patch("requests.get", side_effect=custom_side_effect)
+    return mock
+
+
+@pytest.fixture(scope="module")
+def data_sa_bb(data_sa) -> Dict[str, Union[str, np.int64, np.float64]]:
+    data_sa_ = dict(data_sa)
+    data_sa_["bb"] = [
+        {
+            "id": 13442,
+            "title": "BBG01_TW_FLANGE",
+            "description": "None",
+            "x_position": np.float64(0.0),
+            "y_position": np.float64(0.0),
+            "z_position": np.float64(17000.0),
+            "alpha": np.float64(1.0),
+            "beta": np.float64(2.0),
+            "gamma": np.float64(3.0),
+            "vertical_position_reference_system": "LAT",
+            "material": np.float64(1.0)
+        }
+    ]
+    return data_sa_
