@@ -352,3 +352,6 @@ class TestSubAssembly:
         assert isinstance(sa.materials[0], Material)
         assert isinstance(sa.api, GeometryAPI)
         _assert_attributes(sa.materials[0], data_mat_df.iloc[0].to_dict())
+
+    def test_color():
+        pass
