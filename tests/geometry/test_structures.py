@@ -337,3 +337,13 @@ class TestBuildingBlock:
     def test_str(self, data_bb_flex):
         bb = BuildingBlock(json=data_bb_flex)
         assert str(bb) == data_bb_flex["str"]
+
+
+# class TestSubAssembly:
+
+#     def test_init(self, data_sa, data_sa_init) -> None:
+#         sa = SubAssembly(data_sa, api_object)
+#         _assert_attributes(sa, data_sa_init, exclude=["building_blocks"])
+#         assert isinstance(sa.building_blocks, list)
+#         assert len(sa.building_blocks) == 2
+#         assert all([isinstance(bb, BuildingBlock) for bb in sa.building_blocks])

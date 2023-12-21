@@ -257,3 +257,24 @@ def data_bb_flex(request):
         return data_bb_
     else:
         return data_bb
+    
+
+@pytest.fixture(scope="module")
+def data_sa() -> Dict[str, Union[str, np.int64, np.float64]]:
+    return {
+        "id": np.int64(1),
+        "title": "BBG01_TW",
+        "description": "Something 2",
+        "x_position": np.float64(0.0),
+        "y_position": np.float64(0.0),
+        "z_position": np.float64(17000.0),
+        "vertical_position_reference_system": "LAT",
+        "subassembly_type": "TW",
+        "source": "vestas_tower_dwg.pdf",
+        "asset": np.int64(341)
+    }
+
+
+@pytest.fixture(scope="module")
+def data_mat_df():
+    pass
