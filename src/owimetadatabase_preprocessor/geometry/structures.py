@@ -430,6 +430,25 @@ class SubAssembly(object):
         return PLOT_SETTINGS_SUBASSEMBLY[self.type]["color"]
 
     @property
+    def building_blocks(self) -> Union[List[BuildingBlock], None]:
+        """Building blocks of the subassembly
+
+        :return: List of instances of building block class.
+        """
+        if self.bb:
+            return self.bb
+        else:
+            if self.api is None:
+                raise ValueError("No API configured")
+            else:
+                bb = self.api.get_buildingblocks(subassembly_id=str(self.id))
+                if bb["exists"]:
+                    self.bb = [BuildingBlock(b.to_dict(), subassembly=self) for _, b in bb["data"].iterrows()]  # type: ignore
+                    return self.bb
+                else:
+                    raise ValueError("No building blocks found")
+
+    @property
     def height(self) -> np.float64:
         """Height of the subassembly."""
         height = np.float64(0.0)
@@ -456,26 +475,13 @@ class SubAssembly(object):
         else:
             raise ValueError("No building blocks found")
         return mass
-
+    
     @property
-    def building_blocks(self) -> Union[List[BuildingBlock], None]:
-        """Building blocks of the subassembly
-
-        :return: List of instances of building block class.
-        """
-        if self.bb:
-            return self.bb
-        else:
-            if self.api is None:
-                raise ValueError("No API configured")
-            else:
-                bb = self.api.get_buildingblocks(subassembly_id=str(self.id))
-                if bb["exists"]:
-                    self.bb = [BuildingBlock(b.to_dict(), subassembly=self) for _, b in bb["data"].iterrows()]  # type: ignore
-                    return self.bb
-                else:
-                    raise ValueError("No building blocks found")
-
+    def properties(self) -> Dict[str, np.float64]:
+        """Mass and height of the subassembly."""
+        property_dict = {"mass": self.mass, "height": self.height}
+        return property_dict
+    
     @property
     def outline(self) -> Tuple[List[np.float64], List[np.float64]]:
         """Defines the traces of the outline of the subassembly
@@ -617,12 +623,6 @@ class SubAssembly(object):
         return np.float64(
             round(temp_df["absolute_position, m"][0] + temp_df["height"][0] / 1000, 3)
         )
-
-    @property
-    def properties(self) -> Dict[str, np.float64]:
-        """Mass and height of the subassembly."""
-        property_dict = {"mass": self.mass, "height": self.height}
-        return property_dict
 
     def _repr_html_(self) -> str:
         html_str = self.as_df()._repr_html_()  # type: ignore
