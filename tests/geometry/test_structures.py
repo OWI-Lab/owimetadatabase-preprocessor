@@ -339,11 +339,16 @@ class TestBuildingBlock:
         assert str(bb) == data_bb_flex["str"]
 
 
-# class TestSubAssembly:
+class TestSubAssembly:
 
-#     def test_init(self, data_sa, data_sa_init) -> None:
-#         sa = SubAssembly(data_sa, api_object)
-#         _assert_attributes(sa, data_sa_init, exclude=["building_blocks"])
-#         assert isinstance(sa.building_blocks, list)
-#         assert len(sa.building_blocks) == 2
-#         assert all([isinstance(bb, BuildingBlock) for bb in sa.building_blocks])
+    def test_init(self, api_root, header, data_sa, data_sa_init, data_mat_df) -> None:
+        api_test = GeometryAPI(api_root, header)
+        sa = SubAssembly(data_mat_df, data_sa, api_test)
+        _assert_attributes(sa, data_sa_init, exclude=["api", "materials", "position"])	
+        assert isinstance(sa.position, Position)
+        _assert_attributes(sa.position, data_sa_init["position"])
+        assert isinstance(sa.materials, List)
+        assert len(sa.materials) == 1
+        assert isinstance(sa.materials[0], Material)
+        assert isinstance(sa.api, GeometryAPI)
+        _assert_attributes(sa.materials[0], data_mat_df.iloc[0].to_dict())
