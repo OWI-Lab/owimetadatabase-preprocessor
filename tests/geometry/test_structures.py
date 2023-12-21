@@ -367,13 +367,33 @@ class TestSubAssembly:
         sa = SubAssembly(data_mat_df, data_sa_flex, api_test)
         assert sa.color == data_sa_flex["color"]
 
-    @pytest.mark.parametrize()
+   # @pytest.mark.parametrize()
     def test_bb(self, api_root, header, data_sa, data_mat_df, mock_requests_get_buildingblocks_sa) -> None:
         api_test = GeometryAPI(api_root, header)
         sa = SubAssembly(data_mat_df, data_sa, api_test)
-        assert isinstance(sa.bb, List[BuildingBlock])
-        assert len(sa.bb) == 3
-        assert isinstance(sa.bb[0], BuildingBlock)
-        assert isinstance(sa.bb[1], BuildingBlock)
-        assert isinstance(sa.bb[2], BuildingBlock)
-        _assert_attributes(sa.bb[0], data_sa["bb"][0])
+        bb = sa.building_blocks
+        assert isinstance(bb, List)
+        assert len(bb) == 3
+        assert isinstance(bb[0], BuildingBlock)
+        assert isinstance(bb[1], BuildingBlock)
+        assert isinstance(bb[2], BuildingBlock)
+        assert sa.bb == bb
+        #_assert_attributes(sa.bb[0], data_sa["bb"][0])
+
+    def test_bb_exists(self, api_root, header, data_sa, data_mat_df, mock_requests_get_buildingblocks_sa) -> None:
+        api_test = GeometryAPI(api_root, header)
+        sa = SubAssembly(data_mat_df, data_sa, api_test)
+        sa.bb = [1, "test"]
+        bb = sa.building_blocks
+        assert sa.bb == bb
+
+    def test_bb_api(self, api_root, header, data_sa, data_mat_df, mock_requests_get_buildingblocks_sa) -> None:
+        sa = SubAssembly(data_mat_df, data_sa, None)
+        with pytest.raises(ValueError):
+            sa.building_blocks
+
+    def test_bb_not_exists(self, api_root, header, data_sa, data_mat_df, mock_requests_get_buildingblocks_sa_alt) -> None:
+        api_test = GeometryAPI(api_root, header)
+        sa = SubAssembly(data_mat_df, data_sa, api_test)
+        with pytest.raises(ValueError):
+            sa.building_blocks

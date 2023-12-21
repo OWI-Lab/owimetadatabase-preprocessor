@@ -628,7 +628,7 @@ def data_bb_flex(request):
 @pytest.fixture(scope="module")
 def data_sa() -> Dict[str, Union[str, np.int64, np.float64]]:
     return {
-        "id": np.int64(235),
+        "id": np.int64(651),
         "title": "BBG01_TW",
         "description": "Something 2",
         "x_position": np.float64(0.0),
@@ -650,7 +650,7 @@ def data_mat_df(data_mat):
 def data_sa_init(api_root, header, data_mat_df) -> Dict[str, Union[str, np.int64, np.float64]]:
     return {
         "api": GeometryAPI(api_root, header),
-        "id": np.int64(235),
+        "id": np.int64(651),
         "title": "BBG01_TW",
         "description": "Something 2",
         "position": {"x": np.float64(0.0), "y": np.float64(0.0), "z": np.float64(17000.0), "reference_system": "LAT"},
@@ -681,91 +681,132 @@ def data_sa_flex(request) -> Dict[str, Union[str, np.int64, np.float64]]:
         return data_sa_
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def data_bb_real() -> List[Dict[str, Union[str, np.int64, np.float64]]]:
     return [
         {
-            "id": 13442,
-            "description": "None",
-            "slug": "bbg01_tw_10",
+            "id": 13432,
+            "description": None,
+            "slug": "bbg01_tw_20",
             "alpha": 0.0,
             "beta": 0.0,
             "gamma": 0.0,
             "x_position": 0.0,
             "y_position": 0.0,
-            "z_position": 35169.0,
+            "z_position": 10400.0,
             "vertical_position_reference_system": "SUB",
+            "title": "bbg01_tw_20",
+            "moment_of_inertia_x": None,
+            "moment_of_inertia_y": None,
+            "moment_of_inertia_z": None,
+            "mass": None,
+            "sub_assembly": 651,
+            "projectsite_name": "Nobelwind",
+            "asset_name": "BBG01",
             "subassembly_name": "BBG01_TW",
             "material_name": "S355 WTG TOWER",
             "youngs_modulus": 210.0,
             "density": 7952.0,
             "poissons_ratio": 0.2,
-            "bottom_outer_diameter": 4035.8,
-            "top_outer_diameter": 3946.8,
-            "height": 2773.0,
-            "wall_thickness": 15.8,
+            "bottom_outer_diameter": 4489.7,
+            "top_outer_diameter": 4489.7,
+            "height": 2830.0,
+            "wall_thickness": 23.7,
             "material": 2.0
         },
         {
-            "id": 13447,
-            "description": "None",
-            "slug": "bbg01_tw_05",
+            "id": 13431,
+            "description": None,
+            "slug": "bbg01_tw_21",
             "alpha": 0.0,
             "beta": 0.0,
             "gamma": 0.0,
             "x_position": 0.0,
             "y_position": 0.0,
-            "z_position": 49071.0,
+            "z_position": 7570.0,
             "vertical_position_reference_system": "SUB",
+            "title": "bbg01_tw_21",
+            "moment_of_inertia_x": None,
+            "moment_of_inertia_y": None,
+            "moment_of_inertia_z": None,
+            "mass": None,
+            "sub_assembly": 651,
+            "projectsite_name": "Nobelwind",
+            "asset_name": "BBG01",
             "subassembly_name": "BBG01_TW",
             "material_name": "S355 WTG TOWER",
             "youngs_modulus": 210.0,
             "density": 7952.0,
             "poissons_ratio": 0.2,
-            "bottom_outer_diameter": 3584.3,
-            "top_outer_diameter": 3494.3,
-            "height": 2791.0,
-            "wall_thickness": 12.3,
+            "bottom_outer_diameter": 4490.9,
+            "top_outer_diameter": 4490.9,
+            "height": 2830.0,
+            "wall_thickness": 24.9,
             "material": 2.0
         },
         {
-            "id": 13446,
-            "description": "None",
-            "slug": "bbg01_tw_06",
+            "id": 13430,
+            "description": None,
+            "slug": "bbg01_tw_22",
             "alpha": 0.0,
             "beta": 0.0,
             "gamma": 0.0,
             "x_position": 0.0,
             "y_position": 0.0,
-            "z_position": 46283.0,
+            "z_position": 5170.0,
             "vertical_position_reference_system": "SUB",
+            "title": "bbg01_tw_22",
+            "moment_of_inertia_x": None,
+            "moment_of_inertia_y": None,
+            "moment_of_inertia_z": None,
+            "mass": None,
+            "sub_assembly": 651,
+            "projectsite_name": "Nobelwind",
+            "asset_name": "BBG01",
             "subassembly_name": "BBG01_TW",
             "material_name": "S355 WTG TOWER",
             "youngs_modulus": 210.0,
             "density": 7952.0,
             "poissons_ratio": 0.2,
-            "bottom_outer_diameter": 3675.5,
-            "top_outer_diameter": 3585.5,
-            "height": 2788.0,
-            "wall_thickness": 13.5,
+            "bottom_outer_diameter": 4495.1,
+            "top_outer_diameter": 4495.1,
+            "height": 2400.0,
+            "wall_thickness": 29.1,
             "material": 2.0
         }
     ]
 
 
+@pytest.fixture(scope="module")
+def data_bb_alt() -> List[Dict[str, Union[str, np.int64, np.float64]]]:
+    return {}
+
 
 @pytest.fixture
-def mock_requests_get_buildingblocks_sa(
-    mocker: mock.Mock, data_bb_real
-) -> mock.Mock:
-    def custom_side_effect(*args, **kwargs) -> requests.Response:
+def mock_requests_get_buildingblocks_sa(mocker: mock.Mock, data_bb_real) -> mock.Mock:
+    mock = mocker.patch("requests.get")
+
+    def response() -> requests.Response:
         resp = requests.Response()
         resp.status_code = 200
-        data = data_bb_real
-        resp._content = json.dumps(data).encode("utf-8")
+        resp._content = json.dumps(data_bb_real).encode("utf-8")
         return resp
 
-    mock = mocker.patch("requests.get", side_effect=custom_side_effect)
+    mock.return_value = response()
+    return mock
+
+
+@pytest.fixture
+def mock_requests_get_buildingblocks_sa_alt(mocker: mock.Mock, data_bb_alt) -> mock.Mock:
+    mock = mocker.patch("requests.get")
+
+    def response() -> requests.Response:
+        resp = requests.Response()
+        resp.status_code = 200
+        resp._content = json.dumps(data_bb_alt).encode("utf-8")
+        return resp
+
+    mock.return_value = response()
     return mock
 
 
