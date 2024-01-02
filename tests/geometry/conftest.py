@@ -1,6 +1,6 @@
 import json
 
-from typing import  Any, Callable, Dict, List, Union
+from typing import  Any, Callable, Dict, List, Tuple, Union
 from unittest import mock
 
 import numpy as np
@@ -393,7 +393,7 @@ def data_mat_dict() -> Dict[str, Union[str, np.float64]]:
 def data_mat(data_mat_dict) -> Dict[str, Union[str, np.int64, np.float64]]:    
     data_mat_dict = dict(data_mat_dict)
     data_mat_dict["id"] = np.int64(1)
-    data_mat_dict["density"] = np.float64(7850.0)
+    data_mat_dict["density"] = np.float64(7952.0)
     return data_mat_dict
 
 
@@ -587,7 +587,7 @@ def data_bb_flex(request):
         data_bb_["wall_thickness"] = wall_t
         data_bb_["height"] = height
         data_bb_["volume_calc"] = np.float64(6.2819286701185626e-06)
-        data_bb_["density_calc"] = np.float64(7850.0)
+        data_bb_["density_calc"] = np.float64(7952.0)
         data_bb_["mass_calc"] = np.float64(round(data_bb_["volume_calc"]*data_bb_["density_calc"], 1))
         data_bb_["outline"] = (
             [
@@ -637,7 +637,8 @@ def data_sa() -> Dict[str, Union[str, np.int64, np.float64]]:
         "vertical_position_reference_system": "LAT",
         "subassembly_type": "TW",
         "source": "vestas_tower_dwg.pdf",
-        "asset": np.int64(341)
+        "asset": np.int64(341),
+        "material": np.float64(1.0)
     }
 
 
@@ -699,7 +700,7 @@ def data_bb_real() -> List[Dict[str, Union[str, np.int64, np.float64]]]:
             "moment_of_inertia_x": None,
             "moment_of_inertia_y": None,
             "moment_of_inertia_z": None,
-            "mass": None,
+            "mass": 10000,
             "sub_assembly": 651,
             "projectsite_name": "Nobelwind",
             "asset_name": "BBG01",
@@ -712,7 +713,7 @@ def data_bb_real() -> List[Dict[str, Union[str, np.int64, np.float64]]]:
             "top_outer_diameter": 4489.7,
             "height": 2830.0,
             "wall_thickness": 23.7,
-            "material": 2.0
+            "material": 1.0
         },
         {
             "id": 13431,
@@ -729,7 +730,7 @@ def data_bb_real() -> List[Dict[str, Union[str, np.int64, np.float64]]]:
             "moment_of_inertia_x": None,
             "moment_of_inertia_y": None,
             "moment_of_inertia_z": None,
-            "mass": None,
+            "mass": 10000,
             "sub_assembly": 651,
             "projectsite_name": "Nobelwind",
             "asset_name": "BBG01",
@@ -742,7 +743,7 @@ def data_bb_real() -> List[Dict[str, Union[str, np.int64, np.float64]]]:
             "top_outer_diameter": 4490.9,
             "height": 2830.0,
             "wall_thickness": 24.9,
-            "material": 2.0
+            "material": 1.0
         },
         {
             "id": 13430,
@@ -759,7 +760,7 @@ def data_bb_real() -> List[Dict[str, Union[str, np.int64, np.float64]]]:
             "moment_of_inertia_x": None,
             "moment_of_inertia_y": None,
             "moment_of_inertia_z": None,
-            "mass": None,
+            "mass": 3137.1,
             "sub_assembly": 651,
             "projectsite_name": "Nobelwind",
             "asset_name": "BBG01",
@@ -772,7 +773,7 @@ def data_bb_real() -> List[Dict[str, Union[str, np.int64, np.float64]]]:
             "top_outer_diameter": 4495.1,
             "height": 2400.0,
             "wall_thickness": 29.1,
-            "material": 2.0
+            "material": 1.0
         }
     ]
 
@@ -829,3 +830,113 @@ def data_sa_bb(data_sa) -> Dict[str, Union[str, np.int64, np.float64]]:
         }
     ]
     return data_sa_
+
+
+@pytest.fixture(scope="module")
+def outline_data() -> Tuple[List[float], List[float]]:
+    x = [
+        2247.55, 2247.55,
+        2245.45, 2245.45,
+        2244.85, 2244.85,
+        -2244.85, -2244.85,
+        -2245.45, -2245.45,
+        -2247.55, -2247.55
+    ]
+    z = [
+        22170.0, 24570.0,
+        24570.0, 27400.0,
+        27400.0, 30230.0,
+        30230.0, 27400.0,
+        27400.0, 24570.0,
+        24570.0, 22170.0
+    ]
+    return x, z
+
+
+@pytest.fixture(scope="module")
+def sa_as_df(data_bb_real) -> pd.DataFrame:
+    # data_ = [
+    #     {
+    #         "title": data_bb_real["title"],
+    #         "x": data_bb_real["x_position"],
+    #         "y": data_bb_real["y_position"],
+    #         "z": data_bb_real["z_position"],
+    #         "OD": "4490",
+    #         "wall_thickness": data_bb_real["wall_thickness"],
+    #         "height": data_bb_real["height"],
+    #         "volume": 0.941,
+    #         "mass": 7483.1,
+    #         "moment_of_inertia": {"x": None, "y": None, "z": None},
+    #         "description": "",
+    #     },
+    #     {
+    #         "title": data_bb_real["title"],
+    #         "x": data_bb_real["x_position"],
+    #         "y": data_bb_real["y_position"],
+    #         "z": data_bb_real["z_position"],
+    #         "OD": "4491",
+    #         "wall_thickness": data_bb_real["wall_thickness"],
+    #         "height": data_bb_real["height"],
+    #         "volume": 0.9887,
+    #         "mass": 7862,
+    #         "moment_of_inertia": {"x": None, "y": None, "z": None},
+    #         "description": "",
+    #     },
+    #     {
+    #         "title": data_bb_real["title"],
+    #         "x": data_bb_real["x_position"],
+    #         "y": data_bb_real["y_position"],
+    #         "z": data_bb_real["z_position"],
+    #         "OD": "4495",
+    #         "wall_thickness": data_bb_real["wall_thickness"],
+    #         "height": data_bb_real["height"],
+    #         "volume": 0.9799,
+    #         "mass": 7792,
+    #         "moment_of_inertia": {"x": None, "y": None, "z": None},
+    #         "description": "",
+    #     }
+    # ]
+    OD = ["4490", "4491", "4495"]
+    v = [0.941, 0.9887, 0.9799]
+    m = [7483.1, 7862, 7792]
+    data = [
+        [
+            data_bb_real[i]["title"],
+            data_bb_real[i]["x_position"],
+            data_bb_real[i]["y_position"],
+            data_bb_real[i]["z_position"],
+            OD[i],
+            data_bb_real[i]["wall_thickness"],
+            data_bb_real[i]["height"],
+            v[i],
+            m[i],
+            {"x": None, "y": None, "z": None},
+            "",            
+        ] for i in range(3)
+    ]
+    df = pd.DataFrame(
+        data=data,
+        columns=[
+            "title", "x", "y", "z",
+            "OD", "wall_thickness", "height", "volume", "mass", "moment_of_inertia", "description"
+        ]
+    )
+    df.set_index("title", inplace=True)
+    return df
+
+
+@pytest.fixture(scope="module")
+def absolute_bot() -> np.float64:
+    return 22.17
+
+
+@pytest.fixture(scope="module")
+def absolute_top() -> np.float64:
+    return 30.23
+
+
+@pytest.fixture(scope="function")
+def sa(api_root, header, data_mat_df, data_sa) -> SubAssembly:
+    api_test = GeometryAPI(api_root, header)
+    sa = SubAssembly(data_mat_df, data_sa, api_test)
+    return sa
