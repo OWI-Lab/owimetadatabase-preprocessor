@@ -151,10 +151,11 @@ class BuildingBlock(object):
         self.material = None
         if "material" in json and self.subassembly:
             material_id = json["material"]
-            for mat in self.subassembly.materials:
-                if mat.id == np.int64(material_id):
-                    self.material = mat
-                    break
+            if not np.isnan(material_id):
+                for mat in self.subassembly.materials:
+                    if mat.id == np.int64(material_id):
+                        self.material = mat
+                        break
         self.json = json
 
     @property
