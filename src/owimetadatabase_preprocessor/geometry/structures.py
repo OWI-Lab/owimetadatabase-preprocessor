@@ -104,6 +104,14 @@ class Material(object):
             "poisson_ratio": self.poisson_ratio,
             "young_modulus": self.young_modulus,
         }
+    
+    def __eq__(self, other) -> bool:
+        if isinstance(other, Material):
+            return self.__dict__ == other.__dict__
+        elif isinstance(other, dict):
+            return self.__dict__ == other
+        else:
+            return False
 
 
 class Position(object):
@@ -127,6 +135,14 @@ class Position(object):
         self.gamma = gamma
         self.reference_system = reference_system
 
+    def __eq__(self, other) -> bool:
+        if isinstance(other, Position):
+            return self.__dict__ == other.__dict__
+        elif isinstance(other, dict):
+            return self.__dict__ == other
+        else:
+            return False
+        
 
 class BuildingBlock(object):
     """Building blocks description."""
@@ -398,7 +414,14 @@ class BuildingBlock(object):
 
     def __str__(self) -> str:
         return self.title + " (" + self.type + ")"
-
+    
+    def __eq__(self, other) -> bool:
+        if isinstance(other, BuildingBlock):
+            return self.__dict__ == other.__dict__
+        elif isinstance(other, dict):
+            return self.__dict__ == other
+        else:
+            return False
 
 class SubAssembly(object):
     """Subassemblies description."""
@@ -633,3 +656,11 @@ class SubAssembly(object):
         """Returns a string representation of the subassembly."""
         s = str(self.title) + " Subassembly"
         return s
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, SubAssembly):
+            return self.__dict__ == other.__dict__
+        elif isinstance(other, dict):
+            return self.__dict__ == other
+        else:
+            return False
