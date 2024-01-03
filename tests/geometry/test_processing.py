@@ -16,7 +16,8 @@ from .test_utils import assert_attributes
 
 class  TestOWT:
 
-    def test_init(self, api_root, header, data_mat, sa, owt_init) -> None:
-        api_test = GeometryAPI(api_root, header)
-        owt = OWT(api_test, data_mat, sa)
+    def test_init(self, owt, owt_init) -> None:
         assert_attributes(owt, owt_init)
+
+    def test_set_subassemblies_and_members(self, owt_api, data_mat_df, sab) -> None:
+        owt = OWT(owt_api, data_mat_df, sab)

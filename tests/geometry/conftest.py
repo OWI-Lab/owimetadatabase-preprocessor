@@ -936,16 +936,21 @@ def absolute_top() -> np.float64:
 
 
 @pytest.fixture(scope="function")
-def sa(api_root, header, data_mat_df, data_sa) -> SubAssembly:
+def sab(api_root, header, data_mat_df, data_sa) -> SubAssembly:
     api_test = GeometryAPI(api_root, header)
     sa = SubAssembly(data_mat_df, data_sa, api_test)
     return sa
 
 
+@pytest.fixture(scope="module")
+def owt_api(api_root, header):
+    return GeometryAPI(api_root, header)
+
+
 @pytest.fixture(scope="function")
-def owt_init(api_root, header) -> None:
+def owt_init(data_mat_df, owt_api) -> None:
     owt = {
-        "api": GeometryAPI(api_root, header),
+        "api": owt_api,
         "materials": [m.to_dict() for _, m in data_mat_df.iterrows()],
         "tower_sub_assemblies": None,
         "tp_sub_assemblies": None,
@@ -965,4 +970,35 @@ def owt_init(api_root, header) -> None:
         "tp_distributed_mass": None,
         "mp_distributed_mass": None,
     }
+    return owt
+
+
+@pytest.fixture(scope="function")
+def mock_owt_set_subassemblies(mocker: mock.Mock, sab) -> mock.Mock:
+    mock = mocker.patch.object(OWT, "_set_subassemblies")
+        
+    def mocked_set_subassemblies(self, *args, **kwargs):
+        self.sub_assemblies = {"TW": object(), "TP": object(), "MP": object()}
+
+    mock.side_effect = mocked_set_subassemblies(mock, sab)
+    return mock
+    
+
+@pytest.fixture(scope="function")
+def mock_owt_set_members(mocker: mock.Mock) -> mock.Mock:
+    mock = mocker.patch.object(OWT, "_set_members")
+        
+    def mocked_set_members(self, *args, **kwargs):
+        self.tower_sub_assemblies = pd.DataFrame({"title": ["BBG01_TW"], "mass": [10000]})
+        self.tp_sub_assemblies = pd.DataFrame({"title": ["BBG01_TP"], "mass": [5000]})
+        self.mp_sub_assemblies = pd.DataFrame({"title": ["BBG01_MP"], "mass": [20000]})
+
+    mock.side_effect = mocked_set_members(mock)
+    return mock
+
+
+@pytest.fixture(scope="function")
+def owt(data_mat_df, sab, owt_api, mock_owt_set_subassemblies, mock_owt_set_members):
+    mat = [m.to_dict() for _, m in data_mat_df.iterrows()]
+    owt = OWT(owt_api, mat, sab)
     return owt

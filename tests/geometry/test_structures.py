@@ -333,15 +333,15 @@ class TestBuildingBlock:
 
 class TestSubAssembly:
 
-    def test_init(self, sa, data_sa_init, data_mat_df) -> None:
-        assert_attributes(sa, data_sa_init, exclude=["api", "materials", "position"])	
-        assert isinstance(sa.position, Position)
-        assert_attributes(sa.position, data_sa_init["position"])
-        assert isinstance(sa.materials, List)
-        assert len(sa.materials) == 1
-        assert isinstance(sa.materials[0], Material)
-        assert isinstance(sa.api, GeometryAPI)
-        assert_attributes(sa.materials[0], data_mat_df.iloc[0].to_dict())
+    def test_init(self, sab, data_sa_init, data_mat_df) -> None:
+        assert_attributes(sab, data_sa_init, exclude=["api", "materials", "position"])	
+        assert isinstance(sab.position, Position)
+        assert_attributes(sab.position, data_sa_init["position"])
+        assert isinstance(sab.materials, List)
+        assert len(sab.materials) == 1
+        assert isinstance(sab.materials[0], Material)
+        assert isinstance(sab.api, GeometryAPI)
+        assert_attributes(sab.materials[0], data_mat_df.iloc[0].to_dict())
 
     @pytest.mark.parametrize(
         "data_sa_flex", 
@@ -354,70 +354,70 @@ class TestSubAssembly:
     )
     def test_color(self, api_root, header, data_sa_flex, data_mat_df) -> None:
         api_test = GeometryAPI(api_root, header)
-        sa = SubAssembly(data_mat_df, data_sa_flex, api_test)
-        assert sa.color == data_sa_flex["color"]
+        sab = SubAssembly(data_mat_df, data_sa_flex, api_test)
+        assert sab.color == data_sa_flex["color"]
 
-    def test_bb(self, sa, mock_requests_get_buildingblocks_sa) -> None:
-        bb = sa.building_blocks
+    def test_bb(self, sab, mock_requests_get_buildingblocks_sa) -> None:
+        bb = sab.building_blocks
         assert isinstance(bb, List)
         assert len(bb) == 3
         assert isinstance(bb[0], BuildingBlock)
         assert isinstance(bb[1], BuildingBlock)
         assert isinstance(bb[2], BuildingBlock)
-        assert sa.bb == bb
-        #assert_attributes(sa.bb[0], data_sa["bb"][0])
+        assert sab.bb == bb
+        #assert_attributes(sab.bb[0], data_sa["bb"][0])
 
-    def test_bb_exists(self, sa, mock_requests_get_buildingblocks_sa) -> None:
-        sa.bb = [1, "test"]
-        bb = sa.building_blocks
-        assert sa.bb == bb
+    def test_bb_exists(self, sab, mock_requests_get_buildingblocks_sa) -> None:
+        sab.bb = [1, "test"]
+        bb = sab.building_blocks
+        assert sab.bb == bb
 
     def test_bb_api(self, data_sa, data_mat_df, mock_requests_get_buildingblocks_sa) -> None:
-        sa = SubAssembly(data_mat_df, data_sa, None)
+        sab = SubAssembly(data_mat_df, data_sa, None)
         with pytest.raises(ValueError):
-            sa.building_blocks
+            sab.building_blocks
 
-    def test_bb_not_exists(self, sa, mock_requests_get_buildingblocks_sa_alt) -> None:
+    def test_bb_not_exists(self, sab, mock_requests_get_buildingblocks_sa_alt) -> None:
         with pytest.raises(ValueError):
-            sa.building_blocks
+            sab.building_blocks
 
-    def test_height(self, sa, mock_requests_get_buildingblocks_sa, data_bb_real) -> None:
-        sa.building_blocks
+    def test_height(self, sab, mock_requests_get_buildingblocks_sa, data_bb_real) -> None:
+        sab.building_blocks
         h = 0
-        for i in range(len(sa.bb)):
+        for i in range(len(sab.bb)):
             h += data_bb_real[i]["height"]
-        assert sa.height == h
+        assert sab.height == h
 
-    def test_mass(self, sa, mock_requests_get_buildingblocks_sa, data_bb_real) -> None:
-        sa.building_blocks
+    def test_mass(self, sab, mock_requests_get_buildingblocks_sa, data_bb_real) -> None:
+        sab.building_blocks
         m = 0
-        for i in range(len(sa.bb)):
+        for i in range(len(sab.bb)):
            m += data_bb_real[i]["mass"]
-        assert sa.mass == m
+        assert sab.mass == m
 
-    def test_properties(self, sa, mock_requests_get_buildingblocks_sa, data_bb_real) -> None:
-        sa.building_blocks
+    def test_properties(self, sab, mock_requests_get_buildingblocks_sa, data_bb_real) -> None:
+        sab.building_blocks
         m, h = 0, 0
-        for i in range(len(sa.bb)):
+        for i in range(len(sab.bb)):
            m += data_bb_real[i]["mass"]
            h += data_bb_real[i]["height"]
-        assert sa.properties["mass"] == m
-        assert sa.properties["height"] == h
+        assert sab.properties["mass"] == m
+        assert sab.properties["height"] == h
 
-    def test_outline(self, sa, mock_requests_get_buildingblocks_sa, outline_data) -> None:
-         assert sa.outline == outline_data
+    def test_outline(self, sab, mock_requests_get_buildingblocks_sa, outline_data) -> None:
+         assert sab.outline == outline_data
 
-    def test_as_df(self, sa, mock_requests_get_buildingblocks_sa, sa_as_df) -> None:
-        pd_testing.assert_frame_equal(sa.as_df(), sa_as_df, rtol=1e-3, atol=1e-3)
+    def test_as_df(self, sab, mock_requests_get_buildingblocks_sa, sa_as_df) -> None:
+        pd_testing.assert_frame_equal(sab.as_df(), sa_as_df, rtol=1e-3, atol=1e-3)
 
-    def test_absolute_bottom(self, sa, mock_requests_get_buildingblocks_sa, absolute_bot) -> None:
-        assert sa.absolute_bottom == absolute_bot
+    def test_absolute_bottom(self, sab, mock_requests_get_buildingblocks_sa, absolute_bot) -> None:
+        assert sab.absolute_bottom == absolute_bot
 
-    def test_absolute_top(self, sa, mock_requests_get_buildingblocks_sa, absolute_top) -> None:
-        assert sa.absolute_top == absolute_top
+    def test_absolute_top(self, sab, mock_requests_get_buildingblocks_sa, absolute_top) -> None:
+        assert sab.absolute_top == absolute_top
 
     def test_repr_html(self) -> None:
         pass
 
-    def test_str(self, sa) -> None:
-        assert str(sa) == "BBG01_TW Subassembly"
+    def test_str(self, sab) -> None:
+        assert str(sab) == "BBG01_TW Subassembly"
