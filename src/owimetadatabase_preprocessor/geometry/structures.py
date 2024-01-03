@@ -163,12 +163,11 @@ class BuildingBlock(object):
             gamma=json["gamma"],
             reference_system=json["vertical_position_reference_system"],
         )
-        self.subassembly = subassembly
         self.material = None
-        if "material" in json and self.subassembly:
+        if "material" in json and subassembly:
             material_id = json["material"]
             if not np.isnan(material_id):
-                for mat in self.subassembly.materials:
+                for mat in subassembly.materials:
                     if mat.id == np.int64(material_id):
                         self.material = mat
                         break
