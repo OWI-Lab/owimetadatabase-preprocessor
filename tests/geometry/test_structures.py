@@ -11,22 +11,14 @@ import requests
 from owimetadatabase_preprocessor.geometry.io import GeometryAPI
 from owimetadatabase_preprocessor.geometry.processing import OWT
 from owimetadatabase_preprocessor.geometry.structures import Material, Position, BuildingBlock, SubAssembly
-
-
-def _assert_attributes(class_, dict_, exclude=None) -> None:
-    for key, value in dict_.items():
-        if exclude is not None:
-            if key in exclude:
-                continue
-        assert getattr(class_, key) == value
-        assert type(getattr(class_, key)) == type(value)
+from .test_utils import assert_attributes
 
 
 class  TestMaterial:
 
     def test_init(self, data_mat) -> None:
         mat = Material(data_mat)
-        _assert_attributes(mat, data_mat)
+        assert_attributes(mat, data_mat)
 
     def test_as_dict(self, data_mat, data_mat_dict) -> None:
         mat = Material(data_mat)
@@ -38,23 +30,23 @@ class TestPosition:
 
     def test_init(self, data_pos) -> None:
         pos = Position(**data_pos)
-        _assert_attributes(pos, data_pos)
+        assert_attributes(pos, data_pos)
 
 
 class TestBuildingBlock:
 
     def test_init_no_sa(self, data_bb, data_bb_init_no_sa, data_pos) -> None:
         bb = BuildingBlock(json=data_bb)
-        _assert_attributes(bb, data_bb_init_no_sa, exclude=["position"])
+        assert_attributes(bb, data_bb_init_no_sa, exclude=["position"])
         assert bb.subassembly is None
         assert isinstance(bb.position, Position)
-        _assert_attributes(bb.position, data_pos)
+        assert_attributes(bb.position, data_pos)
 
     def test_init_with_sa(self, data_bb, data_bb_init_with_sa, data_pos, SA) -> None:
         bb = BuildingBlock(json=data_bb, subassembly=SA)
-        _assert_attributes(bb, data_bb_init_with_sa, exclude=["position"])
+        assert_attributes(bb, data_bb_init_with_sa, exclude=["position"])
         assert isinstance(bb.position, Position)
-        _assert_attributes(bb.position, data_pos)
+        assert_attributes(bb.position, data_pos)
     
 
     @pytest.mark.parametrize(
@@ -342,14 +334,14 @@ class TestBuildingBlock:
 class TestSubAssembly:
 
     def test_init(self, sa, data_sa_init, data_mat_df) -> None:
-        _assert_attributes(sa, data_sa_init, exclude=["api", "materials", "position"])	
+        assert_attributes(sa, data_sa_init, exclude=["api", "materials", "position"])	
         assert isinstance(sa.position, Position)
-        _assert_attributes(sa.position, data_sa_init["position"])
+        assert_attributes(sa.position, data_sa_init["position"])
         assert isinstance(sa.materials, List)
         assert len(sa.materials) == 1
         assert isinstance(sa.materials[0], Material)
         assert isinstance(sa.api, GeometryAPI)
-        _assert_attributes(sa.materials[0], data_mat_df.iloc[0].to_dict())
+        assert_attributes(sa.materials[0], data_mat_df.iloc[0].to_dict())
 
     @pytest.mark.parametrize(
         "data_sa_flex", 
@@ -373,7 +365,7 @@ class TestSubAssembly:
         assert isinstance(bb[1], BuildingBlock)
         assert isinstance(bb[2], BuildingBlock)
         assert sa.bb == bb
-        #_assert_attributes(sa.bb[0], data_sa["bb"][0])
+        #assert_attributes(sa.bb[0], data_sa["bb"][0])
 
     def test_bb_exists(self, sa, mock_requests_get_buildingblocks_sa) -> None:
         sa.bb = [1, "test"]

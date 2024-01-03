@@ -940,3 +940,29 @@ def sa(api_root, header, data_mat_df, data_sa) -> SubAssembly:
     api_test = GeometryAPI(api_root, header)
     sa = SubAssembly(data_mat_df, data_sa, api_test)
     return sa
+
+
+@pytest.fixture(scope="function")
+def owt_init(api_root, header) -> None:
+    owt = {
+        "api": GeometryAPI(api_root, header),
+        "materials": [m.to_dict() for _, m in data_mat_df.iterrows()],
+        "tower_sub_assemblies": None,
+        "tp_sub_assemblies": None,
+        "mp_sub_assemblies": None,
+        "tower_base": None,
+        "pile_head": None,
+        "pile_toe": None,
+        "rna": None,
+        "tower_geometry": None,
+        "transition_piece": None,
+        "monopile": None,
+        "substructure": None,
+        "tp_skirt": None,
+        "tower_lumped_mass": None,
+        "tp_lumped_mass": None,
+        "mp_lumped_mass": None,
+        "tp_distributed_mass": None,
+        "mp_distributed_mass": None,
+    }
+    return owt
