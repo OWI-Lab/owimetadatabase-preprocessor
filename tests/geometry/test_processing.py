@@ -30,5 +30,7 @@ class  TestOWT:
         pd_testing.assert_frame_equal(owt.tp_sub_assemblies, sab_dict["TP"].as_df(), rtol=1e-3, atol=1e-3)
         pd_testing.assert_frame_equal(owt.mp_sub_assemblies, sab_dict["MP"].as_df(), rtol=1e-3, atol=1e-3)
 
-    def test_set_df_structure(self):
-        pass
+    @pytest.mark.parametrize("idx, expected", [("tw", )])
+    def test_set_df_structure(self, owt_api, data_mat_df, sa_df, idx):
+        owt = OWT(owt_api, data_mat_df, sa_df)
+        df = owt.set_df_structure(self, idx)
