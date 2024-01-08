@@ -107,11 +107,11 @@ class Material(object):
     
     def __eq__(self, other) -> bool:
         if isinstance(other, Material):
-            return self.__dict__ == other.__dict__
+           return self.__dict__ == other.__dict__
         elif isinstance(other, dict):
-            return self.__dict__ == other
+           return self.__dict__ == other
         else:
-            return False
+           return False
 
 
 class Position(object):
