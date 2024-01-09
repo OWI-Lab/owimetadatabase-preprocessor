@@ -58,3 +58,32 @@ def position(data):
         "gamma": data_["gamma"],
         "reference_system": data_["vertical_position_reference_system"]
     }
+
+@pytest.fixture(scope="function")
+def bb_no_sa_in(data):
+    return dict_generator(
+        data["bb"][0],
+        keys_= [
+            "slug", "area_distribution", "c_d", "c_m", "sub_assembly",
+            "projectsite_name", "asset_name", "subassembly_name", 
+            "material_name", "youngs_modulus", "density", "poissons_ratio"
+        ],
+        method_="exclude"
+    )
+
+@pytest.fixture(scope="function")
+def bb_no_sa_out(bb_in, position):
+    data_ = deepcopy(bb_in)
+    data_["position"] = position
+    return dict_generator(
+        data_,
+        keys_=[
+            "x_position", "y_position", "z_position", 
+            "alpha", "beta", "gamma", "vertical_position_reference_system"
+        ],
+        method_="exclude"
+    )
+
+@pytest.fixture(scope="function")
+def sa(data):
+    return dict_generator(data["sa"][0], keys_=["slug", "model_definition"], method_="exclude")
