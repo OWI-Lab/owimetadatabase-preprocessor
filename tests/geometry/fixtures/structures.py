@@ -14,6 +14,8 @@ from owimetadatabase_preprocessor.geometry.io import GeometryAPI
 from owimetadatabase_preprocessor.geometry.processing import OWT
 from owimetadatabase_preprocessor.geometry.structures import Material, Position, BuildingBlock, SubAssembly
 
+from owimetadatabase_preprocessor.utils import dict_generator
+
 
 @pytest.fixture(scope="module")
 def data():
@@ -34,10 +36,25 @@ def data():
 
 @pytest.fixture(scope="function")
 def material_main(data):
-    data_ = {k: data["mat"][0][k] for k in data["mat"][0].keys() if k not in ["slug"]}
-    return data_
+    return dict_generator(data["mat"][0], keys_=["slug"], method_="exclude")
 
 @pytest.fixture(scope="function")
 def material_main_dict(data):
-    data_ = {k: data["mat"][0][k] for k in data["mat"][0].keys() if k not in ["id", "density", "slug"]}
-    return data_
+    return dict_generator(data["mat"][0], keys_=["id", "density", "slug"], method_="exclude")
+
+@pytest.fixture(scope="function")
+def position(data):
+    data_ = dict_generator(
+        data["bb"][0],
+        keys_=["alpha", "beta", "gamma", "x_position", "y_position", "z_position", "vertical_position_reference_system"],
+        method_="include"
+    )
+    return {
+        "x": data_["x_position"],
+        "y": data_["y_position"],
+        "z": data_["z_position"],
+        "alpha": data_["alpha"],
+        "beta": data_["beta"],
+        "gamma": data_["gamma"],
+        "reference_system": data_["vertical_position_reference_system"]
+    }

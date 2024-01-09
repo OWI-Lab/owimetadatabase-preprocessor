@@ -9,6 +9,8 @@ import pandas as pd
 import plotly.graph_objs as go  # type: ignore
 from numpy import pi
 
+from owimetadatabase_preprocessor.utils import deepcompare
+
 PLOT_SETTINGS_SUBASSEMBLY = {
     "MP": {"color": "brown"},
     "TP": {"color": "goldenrod"},
@@ -77,7 +79,20 @@ class DataSA(TypedDict):
     model_definition: np.int64
 
 
-class Material(object):
+class BaseStructure(object):
+    """Base class for all structures."""
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, type(self)):
+            return deepcompare(self, other)
+        elif isinstance(other, dict):
+            dict_ = self.__dict__ 
+            return deepcompare(dict_, other)
+        else:
+            return False
+        
+
+class Material(BaseStructure):
     """Material derived from the raw data."""
 
     def __init__(self, json: DataMat) -> None:
@@ -104,17 +119,9 @@ class Material(object):
             "poisson_ratio": self.poisson_ratio,
             "young_modulus": self.young_modulus,
         }
-    
-    def __eq__(self, other) -> bool:
-        if isinstance(other, Material):
-           return self.__dict__ == other.__dict__
-        elif isinstance(other, dict):
-           return self.__dict__ == other
-        else:
-           return False
 
 
-class Position(object):
+class Position(BaseStructure):
     """Position of the components."""
 
     def __init__(
@@ -135,16 +142,8 @@ class Position(object):
         self.gamma = gamma
         self.reference_system = reference_system
 
-    def __eq__(self, other) -> bool:
-        if isinstance(other, Position):
-            return self.__dict__ == other.__dict__
-        elif isinstance(other, dict):
-            return self.__dict__ == other
-        else:
-            return False
-        
 
-class BuildingBlock(object):
+class BuildingBlock(BaseStructure):
     """Building blocks description."""
 
     def __init__(self, json: DataBB, subassembly: Union[Any, None] = None) -> None:
@@ -413,16 +412,9 @@ class BuildingBlock(object):
 
     def __str__(self) -> str:
         return self.title + " (" + self.type + ")"
-    
-    def __eq__(self, other) -> bool:
-        if isinstance(other, BuildingBlock):
-            return self.__dict__ == other.__dict__
-        elif isinstance(other, dict):
-            return self.__dict__ == other
-        else:
-            return False
 
-class SubAssembly(object):
+
+class SubAssembly(BaseStructure):
     """Subassemblies description."""
 
     def __init__(
@@ -655,11 +647,3 @@ class SubAssembly(object):
         """Returns a string representation of the subassembly."""
         s = str(self.title) + " Subassembly"
         return s
-
-    def __eq__(self, other) -> bool:
-        if isinstance(other, SubAssembly):
-            return self.__dict__ == other.__dict__
-        elif isinstance(other, dict):
-            return self.__dict__ == other
-        else:
-            return False
