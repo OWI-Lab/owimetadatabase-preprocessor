@@ -86,8 +86,7 @@ class BaseStructure(object):
         if isinstance(other, type(self)):
             return deepcompare(self, other)
         elif isinstance(other, dict):
-            dict_ = self.__dict__ 
-            return deepcompare(dict_, other)
+            return deepcompare(self.__dict__, other)
         else:
             return False
         

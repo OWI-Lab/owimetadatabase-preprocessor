@@ -2,7 +2,9 @@ import pytest
 
 import numpy as np
 
-from owimetadatabase_preprocessor.utils import dict_generator, compare_if_simple_close, deepcompare
+from owimetadatabase_preprocessor.utils import (
+    dict_generator, compare_if_simple_close, deepcompare, fix_nan
+)
 
 
 def test_dict_generator(dict_in, dict_out):
@@ -32,7 +34,7 @@ def test_compare_if_simple_close(a, b, expected):
     [
         (1.0, 1.0, True),
         (1.0, 1.0000000000000001, True),
-        (np.float64(1.0), float(1.0), False),
+        (np.float64(1.0), float(1.0), True),
         ("test", 1.0, False),
         ({"key_1": 1.0, "key_2": "value_2"}, {"key_1": 1.0, "key_2": "value_2"}, True),
         ({"key_1": 1.0, "key_3": "value_2"}, {"key_1": 1.0, "key_2": "value_2"}, False),
@@ -51,4 +53,27 @@ def test_compare_if_simple_close(a, b, expected):
 )
 def test_deepcompare(a, b, expected):
     result = deepcompare(a, b, expected)
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    "obj, expected", 
+    [
+        (np.nan, None),
+        (1.0, 1.0),
+        (1, 1),
+        ("nan", None),
+        ("NaN", None),
+        ("NAN", None),
+        ("number", "number"),
+        ({"key_1": 1.0, "key_2": "value_2", "key_3": {"key_31": 1, "key_32": 2}}, {"key_1": 1.0, "key_2": "value_2", "key_3": {"key_31": 1, "key_32": 2}}),
+        ({"key_1": np.nan, "key_2": "value_2", "key_3": {"key_31": 1, "key_32": 2}}, {"key_1": None, "key_2": "value_2", "key_3": {"key_31": 1, "key_32": 2}}),
+        ({"key_1": 1.0, "key_2": "value_2", "key_3": {"key_31": "nan", "key_32": 2}}, {"key_1": 1.0, "key_2": "value_2", "key_3": {"key_31": None, "key_32": 2}}),
+        ([1, 2, [3, 4]], [1, 2, [3, 4]]),
+        ([1, "nan", [3, 4]], [1, None, [3, 4]]),
+        ([1, 2, [3, np.nan]], [1, 2, [3, None]]),
+    ]
+    )
+def test_fix_nan(obj, expected):
+    result = fix_nan(obj)
     assert result == expected

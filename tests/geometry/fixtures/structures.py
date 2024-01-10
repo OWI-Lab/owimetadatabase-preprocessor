@@ -14,7 +14,7 @@ from owimetadatabase_preprocessor.geometry.io import GeometryAPI
 from owimetadatabase_preprocessor.geometry.processing import OWT
 from owimetadatabase_preprocessor.geometry.structures import Material, Position, BuildingBlock, SubAssembly
 
-from owimetadatabase_preprocessor.utils import dict_generator
+from owimetadatabase_preprocessor.utils import dict_generator, fix_nan
 
 
 @pytest.fixture(scope="module")
@@ -31,16 +31,20 @@ def data():
     data = {}
     for d in data_type.keys():
         with open(data_path / (data_type[d] + ".json")) as f:
-            data[d] = json.load(f)
+            data_ = json.load(f)
+            data[d] = fix_nan(data_)
     return data
+
 
 @pytest.fixture(scope="function")
 def material_main(data):
     return dict_generator(data["mat"][0], keys_=["slug"], method_="exclude")
 
+
 @pytest.fixture(scope="function")
 def material_main_dict(data):
     return dict_generator(data["mat"][0], keys_=["id", "density", "slug"], method_="exclude")
+
 
 @pytest.fixture(scope="function")
 def position(data):
@@ -59,6 +63,7 @@ def position(data):
         "reference_system": data_["vertical_position_reference_system"]
     }
 
+
 @pytest.fixture(scope="function")
 def bb_no_sa_in(data):
     return dict_generator(
@@ -66,15 +71,21 @@ def bb_no_sa_in(data):
         keys_= [
             "slug", "area_distribution", "c_d", "c_m", "sub_assembly",
             "projectsite_name", "asset_name", "subassembly_name", 
-            "material_name", "youngs_modulus", "density", "poissons_ratio"
+            "material_name", "youngs_modulus", "density", "poissons_ratio",
+            "mass", "height", "mass_distribution", "volume_distribution",
+            "bottom_outer_diameter", "top_outer_diameter", "wall_thickness",
+            "moment_of_inertia_x", "moment_of_inertia_y", "moment_of_inertia_z"
         ],
         method_="exclude"
     )
 
+
 @pytest.fixture(scope="function")
-def bb_no_sa_out(bb_in, position):
-    data_ = deepcopy(bb_in)
+def bb_no_sa_out(bb_no_sa_in, position):
+    data_ = deepcopy(bb_no_sa_in)
     data_["position"] = position
+    data_["material"] = None
+    data_["json"] = bb_no_sa_in
     return dict_generator(
         data_,
         keys_=[
@@ -83,6 +94,7 @@ def bb_no_sa_out(bb_in, position):
         ],
         method_="exclude"
     )
+
 
 @pytest.fixture(scope="function")
 def sa(data):

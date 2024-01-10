@@ -10,13 +10,21 @@ def dict_generator(dict_, keys_=None, method_="exclude"):
     else:
         raise ValueError("Method not recognized!")        
 
+
 def compare_if_simple_close(a, b, tol=1e-9):
         if isinstance(a, (float, np.floating)) and isinstance(b, (float, np.floating)):
             return math.isclose(a, b, rel_tol=tol)
         return a == b
 
+
 def deepcompare(a, b, tol=1e-9):
     if type(a) != type(b):
+        if (hasattr(a, '__dict__') and type(b) == dict):
+            return deepcompare(a.__dict__, b, tol)
+        elif (hasattr(b, '__dict__') and type(a) == dict):
+            return deepcompare(a, b.__dict__, tol)
+        elif isinstance(a, (float, np.floating)) and isinstance(b, (float, np.floating)):
+            return deepcompare(float(a), float(b), tol)
         return False
     elif isinstance(a, dict):
         if a.keys() != b.keys():
@@ -30,3 +38,19 @@ def deepcompare(a, b, tol=1e-9):
         return deepcompare(a.__dict__, b.__dict__, tol)
     else:
         return compare_if_simple_close(a, b, tol)
+    
+
+def fix_nan(obj):
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            obj[k] = fix_nan(v)
+    elif isinstance(obj, list):
+        for i in range(len(obj)):
+            obj[i] = fix_nan(obj[i])
+    elif (
+        (isinstance(obj, (float, np.floating)) and np.isnan(obj))
+        or (isinstance(obj, str) and obj.lower() == "nan")
+    ):
+        obj = None
+    return obj
+
