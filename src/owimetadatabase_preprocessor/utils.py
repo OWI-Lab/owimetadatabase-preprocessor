@@ -13,6 +13,8 @@ def dict_generator(dict_, keys_=None, method_="exclude"):
 
 def compare_if_simple_close(a, b, tol=1e-9):
         if isinstance(a, (float, np.floating)) and isinstance(b, (float, np.floating)):
+            if np.isnan(a) and np.isnan(b):
+                return True
             return math.isclose(a, b, rel_tol=tol)
         return a == b
 
@@ -24,7 +26,7 @@ def deepcompare(a, b, tol=1e-9):
         elif (hasattr(b, '__dict__') and type(a) == dict):
             return deepcompare(a, b.__dict__, tol)
         elif isinstance(a, (float, np.floating)) and isinstance(b, (float, np.floating)):
-            return deepcompare(float(a), float(b), tol)
+            return deepcompare(np.float64(a), np.float64(b), tol)
         return False
     elif isinstance(a, dict):
         if a.keys() != b.keys():
@@ -48,9 +50,11 @@ def fix_nan(obj):
         for i in range(len(obj)):
             obj[i] = fix_nan(obj[i])
     elif (
-        (isinstance(obj, (float, np.floating)) and np.isnan(obj))
-        or (isinstance(obj, str) and obj.lower() == "nan")
+        # (isinstance(obj, (float, np.floating)) and np.isnan(obj))
+        # or 
+        (isinstance(obj, str) and obj.lower() == "nan")
     ):
-        obj = None
+        # obj = None
+        obj = np.nan
     return obj
 
