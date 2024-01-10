@@ -29,10 +29,24 @@ def test_compare_if_simple_close(a, b, expected):
 
 @pytest.mark.parametrize(
     "a, b, expected", 
-    [(1.0, 1.0, True),
-    (1.0, 1.0000000000000001, True),
-    (np.float64(1.0), float(1.0), True),
-    ("test", 1.0, False), 
+    [
+        (1.0, 1.0, True),
+        (1.0, 1.0000000000000001, True),
+        (np.float64(1.0), float(1.0), False),
+        ("test", 1.0, False),
+        ({"key_1": 1.0, "key_2": "value_2"}, {"key_1": 1.0, "key_2": "value_2"}, True),
+        ({"key_1": 1.0, "key_3": "value_2"}, {"key_1": 1.0, "key_2": "value_2"}, False),
+        ({"key_1": 1.0, "key_2": "value_2"}, {"key_1": 1.0, "key_2": "value_3"}, False),
+        ({"key_1": 1.0, "key_2": "value_2", "key_3": {"key_31": 1, "key_32": 2}}, {"key_1": 1.0, "key_2": "value_2", "key_3": {"key_31": 1, "key_32": 2}}, True),
+        ({"key_1": 1.0, "key_2": "value_2", "key_3": {"key_31": 1, "key_32": 2}}, {"key_1": 1.0, "key_2": "value_2", "key_3": {"key_31": 1, "key_32": 3}}, False),
+        ([1, 2, 3], [1, 2, 3], True),
+        ([1, 2, 3], [1, 2, 4], False),
+        ([1, 2, [3, 4]], [1, 2, [3, 4]], True),
+        ([1, 2, [3, 4]], [1, 2, [3, 5]], False),
+        ((1, 2, 3), (1, 2, 3), True),
+        ((1, 2, 3), (1, 2, 4), False),
+        ((1, 2, (3, 4)), (1, 2, (3, 4)), True),
+        ((1, 2, (3, 4)), (1, 2, (3, 5)), False),
     ]
 )
 def test_deepcompare(a, b, expected):
