@@ -174,14 +174,15 @@ class BuildingBlock(BaseStructure):
     @property
     def type(self) -> str:
         """Type of the building block."""
-        if "bottom_outer_diameter" in self.json:
-            return "tubular_section"
-        elif "mass" in self.json:
-            return "lumped_mass"
-        elif "mass_distribution" in self.json:
-            return "distributed_mass"
-        else:
-            raise ValueError("Could not find supported building block type.")
+        cond = {
+            "bottom_outer_diameter": "tubular_section",
+            "mass": "lumped_mass",
+            "mass_distribution": "distributed_mass"
+        }
+        for k in cond.keys():
+            if self.json[k] is not None and not np.isnan(self.json[k]):
+                return cond[k]
+        raise ValueError("Could not find supported building block type.")
 
     @property
     def wall_thickness(self) -> Union[np.float64, None]:
