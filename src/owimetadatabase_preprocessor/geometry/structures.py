@@ -351,7 +351,7 @@ class BuildingBlock(BaseStructure):
                 "hovertext": "<br>".join(
                     [
                         self.title,
-                        "Mass: " + str(self.json["mass"]) + "kg",
+                        "Mass: " + str(self.json["mass"]) + " kg",
                         "x: " + str(self.position.x),
                         "y: " + str(self.position.y),
                         "z: " + str(self.position.z),

@@ -14,7 +14,7 @@ from owimetadatabase_preprocessor.geometry.io import GeometryAPI
 from owimetadatabase_preprocessor.geometry.processing import OWT
 from owimetadatabase_preprocessor.geometry.structures import Material, Position, BuildingBlock, SubAssembly
 
-from owimetadatabase_preprocessor.utils import dict_generator, fix_nan
+from owimetadatabase_preprocessor.utils import dict_generator, fix_nan, fix_outline
 
 
 @pytest.fixture(scope="module")
@@ -33,6 +33,8 @@ def data():
         with open(data_path / (data_type[d] + ".json")) as f:
             data_ = json.load(f)
             data[d] = fix_nan(data_)
+            if d == "bb_prop" or d == "sa_prop":
+                data[d] = fix_outline(data[d])
     return data
 
 
