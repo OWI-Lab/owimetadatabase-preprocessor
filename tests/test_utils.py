@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 
 from owimetadatabase_preprocessor.utils import (
-    dict_generator, compare_if_simple_close, deepcompare, fix_nan
+    dict_generator, compare_if_simple_close, deepcompare, fix_nan, fix_outline
 )
 
 
@@ -100,3 +100,45 @@ def test_deepcompare(a, b, expected):
 def test_fix_nan(obj, expected):
     result = fix_nan(obj)
     assert deepcompare(result, expected)
+
+
+@pytest.mark.parametrize(
+    "data, expected",
+    [
+        ([{"key_1": 1}], [{"key_1": 1}]),
+        (
+            [{"key_1": 1, "key_2": "value_2"}, {"key_1": 1, "key_2": "value_2"}],
+            [{"key_1": 1, "key_2": "value_2"}, {"key_1": 1, "key_2": "value_2"}]
+        ),
+        (
+            [{"key_1": 1, "outline": None}, {"key_1": 1, "key_2": "value_2"}],
+            [{"key_1": 1, "outline": None}, {"key_1": 1, "key_2": "value_2"}]
+        ),
+        (
+            [{"key_1": 1, "outline": [1, 2, 3]}, {"key_1": 1, "key_2": "value_2"}],
+            [{"key_1": 1, "outline": (1, 2, 3)}, {"key_1": 1, "key_2": "value_2"}]
+        ),
+        (
+            [{"key_1": 1, "outline": [[1, 2], 3]}, {"key_1": 1, "key_2": "value_2"}],
+            [{"key_1": 1, "outline": ([1, 2], 3)}, {"key_1": 1, "key_2": "value_2"}]
+        ),
+        (
+            [{"key_1": 1, "outline": (1, 2, 3)}, {"key_1": 1, "key_2": "value_2"}],
+            [{"key_1": 1, "outline": (1, 2, 3)}, {"key_1": 1, "key_2": "value_2"}]
+        ),
+        (
+            [{"key_1": 1, "outline": [[1, 2], 3]}, {"key_1": [1, 2, 3], "key_2": "value_2"}],
+            [{"key_1": 1, "outline": ([1, 2], 3)}, {"key_1": (1, 2, 3), "key_2": "value_2"}]
+        ),
+        ({"key_1": 1, "key_2": "value_2"}, {"key_1": 1, "key_2": "value_2"}),
+        ({"key_1": 1, "key_2": [[1, 2], 3]}, {"key_1": 1, "key_2": ([1, 2], 3)})
+    ]
+)
+def test_fix_outline(data, expected):
+    result = fix_outline(data)
+    assert deepcompare(result, expected)
+
+
+def test_fix_outline():
+    with pytest.raises(ValueError):
+        fix_outline("Will give error!")

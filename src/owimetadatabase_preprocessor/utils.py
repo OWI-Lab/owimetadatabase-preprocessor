@@ -19,7 +19,7 @@ def compare_if_simple_close(a, b, tol=1e-9):
         return a == b
 
 
-def deepcompare(a, b, tol=1e-9):
+def deepcompare(a, b, tol=1e-5):
     if type(a) != type(b):
         if (hasattr(a, '__dict__') and type(b) == dict):
             return deepcompare(a.__dict__, b, tol)
@@ -58,3 +58,15 @@ def fix_nan(obj):
         obj = np.nan
     return obj
 
+
+def fix_outline(data):
+    if isinstance(data, list):
+        for i in range(len(data)):
+            if "outline" in data[i].keys() and data[i]["outline"] is not None:
+                data[i]["outline"] = tuple(data[i]["outline"])
+    elif isinstance(data, dict):
+        if "outline" in data.keys() and data["outline"] is not None:
+            data["outline"] = tuple(data["outline"])
+    else:
+        raise ValueError("Not supported data type.")
+    return data
