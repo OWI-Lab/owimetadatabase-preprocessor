@@ -166,7 +166,7 @@ class BuildingBlock(BaseStructure):
             material_id = json["material"]
             if material_id and not np.isnan(material_id):
                 for mat in subassembly.materials:
-                    if mat.id == np.int64(material_id):
+                    if np.int64(mat.id) == np.int64(material_id):
                         self.material = mat
                         break
         self.json = json

@@ -38,14 +38,30 @@ def data():
     return data
 
 
-@pytest.fixture(scope="function")
-def material_main(data):
-    return dict_generator(data["mat"][0], keys_=["slug"], method_="exclude")
+# @pytest.fixture(scope="function")
+# def material_main(data):
+#     return dict_generator(data["mat"][0], keys_=["slug"], method_="exclude")
+
+
+# @pytest.fixture(scope="function")
+# def material_main_dict(data):
+#     return dict_generator(data["mat"][0], keys_=["id", "density", "slug"], method_="exclude")
 
 
 @pytest.fixture(scope="function")
-def material_main_dict(data):
-    return dict_generator(data["mat"][0], keys_=["id", "density", "slug"], method_="exclude")
+def materials(data):
+    materials_ = []
+    for mat in data["mat"]:
+        materials_.append(dict_generator(mat, keys_=["slug"], method_="exclude"))
+    return materials_
+
+
+@pytest.fixture(scope="function")
+def materials_dict(data):
+    materials_ = []
+    for mat in data["mat"]:
+        materials_.append(dict_generator(mat, keys_=["id", "density", "slug"], method_="exclude"))
+    return materials_
 
 
 @pytest.fixture(scope="function")
@@ -133,11 +149,11 @@ def bb_in(data):
 
 
 @pytest.fixture(scope="function")
-def bb_out(bb_in, position_5, material_main):
+def bb_out(bb_in, position_5, materials):
     data_ = deepcopy(bb_in)
     data_["position"] = position_5
     data_["json"] = bb_in
-    data_["material"] = material_main
+    data_["material"] = materials[0]
     data_["description"] = ""
     return dict_generator(
         data_,
@@ -150,12 +166,12 @@ def bb_out(bb_in, position_5, material_main):
 
 
 @pytest.fixture(scope="function")
-def sa_mock(material_main) -> mock.Mock:
+def sa_mock(materials) -> mock.Mock:
     
     def SA_mock_init(self, *args, **kwargs):
-        self.materials = [args[0]]
+        self.materials = args[0]
             
-    mat = Material(material_main)
+    mat = [Material(material) for material in materials]
     mocked_SA = mock.Mock()
     SA_mock_init(mocked_SA, mat)
     return mocked_SA
