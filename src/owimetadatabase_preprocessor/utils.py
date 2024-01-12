@@ -14,9 +14,19 @@ def dict_generator(dict_, keys_=None, method_="exclude"):
 def compare_if_simple_close(a, b, tol=1e-9):
         if isinstance(a, (float, np.floating)) and isinstance(b, (float, np.floating)):
             if np.isnan(a) and np.isnan(b):
-                return True
-            return math.isclose(a, b, rel_tol=tol)
-        return a == b
+                return True, None
+            assertion = math.isclose(a, b, rel_tol=tol)
+            if assertion:
+                messsage = None
+            else:
+                messsage = f"Values of {a} and {b} are different."
+            return assertion, messsage
+        assertion = a == b
+        if assertion:
+            messsage = None
+        else:
+            messsage = f"Values of {a} and {b} are different."
+        return assertion, messsage
 
 
 def deepcompare(a, b, tol=1e-5):
@@ -27,15 +37,29 @@ def deepcompare(a, b, tol=1e-5):
             return deepcompare(a, b.__dict__, tol)
         elif isinstance(a, (float, np.floating)) and isinstance(b, (float, np.floating)):
             return deepcompare(np.float64(a), np.float64(b), tol)
-        return False
+        return False, f"Types of {a} and {b} are different: {type(a).__name__} and {type(b).__name__}."
     elif isinstance(a, dict):
         if a.keys() != b.keys():
-            return False
-        return all(deepcompare(a[key], b[key], tol) for key in a)
+            return False, f"Dictionary keys {a.keys()} and {b.keys()} are different."
+        compare = [deepcompare(a[key], b[key], tol)[0] for key in a]
+        assertion = all(compare)
+        if assertion:
+            message = None
+        else:
+            keys = [key for key, val in zip(a.keys(), compare) if val is False]
+            message = f"Dictionary values are different for {a} and {b}, for keys: {keys}."
+        return assertion, message
     elif isinstance(a, (list, tuple)):
         if len(a) != len(b):
-            return False
-        return all(deepcompare(i, j, tol) for i, j in zip(a, b))
+            return False, f"Lists/tuples {a} and {b} are of different length: {len(a)} and {len(b)}."
+        compare = [deepcompare(i, j, tol)[0] for i, j in zip(a, b)]
+        assertion = all(compare)
+        if assertion:
+            message = None
+        else:
+            inds = [ind for ind, val in zip(range(len(compare)), compare) if val is False]
+            message = f"Lists/tuples are different for {a} and {b}, for indices: {inds}."
+        return assertion, message
     elif hasattr(a, '__dict__'):
         return deepcompare(a.__dict__, b.__dict__, tol)
     else:
