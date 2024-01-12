@@ -180,7 +180,7 @@ class BuildingBlock(BaseStructure):
             "mass_distribution": "distributed_mass"
         }
         for k in cond.keys():
-            if self.json[k] is not None and not np.isnan(self.json[k]):
+            if k in self.json and self.json[k] is not None and not np.isnan(self.json[k]):
                 return cond[k]
         raise ValueError("Could not find supported building block type.")
 
@@ -469,7 +469,7 @@ class SubAssembly(BaseStructure):
         height = np.float64(0.0)
         if self.building_blocks:
             for bb in self.building_blocks:
-                if bb.height:
+                if bb.height and not np.isnan(bb.height):
                     height += bb.height
                 else:
                     continue
@@ -483,7 +483,7 @@ class SubAssembly(BaseStructure):
         mass = np.float64(0.0)
         if self.building_blocks:
             for bb in self.building_blocks:
-                if bb.mass:
+                if bb.mass and not np.isnan(bb.mass):
                     mass += bb.mass
                 else:
                     continue
@@ -645,5 +645,5 @@ class SubAssembly(BaseStructure):
 
     def __str__(self) -> str:
         """Returns a string representation of the subassembly."""
-        s = str(self.title) + " Subassembly"
+        s = str(self.title) + " subassembly"
         return s
