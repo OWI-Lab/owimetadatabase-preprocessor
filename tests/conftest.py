@@ -1,6 +1,3 @@
-import json
-from pathlib import Path
-
 from typing import Dict
 
 import pytest
@@ -23,7 +20,7 @@ def dict_in() -> Dict[str, str]:
         "key_2": "value_2",
         "key_3": "value_3",
         "key_4": "value_4",
-        "key_5": "value_5"
+        "key_5": "value_5",
     }
 
 
@@ -36,17 +33,16 @@ def dict_out(request) -> Dict[str, str]:
             "key_2": "value_2",
             "key_3": "value_3",
             "key_4": "value_4",
-            "key_5": "value_5"
+            "key_5": "value_5",
         }
     elif param == 2:
         method_keys = {"method_": "exclude", "keys_": ["key_1", "key_2"]}
-        dict_ = {
-            "key_3": "value_3",
-            "key_4": "value_4",
-            "key_5": "value_5"
-        }
+        dict_ = {"key_3": "value_3", "key_4": "value_4", "key_5": "value_5"}
     elif param == 3:
-        method_keys = {"method_": "exclude", "keys_": ["key_1", "key_2", "key_3", "key_4", "key_5"]}	
+        method_keys = {
+            "method_": "exclude",
+            "keys_": ["key_1", "key_2", "key_3", "key_4", "key_5"],
+        }
         dict_ = {}
     elif param == 4:
         method_keys = {"method_": "exclude", "keys_": []}
@@ -55,27 +51,25 @@ def dict_out(request) -> Dict[str, str]:
             "key_2": "value_2",
             "key_3": "value_3",
             "key_4": "value_4",
-            "key_5": "value_5"
+            "key_5": "value_5",
         }
     elif param == 5:
         method_keys = {"method_": "include", "keys_": ["key_1"]}
-        dict_ = {
-            "key_1": "value_1"
-        }
+        dict_ = {"key_1": "value_1"}
     elif param == 6:
         method_keys = {"method_": "include", "keys_": ["key_1", "key_2"]}
-        dict_ = {
-            "key_1": "value_1",
-            "key_2": "value_2"
-        }
+        dict_ = {"key_1": "value_1", "key_2": "value_2"}
     elif param == 7:
-        method_keys = {"method_": "include", "keys_": ["key_1", "key_2", "key_3", "key_4", "key_5"]}
+        method_keys = {
+            "method_": "include",
+            "keys_": ["key_1", "key_2", "key_3", "key_4", "key_5"],
+        }
         dict_ = {
             "key_1": "value_1",
             "key_2": "value_2",
             "key_3": "value_3",
             "key_4": "value_4",
-            "key_5": "value_5"
+            "key_5": "value_5",
         }
     elif param == 8:
         method_keys = {"method_": "include", "keys_": []}

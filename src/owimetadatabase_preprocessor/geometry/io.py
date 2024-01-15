@@ -88,7 +88,9 @@ class GeometryAPI(API):
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
 
-    def process_geometry(self, turbine: str, tower_base: float, monopile_head: float) -> OWT:
+    def process_geometry(
+        self, turbine: str, tower_base: float, monopile_head: float
+    ) -> OWT:
         """Return the required processing class."""
         materials = self.get_materials()["data"]
         subassemblies = self.get_subassemblies(assetlocation=turbine)["data"]

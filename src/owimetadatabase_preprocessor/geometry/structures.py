@@ -89,7 +89,7 @@ class BaseStructure(object):
             return deepcompare(self.__dict__, other)
         else:
             return False
-        
+
 
 class Material(BaseStructure):
     """Material derived from the raw data."""
@@ -177,10 +177,14 @@ class BuildingBlock(BaseStructure):
         cond = {
             "bottom_outer_diameter": "tubular_section",
             "mass": "lumped_mass",
-            "mass_distribution": "distributed_mass"
+            "mass_distribution": "distributed_mass",
         }
         for k in cond.keys():
-            if k in self.json and self.json[k] is not None and not np.isnan(self.json[k]):
+            if (
+                k in self.json
+                and self.json[k] is not None
+                and not np.isnan(self.json[k])
+            ):
                 return cond[k]
         raise ValueError("Could not find supported building block type.")
 
@@ -227,7 +231,7 @@ class BuildingBlock(BaseStructure):
                 return str(round(self.bottom_outer_diameter))
         else:
             return ""
-        
+
     @property
     def height(self) -> Union[np.float64, None]:
         """Height of the building block , mm."""
@@ -235,7 +239,7 @@ class BuildingBlock(BaseStructure):
             return self.json["height"]
         else:
             return None
-        
+
     @property
     def volume(self) -> Union[np.float64, None]:
         """Volume of the building block, m³."""
@@ -490,13 +494,13 @@ class SubAssembly(BaseStructure):
         else:
             raise ValueError("No building blocks found")
         return mass
-    
+
     @property
     def properties(self) -> Dict[str, np.float64]:
         """Mass and height of the subassembly."""
         property_dict = {"mass": self.mass, "height": self.height}
         return property_dict
-    
+
     @property
     def outline(self) -> Tuple[List[np.float64], List[np.float64]]:
         """Defines the traces of the outline of the subassembly

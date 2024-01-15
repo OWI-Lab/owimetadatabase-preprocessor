@@ -1,13 +1,11 @@
 "Module containing the processing functions for the geometry data."
 
 from copy import deepcopy
-from typing import Dict, Union
 
 import numpy as np
 import pandas as pd
 
 from owimetadatabase_preprocessor.geometry.structures import SubAssembly
-
 from owimetadatabase_preprocessor.utils import deepcompare
 
 
@@ -84,7 +82,7 @@ class OWT(object):
         cols = ["OD", "height", "mass", "volume", "wall_thickness", "x", "y", "z"]
         if idx == "tw":
             df_index = self.tower_sub_assemblies.index.str.contains(idx)
-            df = deepcopy(self.tower_sub_assemblies.loc[df_index, cols])            
+            df = deepcopy(self.tower_sub_assemblies.loc[df_index, cols])
             depth_to = self.tower_base + df.z * 1e-3
             depth_from = depth_to + df.height * 1e-3
         elif idx == "tp":
@@ -118,12 +116,15 @@ class OWT(object):
         :return: Dataframe consisting of the required data to build FE models.
         """
         df = self.set_df_structure(idx)
-        df["height"] = pd.to_numeric(df["height"] )
+        df["height"] = pd.to_numeric(df["height"])
         df["wall_thickness"] = pd.to_numeric(df["wall_thickness"])
         df.rename(columns={"wall_thickness": "Wall thickness [mm]"}, inplace=True)
         df.rename(columns={"volume": "Volume [m3]"}, inplace=True)
         d_to = [d.split("/", 1)[0] for d in df["OD"].values]
-        d_from = [d.split("/", 1)[1] if len(d.split("/", 1)) > 1 else d.split("/", 1)[0] for d in df["OD"].values]
+        d_from = [
+            d.split("/", 1)[1] if len(d.split("/", 1)) > 1 else d.split("/", 1)[0]
+            for d in df["OD"].values
+        ]
         df["Diameter from [m]"] = np.array(d_from, dtype=float) * 1e-3
         df["Diameter to [m]"] = np.array(d_to, dtype=float) * 1e-3
         df["rho [t/m]"] = df["mass"] / df["height"]
@@ -190,15 +191,11 @@ class OWT(object):
         cols = ["mass", "x", "y", "z"]
         if idx == "TW":
             df_index = self.tower_sub_assemblies.index.str.contains(idx)
-            df = deepcopy(
-                self.tower_sub_assemblies.loc[df_index, cols]
-            )
+            df = deepcopy(self.tower_sub_assemblies.loc[df_index, cols])
             df["Z [mLAT]"] = self.tower_base + df["z"] * 1e-3
         elif idx == "TP":
             df_index = self.tp_sub_assemblies.index.str.contains(idx)
-            df = deepcopy(
-                self.tp_sub_assemblies.loc[df_index, cols + ["height"]]
-            )
+            df = deepcopy(self.tp_sub_assemblies.loc[df_index, cols + ["height"]])
             # Lumped masses have 'None' height whereas distributed masses present not 'None' values
             df["height"] = pd.to_numeric(df["height"])
             df = df[df["height"].isnull()]
@@ -206,9 +203,7 @@ class OWT(object):
             df["Z [mLAT]"] = bottom + df["z"] * 1e-3
         elif idx == "MP":
             df_index = self.mp_sub_assemblies.index.str.contains(idx)
-            df = deepcopy(
-                self.mp_sub_assemblies.loc[df_index, cols + ["height"]]
-            )
+            df = deepcopy(self.mp_sub_assemblies.loc[df_index, cols + ["height"]])
             # Lumped masses have 'None' height whereas distributed masses present not 'None' values
             df["height"] = pd.to_numeric(df["height"])
             df = df[df["height"].isnull()]
@@ -273,7 +268,7 @@ class OWT(object):
         """
         df = self.set_df_distributed_appurtenances(idx)
         df["Mass [t]"] = df["mass"] * 1e-3
-        df["X [m]"] = df["x"]  * 1e-3
+        df["X [m]"] = df["x"] * 1e-3
         df["Y [m]"] = df["y"] * 1e-3
         df["Height [m]"] = df["height"] * 1e-3
         df.rename(columns={"volume": "Volume [m3]"}, inplace=True)
@@ -297,7 +292,7 @@ class OWT(object):
             - "tower": To process only the data for the tower subassembly.
             - "TP": To process only the data for the transition piece subassembly.
             - "monopile": To process only the data for the monopile foundation subassembly.
-        :return: 
+        :return:
         """
         if option == "full":
             self.process_rna()
@@ -349,10 +344,7 @@ class OWT(object):
         return can_properties
 
     def can_modification(
-        self,
-        df: pd.DataFrame,
-        altitude: np.float64,
-        position: str = "bottom"
+        self, df: pd.DataFrame, altitude: np.float64, position: str = "bottom"
     ) -> pd.DataFrame:
         """Change can properties based on the altitude.
 
@@ -370,7 +362,9 @@ class OWT(object):
         df.loc[df.index[ind], "Depth" + _col + "[mLAT]"] = altitude
         elevation = [df.iloc[ind]["Depth from [mLAT]"], df.iloc[ind]["Depth to [mLAT]"]]
         diameters = [df.iloc[ind]["Diameter from [m]"], df.iloc[ind]["Diameter to [m]"]]
-        df.loc[df.index[ind], "Diameter" + _col + "[m]"] = np.interp([altitude], elevation, diameters)[0]
+        df.loc[df.index[ind], "Diameter" + _col + "[m]"] = np.interp(
+            [altitude], elevation, diameters
+        )[0]
         cols = ["Height [m]", "Volume [m3]", "Mass [t]", "rho [t/m]"]
         df.loc[df.index[ind], cols] = self.can_adjust_properties(df.iloc[ind])
         return df
@@ -402,7 +396,7 @@ class OWT(object):
         water_depth: float,
         projectsite: str,
         assetlocation: str,
-        cutoff_point: np.float64 = np.nan
+        cutoff_point: np.float64 = np.nan,
     ) -> pd.DataFrame:
         """Returns a dataframe with the monopile geometry with the mudline as reference
 
@@ -423,7 +417,8 @@ class OWT(object):
         for i, row in building_blocks["data"].iterrows():
             if i != 0:
                 pile.loc[i, "Depth from [m]"] = (
-                    penetration - 1e-3 * building_blocks["data"].loc[i - 1, "z_position"]
+                    penetration
+                    - 1e-3 * building_blocks["data"].loc[i - 1, "z_position"]
                 )
                 pile.loc[i, "Depth to [m]"] = penetration - 1e-3 * row["z_position"]
                 pile.loc[i, "Pile material"] = row["material_name"]
@@ -432,7 +427,9 @@ class OWT(object):
                 )
                 pile.loc[i, "Wall thickness [mm]"] = row["wall_thickness"]
                 pile.loc[i, "Diameter [m]"] = (
-                    1e-3 * 0.5 * (row["bottom_outer_diameter"] + row["top_outer_diameter"])
+                    1e-3
+                    * 0.5
+                    * (row["bottom_outer_diameter"] + row["top_outer_diameter"])
                 )
                 pile.loc[i, "Youngs modulus [GPa]"] = row["youngs_modulus"]
                 pile.loc[i, "Poissons ratio [-]"] = row["poissons_ratio"]
@@ -440,7 +437,7 @@ class OWT(object):
             pile = pile.loc[pile["Depth to [m]"] > cutoff_point].reset_index(drop=True)
             pile.loc[0, "Depth from [m]"] = cutoff_point
         return pile
-    
+
     def __eq__(self, other) -> bool:
         if isinstance(other, type(self)):
             return deepcompare(self, other)

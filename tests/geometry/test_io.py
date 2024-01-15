@@ -161,9 +161,13 @@ def test_process_geometry(
     mock_requests_get_materials: mock.Mock,
     mock_requests_get_subassemblies: mock.Mock,
 ) -> None:
-    with mock.patch("owimetadatabase_preprocessor.geometry.io.OWT", return_value=OWT_mock):
+    with mock.patch(
+        "owimetadatabase_preprocessor.geometry.io.OWT", return_value=OWT_mock
+    ):
         api_test = GeometryAPI(api_root, header)
-        processor = api_test.process_geometry(turbine="BBK01", tower_base=10.0, monopile_head=5.0)
+        processor = api_test.process_geometry(
+            turbine="BBK01", tower_base=10.0, monopile_head=5.0
+        )
         assert isinstance(processor, type(OWT_mock))
         assert isinstance(processor.api, GeometryAPI)
         assert isinstance(processor.materials, pd.DataFrame)

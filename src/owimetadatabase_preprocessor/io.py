@@ -27,7 +27,7 @@ class API(object):
         self.auth = None
         if self.uname is not None and self.password is not None:
             self.auth = requests.auth.HTTPBasicAuth(self.uname, self.password)
-    
+
     def __eq__(self, other) -> bool:
         if isinstance(other, type(self)):
             return deepcompare(self, other)
