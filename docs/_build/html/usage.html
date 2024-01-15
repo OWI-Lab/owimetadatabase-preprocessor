@@ -37,7 +37,7 @@
             Owimetadatabase preprocessor
           </a>
               <div class="version">
-                0.2.0
+                0.3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -88,20 +88,20 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">owimetadatabase_preprocessor.locations.io</span> <span class="kn">import</span> <span class="n">LocationsAPI</span>
 </pre></div>
 </div>
-<p>This command will import the suitable API class (LocationsAPI here for the data about locations, see reference for others). Now, for convenience, you can store the API endpoint URL and authorization token in some variables:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">api_root</span> <span class="o">=</span> <span class="s1">&#39;&lt;API endpoint URL&gt;&#39;</span>
-<span class="n">head</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="s1">&#39;Token xxx&#39;</span><span class="p">}</span>  <span class="c1">#  where xxx is the authorization token</span>
+<p>This command will import the suitable API class (LocationsAPI here for the data about locations, see reference for others). Now, for convenience, you can store your authorization token in a variable:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">head</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="s1">&#39;Token xxx&#39;</span><span class="p">}</span>  <span class="c1">#  where xxx is the authorization token</span>
 </pre></div>
 </div>
 <p>, and create an instance of the API class with this information to later establish connection to the database:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">locations_api</span> <span class="o">=</span> <span class="n">LocationsAPI</span><span class="p">(</span><span class="n">api_root</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">head</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">locations_api</span> <span class="o">=</span> <span class="n">LocationsAPI</span><span class="p">(</span><span class="n">header</span><span class="o">=</span><span class="n">head</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>Please note, that you can specify the API endpoint URL as well, if it is different from the default one. </p>
 <p>This class has several methods for convenient access/processing of the data from the database. E.g. to plot all asset locations (recommended to use in Jupyter notebook):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">locations_api</span><span class="o">.</span><span class="n">plot_assetlocations</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>And others (see reference) to operate on the information about locations/geometry.</p>
+<p>And others (see reference) to operate on the information about locations/geometry. For examples of the usage, please check <a class="reference external" href="https://github.com/OWI-Lab/owimetadatabase-preprocessor/blob/main/examples/basic_example.ipynb">this notebook</a>.</p>
 </section>
 
 

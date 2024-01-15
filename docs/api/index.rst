@@ -4,8 +4,10 @@ API
 API reference.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    io
    locations/io
    geometry/io
+   geometry/structures
+   geometry/processing

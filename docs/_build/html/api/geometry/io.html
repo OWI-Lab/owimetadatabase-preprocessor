@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Geometry API &mdash; Owimetadatabase preprocessor  documentation</title>
+  <title>Geometry API: Base class &mdash; Owimetadatabase preprocessor  documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
 
@@ -21,6 +21,7 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Geometry API: Structures" href="structures.html" />
     <link rel="prev" title="Locations API" href="../locations/io.html" /> 
 </head>
 
@@ -36,7 +37,7 @@
             Owimetadatabase preprocessor
           </a>
               <div class="version">
-                0.2.0
+                0.3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -52,15 +53,18 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../index.html">API</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../io.html">Base API class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../locations/io.html">Locations API</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Geometry API</a><ul>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Geometry API: Base class</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#owimetadatabase_preprocessor.geometry.io.GeometryAPI"><code class="docutils literal notranslate"><span class="pre">GeometryAPI</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.geometry.io.GeometryAPI.get_buildingblocks"><code class="docutils literal notranslate"><span class="pre">GeometryAPI.get_buildingblocks()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.geometry.io.GeometryAPI.get_materials"><code class="docutils literal notranslate"><span class="pre">GeometryAPI.get_materials()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.geometry.io.GeometryAPI.get_owt_geometry_processor"><code class="docutils literal notranslate"><span class="pre">GeometryAPI.get_owt_geometry_processor()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.geometry.io.GeometryAPI.get_subassemblies"><code class="docutils literal notranslate"><span class="pre">GeometryAPI.get_subassemblies()</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="structures.html">Geometry API: Structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="processing.html">Geometry API: Turbine geometry processor</a></li>
 </ul>
 </li>
 </ul>
@@ -80,7 +84,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../index.html">API</a></li>
-      <li class="breadcrumb-item active">Geometry API</li>
+      <li class="breadcrumb-item active">Geometry API: Base class</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/api/geometry/io.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -90,12 +94,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-owimetadatabase_preprocessor.geometry.io">
-<span id="geometry-api"></span><h1>Geometry API<a class="headerlink" href="#module-owimetadatabase_preprocessor.geometry.io" title="Permalink to this heading"></a></h1>
-<p>Module to connect to the database API to retrieve and operate on geometry data.</p>
+  <section id="geometry-api-base-class">
+<h1>Geometry API: Base class<a class="headerlink" href="#geometry-api-base-class" title="Permalink to this heading"></a></h1>
+<span class="target" id="module-owimetadatabase_preprocessor.geometry.io"></span><p>Module to connect to the database API to retrieve and operate on geometry data.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="owimetadatabase_preprocessor.geometry.io.GeometryAPI">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">owimetadatabase_preprocessor.geometry.io.</span></span><span class="sig-name descname"><span class="pre">GeometryAPI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#owimetadatabase_preprocessor.geometry.io.GeometryAPI" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">owimetadatabase_preprocessor.geometry.io.</span></span><span class="sig-name descname"><span class="pre">GeometryAPI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'https://owimetadatabase.owilab.be/api/v1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#owimetadatabase_preprocessor.geometry.io.GeometryAPI" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="../io.html#owimetadatabase_preprocessor.io.API" title="owimetadatabase_preprocessor.io.API"><code class="xref py py-class docutils literal notranslate"><span class="pre">API</span></code></a></p>
 <p>Class to connect to the geometry data API with methods to retrieve data.</p>
 <dl class="py method">
@@ -139,6 +143,12 @@
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.geometry.io.GeometryAPI.get_owt_geometry_processor">
+<span class="sig-name descname"><span class="pre">get_owt_geometry_processor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">turbine</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tower_base</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monopile_head</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="processing.html#owimetadatabase_preprocessor.geometry.processing.OWT" title="owimetadatabase_preprocessor.geometry.processing.OWT"><span class="pre">OWT</span></a></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.geometry.io.GeometryAPI.get_owt_geometry_processor" title="Permalink to this definition"></a></dt>
+<dd><p>Return the required processing class.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="owimetadatabase_preprocessor.geometry.io.GeometryAPI.get_subassemblies">
 <span class="sig-name descname"><span class="pre">get_subassemblies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">projectsite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assetlocation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subassembly_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int64</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.geometry.io.GeometryAPI.get_subassemblies" title="Permalink to this definition"></a></dt>
 <dd><p>Get all structure subassemblies blocks for a given location.</p>
@@ -170,6 +180,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../locations/io.html" class="btn btn-neutral float-left" title="Locations API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="structures.html" class="btn btn-neutral float-right" title="Geometry API: Structures" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

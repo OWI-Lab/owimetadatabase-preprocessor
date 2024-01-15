@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Geometry API: Turbine geometry processor &mdash; Owimetadatabase preprocessor  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="Geometry API: Structures" href="structures.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Owimetadatabase preprocessor
+          </a>
+              <div class="version">
+                0.3.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Getting started</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../io.html">Base API class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../locations/io.html">Locations API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="io.html">Geometry API: Base class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="structures.html">Geometry API: Structures</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Geometry API: Turbine geometry processor</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#owimetadatabase_preprocessor.geometry.processing.OWT"><code class="docutils literal notranslate"><span class="pre">OWT</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.geometry.processing.OWT.__init__"><code class="docutils literal notranslate"><span class="pre">OWT.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.geometry.processing.OWT._set_members"><code class="docutils literal notranslate"><span class="pre">OWT._set_members()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.geometry.processing.OWT._set_subassemblies"><code class="docutils literal notranslate"><span class="pre">OWT._set_subassemblies()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.geometry.processing.OWT.assembly_tp_mp"><code class="docutils literal notranslate"><span class="pre">OWT.assembly_tp_mp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.geometry.processing.OWT.can_adjust_properties"><code class="docutils literal notranslate"><span class="pre">OWT.can_adjust_properties()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.geometry.processing.OWT.can_modification"><code class="docutils literal notranslate"><span class="pre">OWT.can_modification()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.geometry.processing.OWT.get_monopile_pyles"><code class="docutils literal notranslate"><span class="pre">OWT.get_monopile_pyles()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.geometry.processing.OWT.process_distributed_lumped_masses"><code class="docutils literal notranslate"><span class="pre">OWT.process_distributed_lumped_masses()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.geometry.processing.OWT.process_lumped_masses"><code class="docutils literal notranslate"><span class="pre">OWT.process_lumped_masses()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.geometry.processing.OWT.process_rna"><code class="docutils literal notranslate"><span class="pre">OWT.process_rna()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.geometry.processing.OWT.process_structure"><code class="docutils literal notranslate"><span class="pre">OWT.process_structure()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.geometry.processing.OWT.process_structure_geometry"><code class="docutils literal notranslate"><span class="pre">OWT.process_structure_geometry()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.geometry.processing.OWT.set_df_appurtenances"><code class="docutils literal notranslate"><span class="pre">OWT.set_df_appurtenances()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.geometry.processing.OWT.set_df_distributed_appurtenances"><code class="docutils literal notranslate"><span class="pre">OWT.set_df_distributed_appurtenances()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#owimetadatabase_preprocessor.geometry.processing.OWT.set_df_structure"><code class="docutils literal notranslate"><span class="pre">OWT.set_df_structure()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Owimetadatabase preprocessor</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">API</a></li>
+      <li class="breadcrumb-item active">Geometry API: Turbine geometry processor</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/api/geometry/processing.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-owimetadatabase_preprocessor.geometry.processing">
+<span id="geometry-api-turbine-geometry-processor"></span><h1>Geometry API: Turbine geometry processor<a class="headerlink" href="#module-owimetadatabase_preprocessor.geometry.processing" title="Permalink to this heading"></a></h1>
+<p>Module containing the processing functions for the geometry data.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.geometry.processing.OWT">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">owimetadatabase_preprocessor.geometry.processing.</span></span><span class="sig-name descname"><span class="pre">OWT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">materials</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subassemblies</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tower_base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pile_head</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#owimetadatabase_preprocessor.geometry.processing.OWT" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.geometry.processing.OWT.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">materials</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subassemblies</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tower_base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pile_head</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.geometry.processing.OWT.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Get all subassemblies for a given Turbine.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>subassemblies</strong> – Pandas dataframe with the subassemblies data for a given turbine.</p></li>
+<li><p><strong>tower_base</strong> – Elevation of the OWT tower base in mLAT.</p></li>
+<li><p><strong>pile_head</strong> – Elevation of the pile head in mLAT.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.geometry.processing.OWT._set_members">
+<span class="sig-name descname"><span class="pre">_set_members</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.geometry.processing.OWT._set_members" title="Permalink to this definition"></a></dt>
+<dd><p>Identify and stores in separate data frames each part of the support structure (tower=TW, transition piece=TP,
+monopile=MP).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.geometry.processing.OWT._set_subassemblies">
+<span class="sig-name descname"><span class="pre">_set_subassemblies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subassemblies</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.geometry.processing.OWT._set_subassemblies" title="Permalink to this definition"></a></dt>
+<dd><p>Create a dictionary containing the subassemblies of the OWT.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.geometry.processing.OWT.assembly_tp_mp">
+<span class="sig-name descname"><span class="pre">assembly_tp_mp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.geometry.processing.OWT.assembly_tp_mp" title="Permalink to this definition"></a></dt>
+<dd><p>Process TP structural item to assembly with MP foundation ensuring continuity. TP skirt is processed
+as well.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.geometry.processing.OWT.can_adjust_properties">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">can_adjust_properties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Series</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Series</span></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.geometry.processing.OWT.can_adjust_properties" title="Permalink to this definition"></a></dt>
+<dd><p>Recalculation of can properties based on section properties and can elevations: height [m],
+volume [m3], mass [t], rho [t/m].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>row</strong> – Original can properties.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Recalculated can properties.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.geometry.processing.OWT.can_modification">
+<span class="sig-name descname"><span class="pre">can_modification</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">altitude</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'bottom'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.geometry.processing.OWT.can_modification" title="Permalink to this definition"></a></dt>
+<dd><p>Change can properties based on the altitude.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> – Dataframe containing the can properties.</p></li>
+<li><p><strong>altitude</strong> – Altitude in mLAT.</p></li>
+<li><p><strong>position</strong> – Position of the can with respect to the altitude with possible values: “bottom” or “top”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dataframe with the modified can properties.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.geometry.processing.OWT.get_monopile_pyles">
+<span class="sig-name descname"><span class="pre">get_monopile_pyles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">water_depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">projectsite</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assetlocation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cutoff_point</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float64</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">nan</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.geometry.processing.OWT.get_monopile_pyles" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a dataframe with the monopile geometry with the mudline as reference</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>water_depth</strong> – Water depth in mLAT.</p></li>
+<li><p><strong>projectsite</strong> – Title of the projectsite.</p></li>
+<li><p><strong>assetlocation</strong> – Title of the turbine.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dataframe with the monopile geometry.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.geometry.processing.OWT.process_distributed_lumped_masses">
+<span class="sig-name descname"><span class="pre">process_distributed_lumped_masses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.geometry.processing.OWT.process_distributed_lumped_masses" title="Permalink to this definition"></a></dt>
+<dd><p>Create dataframe containing the required properties to model uniformly distributed appurtenances. Note that
+if the preprocessor package does not find any appurtenances it’ll return an empty dataframe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>idx</strong> – Index to identify corresponding subassembly with possible values: ‘TP’, ‘MP’.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dataframe.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.geometry.processing.OWT.process_lumped_masses">
+<span class="sig-name descname"><span class="pre">process_lumped_masses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.geometry.processing.OWT.process_lumped_masses" title="Permalink to this definition"></a></dt>
+<dd><p>Create dataframe containing the required properties to model lumped mass appurtenances. Note that
+if the preprocessor package does not find any appurtenances it’ll return an empty dataframe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>idx</strong> – Index to identify corresponding subassembly with possible values: ‘TW’, ‘TP’, ‘MP’.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dataframe.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.geometry.processing.OWT.process_rna">
+<span class="sig-name descname"><span class="pre">process_rna</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.geometry.processing.OWT.process_rna" title="Permalink to this definition"></a></dt>
+<dd><p>Set dataframe containing the required properties to model the RNA system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.geometry.processing.OWT.process_structure">
+<span class="sig-name descname"><span class="pre">process_structure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">option</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'full'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.geometry.processing.OWT.process_structure" title="Permalink to this definition"></a></dt>
+<dd><p>Set dataframe containing the required properties to model the tower geometry, including the RNA system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>option</strong> – <p>Option to process the data for a specific subassembly. Possible values:</p>
+<ul class="simple">
+<li><p>”full”: To process all the data for all subassemblies.</p></li>
+<li><p>”tower”: To process only the data for the tower subassembly.</p></li>
+<li><p>”TP”: To process only the data for the transition piece subassembly.</p></li>
+<li><p>”monopile”: To process only the data for the monopile foundation subassembly.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.geometry.processing.OWT.process_structure_geometry">
+<span class="sig-name descname"><span class="pre">process_structure_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.geometry.processing.OWT.process_structure_geometry" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate and/or converts geometrical data of subassemblies from the database to use as input for FE models.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>idx</strong> – Possible index to identify corresponding subassembly.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dataframe consisting of the required data to build FE models.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.geometry.processing.OWT.set_df_appurtenances">
+<span class="sig-name descname"><span class="pre">set_df_appurtenances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.geometry.processing.OWT.set_df_appurtenances" title="Permalink to this definition"></a></dt>
+<dd><p>Set dataframe containing the required properties to model concentrated masses from database subassemblies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>idx</strong> – Index to identify corresponding subassembly with possible values: ‘TW’, ‘TP’, ‘MP’.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Data frame containing lumped masses data from database with Z coordinates in mLAT system.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.geometry.processing.OWT.set_df_distributed_appurtenances">
+<span class="sig-name descname"><span class="pre">set_df_distributed_appurtenances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.geometry.processing.OWT.set_df_distributed_appurtenances" title="Permalink to this definition"></a></dt>
+<dd><p>Set dataframe containing the required properties to model distributed lumped masses from database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>idx</strong> – Index to identify corresponding subassembly with possible values: ‘TW’, ‘TP’, ‘MP’.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dataframe containing distributed lumped masses data from database. Z coordinates in mLAT system.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="owimetadatabase_preprocessor.geometry.processing.OWT.set_df_structure">
+<span class="sig-name descname"><span class="pre">set_df_structure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#owimetadatabase_preprocessor.geometry.processing.OWT.set_df_structure" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate and/or converts geometrical data of subassemblies from the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>idx</strong> – Possible index to identify corresponding subassembly.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Data frame containing geometry data from database wth z in mLAT system.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="structures.html" class="btn btn-neutral float-left" title="Geometry API: Structures" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, OWI-Lab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
