@@ -18,18 +18,19 @@ Then, in your Python code, you can start using (import) the library as follows:
   from owimetadatabase_preprocessor.locations.io import LocationsAPI
 
 This command will import the suitable API class (LocationsAPI here for the data about locations, see reference for others). \
-Now, for convenience, you can store the API endpoint URL and authorization token in some variables:
+Now, for convenience, you can store your authorization token in a variable:
 
 .. code-block:: python
 
-  api_root = '<API endpoint URL>'
   head = {'Authorization': 'Token xxx'}  #  where xxx is the authorization token
 
 , and create an instance of the API class with this information to later establish connection to the database:
 
 .. code-block:: python
 
-  locations_api = LocationsAPI(api_root, header=head)  
+  locations_api = LocationsAPI(header=head)
+
+Please note, that you can specify the API endpoint URL as well, if it is different from the default one. \
 
 This class has several methods for convenient access/processing of the data from the database. \
 E.g. to plot all asset locations (recommended to use in Jupyter notebook):
@@ -38,4 +39,5 @@ E.g. to plot all asset locations (recommended to use in Jupyter notebook):
 
   locations_api.plot_assetlocations()
 
-And others (see reference) to operate on the information about locations/geometry.
+And others (see reference) to operate on the information about locations/geometry. For examples of the usage, \
+please check `this notebook <https://github.com/OWI-Lab/owimetadatabase-preprocessor/blob/main/examples/basic_example.ipynb>`_.

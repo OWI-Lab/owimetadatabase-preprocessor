@@ -152,7 +152,7 @@ def test_get_materials(
     assert data["exists"]
 
 
-def test_process_geometry(
+def test_get_owt_geometry_processor(
     api_root: str,
     header: Dict[str, str],
     mat: pd.DataFrame,
@@ -165,7 +165,7 @@ def test_process_geometry(
         "owimetadatabase_preprocessor.geometry.io.OWT", return_value=OWT_mock
     ):
         api_test = GeometryAPI(api_root, header)
-        processor = api_test.process_geometry(
+        processor = api_test.get_owt_geometry_processor(
             turbine="BBK01", tower_base=10.0, monopile_head=5.0
         )
         assert isinstance(processor, type(OWT_mock))
