@@ -15,7 +15,7 @@ class API(object):
 
     def __init__(
         self,
-        api_root: str,
+        api_root: str = "https://owimetadatabase.owilab.be/api/v1",
         header: Union[Dict[str, str], None] = None,
         uname: Union[str, None] = None,
         password: Union[str, None] = None,
