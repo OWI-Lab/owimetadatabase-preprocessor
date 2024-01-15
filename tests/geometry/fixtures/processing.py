@@ -16,7 +16,22 @@ from owimetadatabase_preprocessor.utils import dict_generator
 
 
 @pytest.fixture(scope="function")
-def sa_list(data, api_root, header, materials):
+def sa_list_in(data):
+    data_list = []
+    for i in range(3):
+        data_ = deepcopy(data["sa"][i])
+        data_list.append(
+            dict_generator(
+                data_,
+                keys_= ["slug", "model_definition"],
+                method_="exclude"
+            )
+        )
+    return data_list
+
+
+@pytest.fixture(scope="function")
+def sa_list_out(data, api_root, header, materials, bb_out_list):
     data_list = []
     for i in range(3):
         data_ = deepcopy(data["sa"][i])
@@ -30,6 +45,12 @@ def sa_list(data, api_root, header, materials):
             "reference_system": data_["vertical_position_reference_system"]
         }
         data_["bb"] = None
+        if data_["subassembly_type"] == "TP":
+            data_["bb"] = bb_out_list[0]
+        elif data_["subassembly_type"] == "MP":
+            data_["bb"] = bb_out_list[1]
+        else:
+            data_["bb"] = bb_out_list[2]
         data_["materials"] = materials
         data_["api"] = {
             "api_root": api_root,
@@ -50,25 +71,16 @@ def sa_list(data, api_root, header, materials):
                 method_="exclude"
             )
         )
-    return data_
-
-
-        # data_.append(
-        #     dict_generator(
-        #         data["sa"][i],
-        #         keys_= ["slug", "model_definition"],
-        #         method_="exclude"
-        #     )
-        #)
+    return data_list
 
 
 @pytest.fixture(scope="function")
-def sa_df(sa_list):
-    return pd.DataFrame(sa_list)
+def sa_df(sa_list_in):
+    return pd.DataFrame(sa_list_in)
 
 
 @pytest.fixture(scope="function")
-def owt_init(api_test, materials_df, sa_list, data):
+def owt_init(api_test, materials_df, sa_list_out, data):
     tw_sa = (
         pd.DataFrame(data["sa_prop"][2]["df"])
         .drop(columns=["absolute_position, m"], axis=1)
@@ -88,9 +100,9 @@ def owt_init(api_test, materials_df, sa_list, data):
         "api": api_test,
         "materials": materials_df,
         "sub_assemblies": {
-            "TW": sa_list[2],
-            "TP": sa_list[0],
-            "MP": sa_list[1]
+            "TW": sa_list_out[2],
+            "TP": sa_list_out[0],
+            "MP": sa_list_out[1]
         },
         "tower_sub_assemblies": tw_sa,
         "tp_sub_assemblies": tp_sa,
