@@ -5,6 +5,7 @@ from typing import Dict, Union
 import numpy as np
 import pandas as pd
 
+from owimetadatabase_preprocessor.geometry.processing import OWT
 from owimetadatabase_preprocessor.io import API
 
 
@@ -66,7 +67,7 @@ class GeometryAPI(API):
         if subassembly_type is not None:
             url_params["sub_assembly__subassembly_type"] = subassembly_type
         if subassembly_id is not None:
-            url_params["sub_assembly__id"] = subassembly_id
+            url_params["sub_assembly__id"] = str(subassembly_id)
         url_data_type = "/geometry/userroutes/buildingblocks"
         output_type = "list"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
@@ -86,3 +87,11 @@ class GeometryAPI(API):
         output_type = "list"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
+
+    def get_owt_geometry_processor(
+        self, turbine: str, tower_base: float, monopile_head: float
+    ) -> OWT:
+        """Return the required processing class."""
+        materials = self.get_materials()["data"]
+        subassemblies = self.get_subassemblies(assetlocation=turbine)["data"]
+        return OWT(self, materials, subassemblies, tower_base, monopile_head)

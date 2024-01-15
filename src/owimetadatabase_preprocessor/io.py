@@ -7,13 +7,15 @@ import numpy as np
 import pandas as pd
 import requests
 
+from owimetadatabase_preprocessor.utils import deepcompare
+
 
 class API(object):
     """Base API class handling user access information to the Database API."""
 
     def __init__(
         self,
-        api_root: str,
+        api_root: str = "https://owimetadatabase.owilab.be/api/v1",
         header: Union[Dict[str, str], None] = None,
         uname: Union[str, None] = None,
         password: Union[str, None] = None,
@@ -25,6 +27,14 @@ class API(object):
         self.auth = None
         if self.uname is not None and self.password is not None:
             self.auth = requests.auth.HTTPBasicAuth(self.uname, self.password)
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, type(self)):
+            return deepcompare(self, other)
+        elif isinstance(other, dict):
+            return deepcompare(self.__dict__, other)
+        else:
+            return False
 
     def send_request(
         self, url_data_type: str, url_params: Dict[str, str]
