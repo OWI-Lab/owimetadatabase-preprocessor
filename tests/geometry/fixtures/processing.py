@@ -1,3 +1,4 @@
+from copy import deepcopy
 import json
 
 from typing import  Any, Callable, Dict, List, Tuple, Union
@@ -11,28 +12,89 @@ import requests
 from owimetadatabase_preprocessor.geometry.io import GeometryAPI
 from owimetadatabase_preprocessor.geometry.processing import OWT
 from owimetadatabase_preprocessor.geometry.structures import Material, Position, BuildingBlock, SubAssembly
+from owimetadatabase_preprocessor.utils import dict_generator
 
 
 @pytest.fixture(scope="function")
-def sab(api_root, header, data_mat_df, data_sa) -> SubAssembly:
-    api_test = GeometryAPI(api_root, header)
-    sa = SubAssembly(data_mat_df, data_sa, api_test)
-    return sa
+def sa_list(data, api_root, header, materials):
+    data_list = []
+    for i in range(3):
+        data_ = deepcopy(data["sa"][i])
+        data_["position"] =  {
+            "x": data_["x_position"],
+            "y": data_["y_position"],
+            "z": data_["z_position"],
+            "alpha": np.float64(0),
+            "beta": np.float64(0),
+            "gamma": np.float64(0),
+            "reference_system": data_["vertical_position_reference_system"]
+        }
+        data_["bb"] = None
+        data_["materials"] = materials
+        data_["api"] = {
+            "api_root": api_root,
+            "header": header,
+            "uname": None,
+            "password": None,
+            "auth": None
+        }
+        data_["type"] = data_["subassembly_type"]
+        data_list.append(
+            dict_generator(
+                data_,
+                keys_= [
+                    "x_position", "y_position", "z_position", 
+                    "vertical_position_reference_system", "subassembly_type",
+                    "slug", "model_definition"
+                ],
+                method_="exclude"
+            )
+        )
+    return data_
 
 
-@pytest.fixture(scope="module")
-def owt_api(api_root, header):
-    return GeometryAPI(api_root, header)
+        # data_.append(
+        #     dict_generator(
+        #         data["sa"][i],
+        #         keys_= ["slug", "model_definition"],
+        #         method_="exclude"
+        #     )
+        #)
 
 
 @pytest.fixture(scope="function")
-def owt_init(data_mat_df, owt_api) -> None:
-    owt = {
-        "api": owt_api,
-        "materials": [m.to_dict() for _, m in data_mat_df.iterrows()],
-        "tower_sub_assemblies": None,
-        "tp_sub_assemblies": None,
-        "mp_sub_assemblies": None,
+def sa_df(sa_list):
+    return pd.DataFrame(sa_list)
+
+
+@pytest.fixture(scope="function")
+def owt_init(api_test, materials_df, sa_list, data):
+    tw_sa = (
+        pd.DataFrame(data["sa_prop"][2]["df"])
+        .drop(columns=["absolute_position, m"], axis=1)
+        .set_index("title")
+    )
+    tp_sa = (
+        pd.DataFrame(data["sa_prop"][0]["df"])
+        .drop(columns=["absolute_position, m"], axis=1)
+        .set_index("title")
+    )
+    mp_sa = (
+        pd.DataFrame(data["sa_prop"][1]["df"])
+        .drop(columns=["absolute_position, m"], axis=1)
+        .set_index("title")
+    )
+    return {
+        "api": api_test,
+        "materials": materials_df,
+        "sub_assemblies": {
+            "TW": sa_list[2],
+            "TP": sa_list[0],
+            "MP": sa_list[1]
+        },
+        "tower_sub_assemblies": tw_sa,
+        "tp_sub_assemblies": tp_sa,
+        "mp_sub_assemblies": mp_sa,
         "tower_base": None,
         "pile_head": None,
         "pile_toe": None,
@@ -46,102 +108,5 @@ def owt_init(data_mat_df, owt_api) -> None:
         "tp_lumped_mass": None,
         "mp_lumped_mass": None,
         "tp_distributed_mass": None,
-        "mp_distributed_mass": None,
+        "mp_distributed_mass": None  
     }
-    return owt
-
-
-@pytest.fixture(scope="function")
-def mock_owt_set_subassemblies(mocker: mock.Mock, sab) -> mock.Mock:
-    mock = mocker.patch.object(OWT, "_set_subassemblies")
-        
-    def mocked_set_subassemblies(self, *args, **kwargs):
-        self.sub_assemblies = {"TW": object(), "TP": object(), "MP": object()}
-
-    mock.side_effect = mocked_set_subassemblies(mock, sab)
-    return mock
-    
-
-@pytest.fixture(scope="function")
-def mock_owt_set_members(mocker: mock.Mock) -> mock.Mock:
-    mock = mocker.patch.object(OWT, "_set_members")
-        
-    def mocked_set_members(self, *args, **kwargs):
-        self.tower_sub_assemblies = pd.DataFrame({"title": ["BBG01_TW"], "mass": [10000]})
-        self.tp_sub_assemblies = pd.DataFrame({"title": ["BBG01_TP"], "mass": [5000]})
-        self.mp_sub_assemblies = pd.DataFrame({"title": ["BBG01_MP"], "mass": [20000]})
-
-    mock.side_effect = mocked_set_members(mock)
-    return mock
-
-
-@pytest.fixture(scope="function")
-def owt(data_mat_df, sab, owt_api, mock_owt_set_subassemblies, mock_owt_set_members):
-    mat = [m.to_dict() for _, m in data_mat_df.iterrows()]
-    owt = OWT(owt_api, mat, sab)
-    return owt
-
-
-@pytest.fixture(scope="function")
-def sa_list():
-    cols = [
-        "id", "title", "description", "slug", 
-        "x_position", "y_position", "z_position", "vertical_position_reference_system", 
-        "subassembly_type", "source", "asset", "model_definition"
-    ]
-    data = [
-        {
-            "id": 651,
-            "title": "BBG01_TW",
-            "description": None,
-            "slug": "bbg01_tw", 
-            "x_position": 0.0,
-            "y_position": 0.0,
-            "z_position": 17000.0,
-            "vertical_position_reference_system": "LAT", 
-            "subassembly_type": "TW",
-            "source": "vestas_tower_dwg.pdf",
-            "asset": 341,
-            "model_definition": 5
-        },
-        {
-            "id": 855,
-            "title": "BBG01_TP",
-            "description": None,
-            "slug": "bbg01_tp",
-            "x_position": 0.0,
-            "y_position": 0.0,
-            "z_position": -2540.0,
-            "vertical_position_reference_system": "LAT", 
-            "subassembly_type": "TP",
-            "source": "NBW-513-004-Design Report - WTG Time Domain Fatigue Analysis",
-            "asset": 341,
-            "model_definition": 5
-        },
-        {
-            "id": 64,
-            "title": "BBG01_MP",
-            "description": None,
-            "slug": "bbg01_mp",
-            "x_position": 0.0,
-            "y_position": 0.0,
-            "z_position": -63400.0,
-            "vertical_position_reference_system": "LAT",
-            "subassembly_type": "MP",
-            "source": "NBW-513-004-Design Report - WTG Time Domain Fatigue Analysis",
-            "asset": 341,
-            "model_definition": 5
-        }
-    ]
-    return data
-
-
-@pytest.fixture(scope="function")
-def sa_df(sa_list):
-    return pd.DataFrame(sa_list)
-
-
-@pytest.fixture(scope="function")
-def sab_list(owt_api, data_mat_df, sa_list, mock_requests_get_buildingblocks_sa) -> SubAssembly:
-    sa = [SubAssembly(data_mat_df, sa_dict, owt_api) for sa_dict in sa_list]
-    return sa

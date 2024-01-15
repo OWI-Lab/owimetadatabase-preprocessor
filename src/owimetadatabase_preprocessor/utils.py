@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import pandas as pd
 
 
 def dict_generator(dict_, keys_=None, method_="exclude"):
@@ -27,6 +28,18 @@ def compare_if_simple_close(a, b, tol=1e-9):
         else:
             messsage = f"Values of {a} and {b} are different."
         return assertion, messsage
+
+
+def check_df_eq(df1, df2, tol=1e-9):
+    num_cols_eq = np.allclose(
+        df1.select_dtypes(include=np.number),
+        df2.select_dtypes(include=np.number),
+        rtol=tol,
+        atol=tol,
+        equal_nan=True
+    )
+    str_cols_eq = df1.select_dtypes(include=object).equals(df2.select_dtypes(include=object))
+    return num_cols_eq and str_cols_eq
 
 
 def deepcompare(a, b, tol=1e-5):
@@ -60,8 +73,15 @@ def deepcompare(a, b, tol=1e-5):
             inds = [ind for ind, val in zip(range(len(compare)), compare) if val is False]
             message = f"Lists/tuples are different for {a} and {b}, for indices: {inds}."
         return assertion, message
-    elif hasattr(a, '__dict__'):
+    elif hasattr(a, '__dict__') and not isinstance(a, pd.DataFrame):
         return deepcompare(a.__dict__, b.__dict__, tol)
+    elif isinstance(a, pd.DataFrame):
+        assertion = check_df_eq(a, b, tol)
+        if assertion:
+            message = None
+        else:
+            message = f"Dataframes {a} and {b} are different for {a.compare(b)}."
+        return assertion, message
     else:
         return compare_if_simple_close(a, b, tol)
     

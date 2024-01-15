@@ -1,6 +1,7 @@
 import pytest
 
 import numpy as np
+import pandas as pd
 
 from owimetadatabase_preprocessor.utils import (
     dict_generator, compare_if_simple_close, deepcompare, fix_nan, fix_outline
@@ -91,6 +92,25 @@ def test_compare_if_simple_close(a, b, expected):
         ((1, 2, 3), (1, 4, 5), (False, "Lists/tuples are different for (1, 2, 3) and (1, 4, 5), for indices: [1, 2].")),
         ((1, 2, (3, 4)), (1, 2, (3, 4)), (True, None)),
         ((1, 2, (3, 4)), (1, 2, (3, 5)), (False, "Lists/tuples are different for (1, 2, (3, 4)) and (1, 2, (3, 5)), for indices: [2].")),
+        (
+            pd.DataFrame({"col_1": [1.0, 2.0], "col_2": ["val_12", "val_22"]}),
+            pd.DataFrame({"col_1": [1.0, 2.0], "col_2": ["val_12", "val_22"]}),
+            (True, None)
+        ),
+        (
+            pd.DataFrame({"col_1": [1.0, 2.0], "col_2": ["val_12", "val_22"]}),
+            pd.DataFrame({"col_1": [1.0, 2.1], "col_2": ["val_12", "val_22"]}),
+            (
+                False, 
+                "Dataframes    col_1   col_2\n0    1.0  val_12\n1    2.0  val_22 "
+                "and    col_1   col_2\n0    1.0  val_12\n1    2.1  val_22 are different."
+            )
+        ),
+        (
+            pd.DataFrame({"col_1": [1.0, 2.0], "col_2": ["val_12", "val_22"]}),
+            pd.DataFrame({"col_1": [1.0, 2.0000001], "col_2": ["val_12", "val_22"]}),
+            (True, None)
+        )
     ]
 )
 def test_deepcompare(a, b, expected):

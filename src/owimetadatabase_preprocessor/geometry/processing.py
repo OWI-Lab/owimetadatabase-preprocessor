@@ -8,6 +8,8 @@ import pandas as pd
 
 from owimetadatabase_preprocessor.geometry.structures import SubAssembly
 
+from owimetadatabase_preprocessor.utils import deepcompare
+
 
 class OWT(object):
     def __init__(
@@ -438,3 +440,11 @@ class OWT(object):
             pile = pile.loc[pile["Depth to [m]"] > cutoff_point].reset_index(drop=True)
             pile.loc[0, "Depth from [m]"] = cutoff_point
         return pile
+    
+    def __eq__(self, other) -> bool:
+        if isinstance(other, type(self)):
+            return deepcompare(self, other)
+        elif isinstance(other, dict):
+            return deepcompare(self.__dict__, other)
+        else:
+            return False

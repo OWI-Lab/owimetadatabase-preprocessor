@@ -17,27 +17,6 @@ from owimetadatabase_preprocessor.geometry.structures import Material, Position,
 from owimetadatabase_preprocessor.utils import dict_generator, fix_nan, fix_outline
 
 
-@pytest.fixture(scope="module")
-def data():
-    file_dir = Path(__file__).parent.parent
-    data_path = file_dir / "data"
-    data_type = {
-        "mat": "materials",
-        "sa": "subassemblies",
-        "bb": "building_blocks",
-        "bb_prop": "properties_bb",
-        "sa_prop": "properties_sa"
-    }
-    data = {}
-    for d in data_type.keys():
-        with open(data_path / (data_type[d] + ".json")) as f:
-            data_ = json.load(f)
-            data[d] = fix_nan(data_)
-            if d == "bb_prop" or d == "sa_prop":
-                data[d] = fix_outline(data[d])
-    return data
-
-
 @pytest.fixture(scope="function")
 def materials(data):
     materials_ = []
@@ -318,7 +297,7 @@ def bb_in_list_prop(data):
 
 
 @pytest.fixture
-def mock_requests_sa_get_bb(mocker: mock.Mock, bb_in_list_prop) -> mock.Mock:
+def mock_requests_sa_get_bb(mocker: mock.Mock, bb_in_list_prop, data) -> mock.Mock:
     
     def custom_side_effect(*args, **kwargs) -> requests.Response:
         resp = requests.Response()
@@ -329,6 +308,8 @@ def mock_requests_sa_get_bb(mocker: mock.Mock, bb_in_list_prop) -> mock.Mock:
             data = [bb_in_list_prop[i] for i in range(5,8)]
         elif kwargs.get("params") == {"sub_assembly__id": "3"}:
             data = [bb_in_list_prop[i] for i in range(8,12)]
+        else:
+            data = []
         resp._content = json.dumps(data).encode("utf-8")
         return resp
 
