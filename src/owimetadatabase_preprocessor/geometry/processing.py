@@ -15,8 +15,8 @@ class OWT(object):
         api,
         materials: pd.DataFrame,
         subassemblies: pd.DataFrame,
-        tower_base=None,
-        pile_head=None,
+        tower_base,
+        pile_head,
     ) -> None:
         """Get all subassemblies for a given Turbine.
 
