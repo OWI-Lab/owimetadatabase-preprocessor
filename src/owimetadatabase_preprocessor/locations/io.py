@@ -81,7 +81,7 @@ class LocationsAPI(API):
         return {"data": df, "exists": df_add["existance"]}
 
     def get_assetlocation_detail(
-        self, projectsite: str, assetlocation: str, **kwargs
+        self, assetlocation: str, projectsite: str = None, **kwargs
     ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
         """Get a selected turbine.
 
@@ -93,7 +93,10 @@ class LocationsAPI(API):
             - "data": Pandas dataframe with the location data for the individual location.
             - "exists": Boolean indicating whether a matching location is found.
         """
-        url_params = {"projectsite": projectsite, "assetlocation": assetlocation}
+        if projectsite is None:
+            url_params = {"assetlocation": assetlocation}
+        else:
+            url_params = {"projectsite": projectsite, "assetlocation": assetlocation}
         url_params = {**url_params, **kwargs}
         url_data_type = "/locations/assetlocations/"
         output_type = "single"
