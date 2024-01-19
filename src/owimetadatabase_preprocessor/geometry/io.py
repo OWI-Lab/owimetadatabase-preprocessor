@@ -7,6 +7,7 @@ import pandas as pd
 
 from owimetadatabase_preprocessor.geometry.processing import OWT
 from owimetadatabase_preprocessor.io import API
+from owimetadatabase_preprocessor.locations.io import LocationsAPI
 
 
 class GeometryAPI(API):
@@ -94,4 +95,5 @@ class GeometryAPI(API):
         """Return the required processing class."""
         materials = self.get_materials()["data"]
         subassemblies = self.get_subassemblies(assetlocation=turbine)["data"]
-        return OWT(self, materials, subassemblies, tower_base, monopile_head)
+        location = LocationsAPI(header=self.header).get_assetlocation_detail(assetlocation=turbine)["data"]
+        return OWT(self, materials, subassemblies, location, tower_base, monopile_head)

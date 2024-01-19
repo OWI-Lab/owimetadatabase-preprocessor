@@ -15,8 +15,9 @@ class OWT(object):
         api,
         materials: pd.DataFrame,
         subassemblies: pd.DataFrame,
-        tower_base,
-        pile_head,
+        location: pd.DataFrame,
+        tower_base: float,
+        pile_head: float
     ) -> None:
         """Get all subassemblies for a given Turbine.
 
@@ -47,6 +48,7 @@ class OWT(object):
         self.mp_lumped_mass = None
         self.tp_distributed_mass = None
         self.mp_distributed_mass = None
+        self.water_depth = location["elevation"].values[0]
 
     def _set_subassemblies(self, subassemblies: pd.DataFrame) -> None:
         """Create a dictionary containing the subassemblies of the OWT."""
