@@ -1,11 +1,11 @@
 """Module to connect to the database API to retrieve and operate on geometry data."""
 
-from typing import Dict, Union
+from typing import Dict, List, Union
 
 import numpy as np
 import pandas as pd
 
-from owimetadatabase_preprocessor.geometry.processing import OWT
+from owimetadatabase_preprocessor.geometry.processing import OWT, OWTs
 from owimetadatabase_preprocessor.io import API
 from owimetadatabase_preprocessor.locations.io import LocationsAPI
 
@@ -90,10 +90,21 @@ class GeometryAPI(API):
         return {"data": df, "exists": df_add["existance"]}
 
     def get_owt_geometry_processor(
-        self, turbine: str, tower_base: float, monopile_head: float
-    ) -> OWT:
+        self,
+        turbines: Union[str, List[str]],
+        tower_base: Union[float, List[float]],
+        monopile_head: Union[float, List[float]]
+    ) -> OWTs:
         """Return the required processing class."""
         materials = self.get_materials()["data"]
-        subassemblies = self.get_subassemblies(assetlocation=turbine)["data"]
-        location = LocationsAPI(header=self.header).get_assetlocation_detail(assetlocation=turbine)["data"]
-        return OWT(self, materials, subassemblies, location, tower_base, monopile_head)
+        owts = []
+        if isinstance(turbines, str):
+            turbines = [turbines]
+        if not isinstance(tower_base, List) and not isinstance(monopile_head, List):
+            tower_base = [tower_base]*len(turbines)
+            monopile_head = [monopile_head]*len(turbines)
+        for i in range(len(turbines)):
+            subassemblies = self.get_subassemblies(assetlocation=turbines[i])["data"]
+            location = LocationsAPI(header=self.header).get_assetlocation_detail(assetlocation=turbines[i])["data"]
+            owts.append(OWT(self, materials, subassemblies, location, tower_base[i], monopile_head[i]))
+        return OWTs(owts)
