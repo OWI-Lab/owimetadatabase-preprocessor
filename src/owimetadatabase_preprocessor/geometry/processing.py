@@ -458,13 +458,13 @@ class OWTs(object):
         self.materials = owts[0].materials
         self.sub_assemblies = [owt.sub_assemblies for owt in self.owts]
         self.tower_sub_assemblies = pd.concat(
-            [owt.tower_sub_assemblies for owt in self.owts], ignore_index=True
+            [owt.tower_sub_assemblies for owt in self.owts]
         )
         self.tp_sub_assemblies = pd.concat(
-            [owt.tp_sub_assemblies for owt in self.owts], ignore_index=True
+            [owt.tp_sub_assemblies for owt in self.owts]
         )
         self.mp_sub_assemblies = pd.concat(
-            [owt.mp_sub_assemblies for owt in self.owts], ignore_index=True
+            [owt.mp_sub_assemblies for owt in self.owts]
         )
         self.tower_base = [owt.tower_base for owt in self.owts]
         self.pile_head = [owt.pile_head for owt in self.owts]
@@ -521,7 +521,7 @@ class OWTs(object):
                 self,
                 attr,
                 pd.concat(
-                    getattr(self, attr), ignore_index=True
+                    getattr(self, attr)
                 )
             )
     
