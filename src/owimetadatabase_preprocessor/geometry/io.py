@@ -107,4 +107,4 @@ class GeometryAPI(API):
             subassemblies = self.get_subassemblies(assetlocation=turbines[i])["data"]
             location = LocationsAPI(header=self.header).get_assetlocation_detail(assetlocation=turbines[i])["data"]
             owts.append(OWT(self, materials, subassemblies, location, tower_base[i], monopile_head[i]))
-        return OWTs(owts)
+        return OWTs(turbines, owts)
