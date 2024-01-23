@@ -93,7 +93,7 @@ class GeometryAPI(API):
         self,
         turbines: Union[str, List[str]],
         tower_base: Union[float, List[float]],
-        monopile_head: Union[float, List[float]]
+        monopile_head: Union[float, List[float]],
     ) -> OWTs:
         """Return the required processing class."""
         materials = self.get_materials()["data"]
@@ -101,10 +101,21 @@ class GeometryAPI(API):
         if isinstance(turbines, str):
             turbines = [turbines]
         if not isinstance(tower_base, List) and not isinstance(monopile_head, List):
-            tower_base = [tower_base]*len(turbines)
-            monopile_head = [monopile_head]*len(turbines)
+            tower_base = [tower_base] * len(turbines)
+            monopile_head = [monopile_head] * len(turbines)
         for i in range(len(turbines)):
             subassemblies = self.get_subassemblies(assetlocation=turbines[i])["data"]
-            location = LocationsAPI(header=self.header).get_assetlocation_detail(assetlocation=turbines[i])["data"]
-            owts.append(OWT(self, materials, subassemblies, location, tower_base[i], monopile_head[i]))
+            location = LocationsAPI(header=self.header).get_assetlocation_detail(
+                assetlocation=turbines[i]
+            )["data"]
+            owts.append(
+                OWT(
+                    self,
+                    materials,
+                    subassemblies,
+                    location,
+                    tower_base[i],
+                    monopile_head[i],
+                )
+            )
         return OWTs(turbines, owts)

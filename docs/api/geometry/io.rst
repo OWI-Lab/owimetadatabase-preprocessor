@@ -1,5 +1,5 @@
 Geometry API: Base class
-=============
+========================
 
 .. automodule:: owimetadatabase_preprocessor.geometry.io
    :members:
