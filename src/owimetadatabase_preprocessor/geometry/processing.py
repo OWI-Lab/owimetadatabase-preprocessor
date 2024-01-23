@@ -1,6 +1,7 @@
 "Module containing the processing functions for the geometry data."
 
 from copy import deepcopy
+from typing import List
 
 import numpy as np
 import pandas as pd
@@ -15,8 +16,9 @@ class OWT(object):
         api,
         materials: pd.DataFrame,
         subassemblies: pd.DataFrame,
-        tower_base=None,
-        pile_head=None,
+        location: pd.DataFrame,
+        tower_base: float,
+        pile_head: float,
     ) -> None:
         """Get all subassemblies for a given Turbine.
 
@@ -47,6 +49,7 @@ class OWT(object):
         self.mp_lumped_mass = None
         self.tp_distributed_mass = None
         self.mp_distributed_mass = None
+        self.water_depth = location["elevation"].values[0]
 
     def _set_subassemblies(self, subassemblies: pd.DataFrame) -> None:
         """Create a dictionary containing the subassemblies of the OWT."""
@@ -393,14 +396,12 @@ class OWT(object):
 
     def get_monopile_pyles(
         self,
-        water_depth: float,
         projectsite: str,
         assetlocation: str,
         cutoff_point: np.float64 = np.nan,
     ) -> pd.DataFrame:
         """Returns a dataframe with the monopile geometry with the mudline as reference
 
-        :param water_depth: Water depth in mLAT.
         :param projectsite: Title of the projectsite.
         :param assetlocation: Title of the turbine.
         :return: Dataframe with the monopile geometry.
@@ -412,7 +413,7 @@ class OWT(object):
             projectsite=projectsite, assetlocation=assetlocation, subassembly_type="MP"
         )
         toe_depth_lat = subassemblies["data"]["z_position"].iloc[0]
-        penetration = -((1e-3 * toe_depth_lat) - water_depth)
+        penetration = -((1e-3 * toe_depth_lat) - self.water_depth)
         pile = pd.DataFrame()
         for i, row in building_blocks["data"].iterrows():
             if i != 0:
@@ -437,6 +438,154 @@ class OWT(object):
             pile = pile.loc[pile["Depth to [m]"] > cutoff_point].reset_index(drop=True)
             pile.loc[0, "Depth from [m]"] = cutoff_point
         return pile
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, type(self)):
+            return deepcompare(self, other)
+        elif isinstance(other, dict):
+            return deepcompare(self.__dict__, other)
+        else:
+            return False
+
+
+class OWTs(object):
+    """Class to process the geometry data of multiple OWTs."""
+
+    def __init__(
+        self,
+        turbines: List[str],
+        owts: List[OWT],
+    ) -> None:
+        self.owts = {k: v for k, v in zip(turbines, owts)}
+        self.api = self.owts[turbines[0]].api
+        self.materials = self.owts[turbines[0]].materials
+        self.sub_assemblies = {
+            k: owt.sub_assemblies for k, owt in zip(turbines, self.owts.values())
+        }
+        self.tower_sub_assemblies = pd.concat(
+            [owt.tower_sub_assemblies for owt in self.owts.values()]
+        )
+        self.tp_sub_assemblies = pd.concat(
+            [owt.tp_sub_assemblies for owt in self.owts.values()]
+        )
+        self.mp_sub_assemblies = pd.concat(
+            [owt.mp_sub_assemblies for owt in self.owts.values()]
+        )
+        self.tower_base = {
+            k: owt.tower_base for k, owt in zip(turbines, self.owts.values())
+        }
+        self.pile_head = {
+            k: owt.pile_head for k, owt in zip(turbines, self.owts.values())
+        }
+        self.pile_toe = None
+        self.rna = None
+        self.tower_geometry = None
+        self.transition_piece = None
+        self.monopile = None
+        self.substructure = None
+        self.tp_skirt = None
+        self.tower_lumped_mass = None
+        self.tp_lumped_mass = None
+        self.mp_lumped_mass = None
+        self.tp_distributed_mass = None
+        self.mp_distributed_mass = None
+        self.water_depth = {
+            k: owt.water_depth for k, owt in zip(turbines, self.owts.values())
+        }
+        self.all_cans = None
+        self.all_distributed_mass = None
+        self.all_lumped_mass = None
+        self.all_turbines = None
+
+    def _concat_list(self, attr_list) -> None:
+        """Internal method to concatenate lists of dataframes for attributes.
+
+        :param attr_list: List of attributes to concatenate.
+        """
+        for attr in attr_list:
+            setattr(self, attr, pd.concat(getattr(self, attr)))
+
+    def assembly_turbine(self) -> None:
+        """Method to assemble general geometry data of all specified turbines."""
+        cols = [
+            "Turbine name",
+            "Water depth [m]",
+            "Monopile toe [m]",
+            "Monopile head [m]",
+            "Tower base [m]",
+            "Monopile height [m]",
+            "Monopile mass [t]",
+            "Transition piece height [m]",
+            "Transition piece mass [t]",
+            "Tower height [m]",
+            "Tower mass [t]",
+        ]
+        df_list = []
+        for turb in self.owts.keys():
+            df_list.append(
+                [
+                    turb,
+                    self.water_depth[turb],
+                    self.pile_toe[turb],
+                    self.pile_head[turb],
+                    self.tower_base[turb],
+                    self.owts[turb].monopile["Height [m]"].sum(),
+                    (
+                        self.owts[turb].monopile["Mass [t]"].sum()
+                        + self.owts[turb].mp_distributed_mass["Mass [t]"].sum()
+                        + self.owts[turb].mp_lumped_mass["Mass [t]"].sum()
+                    ),
+                    self.owts[turb].transition_piece["Height [m]"].sum(),
+                    (
+                        self.owts[turb].transition_piece["Mass [t]"].sum()
+                        + self.owts[turb].tp_distributed_mass["Mass [t]"].sum()
+                        + self.owts[turb].tp_lumped_mass["Mass [t]"].sum()
+                    ),
+                    self.owts[turb].tower_geometry["Height [m]"].sum(),
+                    (
+                        self.owts[turb].tower_geometry["Mass [t]"].sum()
+                        + self.owts[turb].tower_lumped_mass["Mass [t]"].sum()
+                        + self.owts[turb].rna["Mass [t]"].sum()
+                    ),
+                ]
+            )
+        df = pd.DataFrame(df_list, columns=cols)
+        self.all_turbines = df.round(2)
+
+    def process_structure(self) -> None:
+        """Set dataframes containing the required properties to model the tower geometry, including the RNA system."""
+        attr_list = []
+        for attr in list(self.__dict__.keys()):
+            if getattr(self, attr) is None:
+                attr_list.append(attr)
+                setattr(self, attr, [])
+        attr_list.remove("all_turbines")
+        for owt in self.owts.values():
+            owt.process_structure()
+            owt.assembly_tp_mp()
+            for attr in attr_list:
+                if attr == "pile_toe":
+                    self.pile_toe.append(getattr(owt, attr))
+                elif attr == "all_cans":
+                    self.all_cans.extend(
+                        [owt.tower_geometry, owt.transition_piece, owt.monopile]
+                    )
+                elif attr == "all_distributed_mass":
+                    self.all_distributed_mass.extend(
+                        [owt.tp_distributed_mass, owt.mp_distributed_mass]
+                    )
+                elif attr == "all_lumped_mass":
+                    self.all_lumped_mass.extend(
+                        [owt.tower_lumped_mass, owt.tp_lumped_mass, owt.mp_lumped_mass]
+                    )
+                else:
+                    attr_val = getattr(self, attr)
+                    owt_attr_val = getattr(owt, attr)
+                    attr_val.append(owt_attr_val)
+        attr_list.remove("pile_toe")
+        self.pile_toe = {k: v for k, v in zip(self.owts.keys(), self.pile_toe)}
+        self._concat_list(attr_list)
+        self.assembly_turbine()
 
     def __eq__(self, other) -> bool:
         if isinstance(other, type(self)):
