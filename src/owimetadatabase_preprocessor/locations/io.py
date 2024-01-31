@@ -73,11 +73,22 @@ class LocationsAPI(API):
         """
         url_params = {}  # type: Dict[str, str]
         url_params = {**url_params, **kwargs}
-        if projectsite is not None:
+        if projectsite:
             url_params["projectsite__title"] = projectsite
         url_data_type = "/locations/assetlocations/"
-        output_type = "list"
-        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        if "assetlocations" in url_params.keys() and isinstance(url_params["assetlocations"], list):
+            df = []
+            df_add = {"existance": []}
+            for assetlocation in url_params["assetlocations"]:
+                output_type = "single"
+                url_params["assetlocation"] = assetlocation
+                df_temp, df_add_temp = self.process_data(url_data_type, url_params, output_type)
+                df.append(df_temp)
+                df_add["existance"].append(df_add_temp["existance"])
+            df = pd.concat(df)
+        else:
+            output_type = "list"
+            df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
 
     def get_assetlocation_detail(
