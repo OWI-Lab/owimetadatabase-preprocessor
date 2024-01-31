@@ -254,9 +254,7 @@ class BuildingBlock(BaseStructure):
                 :param height: Height of the cone frustum, mm.
                 :return: Volume of the cone frustum, mm³.
                 """
-                volume = (
-                    pi * height / 3 * (r_bottom**2 + r_bottom * r_top + r_top**2)
-                )
+                volume = pi * height / 3 * (r_bottom**2 + r_bottom * r_top + r_top**2)
                 return volume
 
             r_bottom_inner = (

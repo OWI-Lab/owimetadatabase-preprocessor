@@ -39,6 +39,17 @@ class TestAPIAuth:
         assert api_test.password == pswd
         assert api_test.auth == requests.auth.HTTPBasicAuth(name, pswd)
 
+    def test_API_token(self, api_root: str) -> None:
+        """Test parent API class with header that it initializes everything correctly."""
+        token = "12345"
+        header = {"Authorization": "Token 12345"}
+        api_test = API(api_root, token=token)
+        assert api_test.api_root == api_root
+        assert api_test.header == header
+        assert api_test.uname is None
+        assert api_test.password is None
+        assert api_test.auth is None
+
 
 def test_send_request_with_token(mock_requests_get: mock.Mock, api_root: str) -> None:
     header = {"Authorization": "Token 12345"}
