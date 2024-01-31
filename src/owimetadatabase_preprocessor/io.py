@@ -16,17 +16,26 @@ class API(object):
     def __init__(
         self,
         api_root: str = "https://owimetadatabase.owilab.be/api/v1",
-        header: Union[Dict[str, str], None] = None,
+        token: Union[str, None] = None,
         uname: Union[str, None] = None,
         password: Union[str, None] = None,
+        **kwargs,
     ) -> None:
         self.api_root = api_root
-        self.header = header
         self.uname = uname
         self.password = password
         self.auth = None
-        if self.uname is not None and self.password is not None:
+        self.header = None
+        if "header" in kwargs.keys():
+            self.header = kwargs["header"]
+        elif token:
+            self.header = {"Authorization": f"Token {token}"}
+        elif self.uname and self.password:
             self.auth = requests.auth.HTTPBasicAuth(self.uname, self.password)
+        else:
+            raise ValueError(
+                "Either header, token or user name and password must be defined."
+            )
 
     def __eq__(self, other) -> bool:
         if isinstance(other, type(self)):
