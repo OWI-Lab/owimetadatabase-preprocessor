@@ -4,8 +4,11 @@ from typing import Dict, List, Union
 
 import numpy as np
 import pandas as pd
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
 
 from owimetadatabase_preprocessor.geometry.processing import OWT, OWTs
+from owimetadatabase_preprocessor.geometry.structures import SubAssembly
 from owimetadatabase_preprocessor.io import API
 from owimetadatabase_preprocessor.locations.io import LocationsAPI
 
@@ -98,8 +101,7 @@ class GeometryAPI(API):
         """Return the required processing class."""
         materials = self.get_materials()["data"]
         owts = []
-        if isinstance(turbines, str):
-            turbines = [turbines]
+        turbines = [turbines] if isinstance(turbines, str) else turbines
         if not isinstance(tower_base, List) and not isinstance(monopile_head, List):
             tower_base = [tower_base] * len(turbines)
             monopile_head = [monopile_head] * len(turbines)
@@ -119,3 +121,41 @@ class GeometryAPI(API):
                 )
             )
         return OWTs(turbines, owts)
+
+    def plot_turbines(self, turbines: Union[List[str], str], figures_per_line: int = 5) -> None:
+        """Plot turbines' frontal geometry."""
+        materials = self.get_materials()["data"]
+        turbines = [turbines] if isinstance(turbines, str) else turbines
+        if len(turbines) > figures_per_line:
+            n_rows = len(turbines) // figures_per_line + 1
+            n_cols = figures_per_line
+            rows = [i for i in range(1, n_rows + 1) for _ in range(n_cols)]
+            cols = [i for _ in range(n_rows) for i in range(1, n_cols + 1)]
+        else:
+            n_rows = 1
+            n_cols = len(turbines)
+            rows = [1 for _ in range(n_cols)]
+            cols = [i for i in range(1, n_cols + 1)]
+        autosize = False if len(turbines) < 3 else True
+        fig = make_subplots(n_rows, n_cols, subplot_titles=turbines)
+        for i, turbine in enumerate(turbines):
+            subassemblies = self.get_subassemblies(assetlocation=turbine)["data"]
+            for j, sa in subassemblies.iterrows():
+                subassembly = SubAssembly(materials, sa.to_dict(), api_object=self)
+                subassembly.building_blocks
+                plotly_data = subassembly.plotly()    
+                fig.add_trace(
+                    plotly_data[0],
+                    row=rows[i],
+                    col=cols[i]
+                )
+            plotly_layout = plotly_data[1]
+            if i > 0:
+                plotly_layout["scene" + str(i+1)] = plotly_layout["scene"]
+                plotly_layout["yaxis" + str(i+1)] = plotly_layout["yaxis"]
+                plotly_layout["yaxis" + str(i+1)]['scaleanchor'] = "x" + str(i+1)
+                plotly_layout.pop("scene")
+                plotly_layout.pop("yaxis")
+                plotly_layout["yaxis" + str(j+1)].pop("title")
+            fig.update_layout(plotly_layout, autosize=autosize)
+        fig.show()
