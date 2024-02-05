@@ -1,15 +1,15 @@
-name: CI Python package
+name: CI for Python package
 
 on:
   push:
-    branches: [ "main" ]  # "test_pipelines"
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+# permissions:
+#   contents: read
+#   pages: write
+#   id-token: write
 
 jobs:  
   build:
@@ -51,11 +51,11 @@ jobs:
         poetry run pytest ./tests
         poetry run pytest --cov=./tests
 
-  build-deploy-docs:    
-    needs: build
-    uses: ./.github/workflows/docs.yml
+  # build-deploy-docs:    
+  #   needs: build
+  #   uses: ./.github/workflows/docs.yml
 
-  deploy-package:  
-    needs: [build, build-deploy-docs]
-    uses: ./.github/workflows/publish.yml
-    secrets: inherit
+  # deploy-package:  
+  #   needs: [build, build-deploy-docs]
+  #   uses: ./.github/workflows/publish.yml
+  #   secrets: inherit
