@@ -4,7 +4,6 @@ from typing import Dict, List, Union
 
 import numpy as np
 import pandas as pd
-import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 
 from owimetadatabase_preprocessor.geometry.processing import OWT, OWTs
