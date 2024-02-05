@@ -16,5 +16,7 @@ __pycache__
 # Pyenv
 .python-version
 
+# To do
+.todo
 
 .DS_Store

@@ -32,6 +32,10 @@ The repository also has ``.lock`` file if you use ``poetry``.
 
 `owi_preprocessor` was written by the team of OWI-lab.
 
+## Acknowledgements
+
+This package was developed as part of the ETF Smartlife (FOD165) project.
+
 ## License
 
 The package is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
