@@ -122,7 +122,9 @@ class GeometryAPI(API):
             )
         return OWTs(turbines, owts)
 
-    def plot_turbines(self, turbines: Union[List[str], str], figures_per_line: int = 5) -> None:
+    def plot_turbines(
+        self, turbines: Union[List[str], str], figures_per_line: int = 5
+    ) -> None:
         """Plot turbines' frontal geometry."""
         materials = self.get_materials()["data"]
         turbines = [turbines] if isinstance(turbines, str) else turbines
@@ -143,19 +145,15 @@ class GeometryAPI(API):
             for j, sa in subassemblies.iterrows():
                 subassembly = SubAssembly(materials, sa.to_dict(), api_object=self)
                 subassembly.building_blocks
-                plotly_data = subassembly.plotly()    
-                fig.add_trace(
-                    plotly_data[0],
-                    row=rows[i],
-                    col=cols[i]
-                )
+                plotly_data = subassembly.plotly()
+                fig.add_trace(plotly_data[0], row=rows[i], col=cols[i])
             plotly_layout = plotly_data[1]
             if i > 0:
-                plotly_layout["scene" + str(i+1)] = plotly_layout["scene"]
-                plotly_layout["yaxis" + str(i+1)] = plotly_layout["yaxis"]
-                plotly_layout["yaxis" + str(i+1)]['scaleanchor'] = "x" + str(i+1)
+                plotly_layout["scene" + str(i + 1)] = plotly_layout["scene"]
+                plotly_layout["yaxis" + str(i + 1)] = plotly_layout["yaxis"]
+                plotly_layout["yaxis" + str(i + 1)]["scaleanchor"] = "x" + str(i + 1)
                 plotly_layout.pop("scene")
                 plotly_layout.pop("yaxis")
-                plotly_layout["yaxis" + str(j+1)].pop("title")
+                plotly_layout["yaxis" + str(j + 1)].pop("title")
             fig.update_layout(plotly_layout, autosize=autosize)
         fig.show()

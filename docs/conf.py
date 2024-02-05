@@ -6,9 +6,8 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-import os 
+import os
 import sys
-
 
 module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
 sys.path.insert(0, module_path)
@@ -31,8 +30,8 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "sphinx_rtd_theme" # "alabaster"
+html_theme = "sphinx_rtd_theme"  # "alabaster"
 html_static_path = ["_static"]
-#html_theme_options = {
+# html_theme_options = {
 #    'body_max_width': '100%',
-#}
+# }
