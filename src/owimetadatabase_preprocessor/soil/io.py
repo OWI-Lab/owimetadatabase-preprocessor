@@ -1,7 +1,6 @@
 import json
 import warnings
 from copy import deepcopy
-
 from typing import Dict, Tuple, Union
 
 import numpy as np
@@ -28,12 +27,7 @@ class SoilAPI(API):
     """
 
     def get_proximity_entities_2d(
-        self,
-        api_url: str,
-        latitude: float,
-        longitude: float,
-        radius: float,
-        **kwargs
+        self, api_url: str, latitude: float, longitude: float, radius: float, **kwargs
     ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
         """Find the entities in a certain radius around a point in 2D (cylindrical search area).
 
@@ -52,13 +46,13 @@ class SoilAPI(API):
         output_type = "list"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
-    
+
     def _search_any_entity(
         self,
         api_url: str,
         radius_init: int,
         url_params: Dict[str, str],
-        radius_max: int = 500
+        radius_max: int = 500,
     ) -> pd.DataFrame:
         """Search for any entity in a certain radius around a point in 2D (cylindrical search area).
 
@@ -80,34 +74,36 @@ class SoilAPI(API):
             radius *= 2
             warnings.warn(f"Expanding search radius to {radius: .1f}km")
             if radius > radius_max:
-                raise ValueError("No locations found within 500km radius. Check your input information.")
+                raise ValueError(
+                    "No locations found within 500km radius. Check your input information."
+                )
         return df
-    
+
     def _transform_coord(
-        self,
-        df: pd.DataFrame,
-        longitude: float,
-        latitude: float,
-        target_srid: str
+        self, df: pd.DataFrame, longitude: float, latitude: float, target_srid: str
     ) -> Tuple[pd.DataFrame, float, float]:
         """Transform the coordinates from decimal degrees to a specified target SRID.
-        
+
         :param df: Pandas dataframe with the data according to the specified search criteria
         :param longitude: Longitude of the central point in decimal
         :param latitude: Latitude of the central point in decimal
         :param target_srid: SRID for the offset calculation in meters
         :return: Tuple with the following elements:
-            
+
             - Pandas dataframe with the data according to the specified search criteria
             - Easting of the central point in meters
             - Northing of the central point in meters
         """
         transformer = Transformer.from_crs("epsg:4326", "epsg:" + target_srid)
-        df["easting [m]"], df["northing [m]"] = transformer.transform(df["easting"], df["northing"])
+        df["easting [m]"], df["northing [m]"] = transformer.transform(
+            df["easting"], df["northing"]
+        )
         point_east, point_north = transformer.transform(longitude, latitude)
         return df, point_east, point_north
-    
-    def _gather_data_entity(df: pd.DataFrame) -> Dict[str, Union[pd.DataFrame, int, str, float, None]]:
+
+    def _gather_data_entity(
+        df: pd.DataFrame,
+    ) -> Dict[str, Union[pd.DataFrame, int, str, float, None]]:
         """Gather the data for the closest entity to a certain point in 2D.
 
         :param df: Pandas dataframe with the data according to the specified search criteria
@@ -116,7 +112,7 @@ class SoilAPI(API):
             - 'data': Pandas dataframe with the test location data for each location in the specified search area
             - 'id': ID of the closest test location
             - 'title': Title of the closest test location
-            - 'offset [m]': Offset in meters from the specified point        
+            - 'offset [m]': Offset in meters from the specified point
         """
         if df.__len__() == 1:
             loc_id = df["id"].iloc[0]
@@ -127,7 +123,9 @@ class SoilAPI(API):
             "data": df,
             "id": loc_id,
             "title": df["title"].iloc[0],
-            "offset [m]": df[df["offset [m]"] == df["offset [m]"].min()]["offset [m]"].iloc[0],
+            "offset [m]": df[df["offset [m]"] == df["offset [m]"].min()][
+                "offset [m]"
+            ].iloc[0],
         }
 
     def get_closest_entity_2d(
@@ -135,9 +133,9 @@ class SoilAPI(API):
         api_url: str,
         latitude: float,
         longitude: float,
-        radius_init: float = 1.,
+        radius_init: float = 1.0,
         target_srid: str = "25831",
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, str, float, None]]:
         """Get the entity closest to a certain point in 2D with optional query arguments (cylindrical search area).
 
@@ -157,7 +155,9 @@ class SoilAPI(API):
         geosearch_params = dict(latitude=latitude, longitude=longitude)
         url_params = {**geosearch_params, **kwargs}
         df = self._search_any_entity(api_url, radius_init, url_params)
-        df, point_east, point_north = self._transform_coord(df, longitude, latitude, target_srid)
+        df, point_east, point_north = self._transform_coord(
+            df, longitude, latitude, target_srid
+        )
         df["offset [m]"] = np.sqrt(
             (df["easting [m]"] - point_east) ** 2
             + (df["northing [m]"] - point_north) ** 2
@@ -173,7 +173,7 @@ class SoilAPI(API):
         radius_init: int = 1,
         target_srid: str = "25831",
         sampletest: bool = True,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, str, float, None]]:
         """Get the entity closest to a certain point in 3D (spherical search area) with optional query arguments.
 
@@ -195,7 +195,9 @@ class SoilAPI(API):
         geosearch_params = dict(latitude=latitude, longitude=longitude)
         url_params = {**geosearch_params, **kwargs}
         df = self._search_any_entity(api_url, radius_init, url_params)
-        df, point_east, point_north = self._transform_coord(df, longitude, latitude, target_srid)
+        df, point_east, point_north = self._transform_coord(
+            df, longitude, latitude, target_srid
+        )
         if not sampletest:
             df["depth"] = 0.5 * (df["top_depth"] + df["bottom_depth"])
         df["offset [m]"] = np.sqrt(
@@ -273,7 +275,7 @@ class SoilAPI(API):
             latitude=latitude,
             longitude=longitude,
             radius=radius,
-            **kwargs
+            **kwargs,
         )
 
     def get_closest_testlocation(
@@ -298,7 +300,7 @@ class SoilAPI(API):
             longitude=longitude,
             initialradius=initialradius,
             target_srid=target_srid,
-            **kwargs
+            **kwargs,
         )
 
     def get_testlocations(
@@ -579,7 +581,7 @@ class SoilAPI(API):
             latitude=latitude,
             longitude=longitude,
             radius=radius,
-            **kwargs
+            **kwargs,
         )
 
     def get_closest_insitutest(
@@ -604,7 +606,7 @@ class SoilAPI(API):
             longitude=longitude,
             initialradius=initialradius,
             target_srid=target_srid,
-            **kwargs
+            **kwargs,
         )
 
     def get_insitutest_detail(
@@ -614,7 +616,7 @@ class SoilAPI(API):
         testtype=None,
         insitutest=None,
         combine=False,
-        **kwargs
+        **kwargs,
     ):
         """
         Get the detailed information (measurement data) for an in-situ test of give type
@@ -726,7 +728,7 @@ class SoilAPI(API):
         insitutest=None,
         combine=False,
         cpt=True,
-        **kwargs
+        **kwargs,
     ):
         """
         Get the detailed information (measurement data) for an in-situ test of CPT type (seabed or downhole CPT)
@@ -938,7 +940,7 @@ class SoilAPI(API):
             latitude=latitude,
             longitude=longitude,
             radius=radius,
-            **kwargs
+            **kwargs,
         )
 
     def get_closest_soilprofile(
@@ -963,7 +965,7 @@ class SoilAPI(API):
             longitude=longitude,
             initialradius=initialradius,
             target_srid=target_srid,
-            **kwargs
+            **kwargs,
         )
 
     def get_soilprofile_detail(
@@ -974,7 +976,7 @@ class SoilAPI(API):
         convert_to_profile=True,
         profile_title=None,
         drop_info_cols=True,
-        **kwargs
+        **kwargs,
     ):
         """
         Retrieves a soil profile from the owimetadatabase and converts it to a groundhog SoilProfile object
@@ -1340,7 +1342,7 @@ class SoilAPI(API):
         location=None,
         testtype=None,
         batchlabtest=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Retrieve a summary of batch lab tests corresponding to the specified search criteria.
@@ -1433,7 +1435,7 @@ class SoilAPI(API):
             latitude=latitude,
             longitude=longitude,
             radius=radius,
-            **kwargs
+            **kwargs,
         )
 
     def get_closest_batchlabtest(
@@ -1458,7 +1460,7 @@ class SoilAPI(API):
             longitude=longitude,
             initialradius=initialradius,
             target_srid=target_srid,
-            **kwargs
+            **kwargs,
         )
 
     def get_batchlabtest_detail(
@@ -1468,7 +1470,7 @@ class SoilAPI(API):
         testtype=None,
         campaign=None,
         batchlabtest=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Retrieve detailed data for a specific batch lab test
@@ -1568,7 +1570,7 @@ class SoilAPI(API):
         testtype=None,
         campaign=None,
         batchlabtest=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Checks if the batch lab test answering to the search criteria exists
@@ -1656,7 +1658,7 @@ class SoilAPI(API):
         location=None,
         sampletype=None,
         sample=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Retrieve geotechnical samples corresponding to the specified search criteria
@@ -1711,7 +1713,7 @@ class SoilAPI(API):
             latitude=latitude,
             longitude=longitude,
             radius=radius,
-            **kwargs
+            **kwargs,
         )
 
     def get_closest_geotechnicalsample(
@@ -1739,7 +1741,7 @@ class SoilAPI(API):
             initialradius=initialradius,
             target_srid=target_srid,
             sampletest=False,
-            **kwargs
+            **kwargs,
         )
 
     def get_geotechnicalsample_detail(
@@ -1749,7 +1751,7 @@ class SoilAPI(API):
         sampletype=None,
         campaign=None,
         sample=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Retrieve detailed data for a specific sample.
@@ -1810,7 +1812,7 @@ class SoilAPI(API):
         sampletype=None,
         campaign=None,
         sample=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Checks if the geotechnical sample answering to the search criteria exists
@@ -1862,7 +1864,7 @@ class SoilAPI(API):
         sample=None,
         testtype=None,
         sampletest=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Retrieve a summary of geotechnical sample lab tests corresponding to the specified search criteria
@@ -1921,7 +1923,7 @@ class SoilAPI(API):
             latitude=latitude,
             longitude=longitude,
             radius=radius,
-            **kwargs
+            **kwargs,
         )
 
     def get_closest_sampletest(
@@ -1948,7 +1950,7 @@ class SoilAPI(API):
             depth=depth,
             initialradius=initialradius,
             target_srid=target_srid,
-            **kwargs
+            **kwargs,
         )
 
     def sampletesttype_exists(self, sampletesttype=None, **kwargs):
@@ -2020,7 +2022,7 @@ class SoilAPI(API):
         sample=None,
         campaign=None,
         sampletest=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Retrieves detailed information on a specific sample test based on the specified search criteria
@@ -2132,7 +2134,7 @@ class SoilAPI(API):
         sample=None,
         campaign=None,
         sampletest=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Checks if the batch lab test answering to the search criteria exists
