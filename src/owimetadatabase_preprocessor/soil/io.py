@@ -226,7 +226,11 @@ class SoilAPI(API):
         )
         return self._gather_data_entity(df)
 
-    def get_surveycampaigns(self, projectsite=None, **kwargs):
+    def get_surveycampaigns(
+        self,
+        projectsite: Union[str, None] = None,
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
         """Get all available survey campaigns, specify a projectsite to filter by projectsite.
 
         :param projectsite: String with the projectsite title (e.g. "Nobelwind")
@@ -241,3 +245,171 @@ class SoilAPI(API):
         output_type = "list"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
+
+    def get_surveycampaign_detail(
+        self,
+        projectsite: Union[str, None] = None,
+        campaign: Union[str, None] = None,
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, bool, int, None]]:
+        """Get details for a specific survey campaign.
+        
+        :param projectsite: Name of the projectsite (e.g. "Nobelwind")
+        :param campaign: Title of the survey campaign (e.g. "Borehole campaign")
+        :return: Dictionary with the following keys:
+
+            - 'id': id of the selected projectsite site
+            - 'data': Pandas dataframe with the location data for the individual location
+            - 'exists': Boolean indicating whether a matching location is found
+        """
+        url_params = {"projectsite": projectsite, "campaign": campaign}
+        url_params = {**url_params, **kwargs}
+        url_data_type = "surveycampaign"
+        output_type = "single"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return {"id": df_add["id"], "data": df, "exists": df_add["existance"]}
+    
+    def get_proximity_testlocations(
+        self,
+        latitude: float,
+        longitude: float,
+        radius: float,
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
+        """Get all soil test locations in a certain radius surrounding a point with given lat/lon.
+
+        :param latitude: Latitude of the central point in decimal format
+        :param longitude: Longitude of the central point in decimal format
+        :param radius: Radius around the central point in km
+        :return: Dictionary with the following keys:
+
+            - 'data': Pandas dataframe with the test location data for each location in the specified search area
+            - 'exists': Boolean indicating whether matching records are found
+        """
+        return self.get_proximity_entities_2d(
+            api_url="testlocationproximity",
+            latitude=latitude,
+            longitude=longitude,
+            radius=radius,
+            **kwargs
+        )
+    
+    def get_closest_testlocation(
+        self,
+        latitude: float,
+        longitude: float,
+        radius_init: float = 1,
+        target_srid: str = "25831",
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, int, str, float, None]]:
+        """Get the soil test location closest to a certain point with the name containing a certain string.
+
+        :param latitude: Latitude of the central point in decimal format
+        :param longitude: Longitude of the central point in decimal format
+        :return: Dictionary with the following keys:
+
+            - 'data': Pandas dataframe with the test location data for each location in the specified search area
+            - 'id': ID of the closest test location
+            - 'title': Title of the closest test location
+            - 'offset [m]': Offset in meters from the specified point
+        """
+        return self.get_closest_entity_2d(
+            api_url="testlocationproximity",
+            latitude=latitude,
+            longitude=longitude,
+            initialradius=radius_init,
+            target_srid=target_srid,
+            **kwargs
+        )
+    
+    def get_testlocations(
+        self,
+        projectsite: Union[str, None] = None,
+        campaign: Union[str, None] = None,
+        location: Union[str, None] = None,
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
+        """Get the geotechnical test locations corresponding to the given search criteria.
+        
+        :param projectsite: Name of the projectsite under consideration (e.g. "Nobelwind")
+        :param campaign: Name of the survey campaign (optional, default is None to return all locations in a projectsite)
+        :param location: Name of a specific location (optional, default is None to return all locations in a projectsite)
+        :return: Dictionary with the following keys:
+            
+            - 'data': Pandas dataframe with the test location data for each location meeting the specified search criteria
+            - 'exists': Boolean indicating whether matching records are found
+        """
+        url_params = {"projectsite": projectsite, "campaign": campaign, "location": location}
+        url_params = {**url_params, **kwargs}
+        url_data_type = "testlocation"
+        output_type = "list"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return {"data": df, "exists": df_add["existance"]}
+    
+    def get_testlocation_detail(
+        self,
+        projectsite: Union[str, None] = None,
+        campaign: Union[str, None] = None,
+        location: Union[str, None] = None,
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, int, bool, None]]:
+        """Get the detailed information for a geotechnical test location.
+        
+        :param projectsite: Name of the projectsite under consideration (e.g. "Nobelwind")
+        :param campaign: Name of the survey campaign (optional, default is None to return all locations in a projectsite)
+        :param location: Name of a specific location (optional, default is None to return all locations in a projectsite)
+        :return: Dictionary with the following keys:
+
+            - 'id': id of the selected test location
+            - 'data': Pandas dataframe with the test location data for each location meeting the specified search criteria
+            - 'exists': Boolean indicating whether matching records are found
+        """
+        url_params = {"projectsite": projectsite, "campaign": campaign, "location": location}
+        url_params = {**url_params, **kwargs}
+        url_data_type = "testlocation"
+        output_type = "single"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return {"id": df_add["id"], "data": df, "exists": df_add["existance"]}
+    
+    def testlocation_exists(
+        self,
+        projectsite: Union[str, None] = None,
+        campaign: Union[str, None] = None,
+        location: Union[str, None] = None,
+        **kwargs
+    ) -> Union[int, bool]:
+        """Checks if the test location answering to the search criteria exists.
+
+        :param projectsite: Name of the projectsite under consideration (e.g. "Nobelwind")
+        :param campaign: Name of the survey campaign (optional, default is None to return all locations in a projectsite)
+        :param location: Name of a specific location (optional, default is None to return all locations in a projectsite)
+        :return: Returns the id if test location exists, False otherwise
+        """    
+        url_params = {"projectsite": projectsite, "campaign": campaign, "location": location}
+        url_params = {**url_params, **kwargs}
+        url_data_type = "testlocation"
+        output_type = "single"
+        _, df_add = self.process_data(url_data_type, url_params, output_type)
+        return df_add["id"] if df_add["existance"] else False
+        
+    def testlocation_location_exists(
+        self,
+        projectsite: Union[str, None] = None,
+        campaign: Union[str, None] = None,
+        location: Union[str, None] = None,
+        **kwargs
+    ) -> Union[int, bool]:
+        """Checks if the location answering to the search criteria for the test location exists.
+        If the test location id is required, run the method ``testlocation_exists`` instead.
+
+        :param projectsite: Name of the projectsite under consideration (e.g. "Nobelwind")
+        :param campaign: Name of the survey campaign (optional, default is None to return all locations in a projectsite)
+        :param location: Name of a specific location (optional, default is None to return all locations in a projectsite)
+        :return: Returns the id if test location exists, False otherwise
+        """
+        url_params = {"projectsite": projectsite, "campaign": campaign, "location": location}
+        url_params = {**url_params, **kwargs}
+        url_data_type = "testlocation"
+        output_type = "single"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return df["location"].iloc[0] if df_add["existance"] else False
