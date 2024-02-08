@@ -24,6 +24,12 @@ class SoilAPI(API):
     The URL parameters can be expanded with Django-style additional filtering arguments
     (e.g. ``location__title__icontains="BB"``) as optional keyword arguments.
     Knowledge of the Django models is required for this (see ``owimetadatabase`` code).
+    
+    :param api_root: Root URL for the API
+    :param api_subdir: Subdirectory for the API
+    :param token: Token for the API
+    :param uname: Username for the API
+    :param password: Password for the API
     """
 
     def __init__(
@@ -35,6 +41,7 @@ class SoilAPI(API):
         password: Union[str, None] = None,
         **kwargs,
     ) -> None:
+        """Constructor for the SoilAPI class."""
         super().__init__(api_root, token, uname, password, **kwargs)
         self.api_root = self.api_root + api_subdir
 
