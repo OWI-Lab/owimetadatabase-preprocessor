@@ -413,3 +413,188 @@ class SoilAPI(API):
         output_type = "single"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return df["location"].iloc[0] if df_add["existance"] else False
+
+    def plot_testlocations(self, return_fig: bool = False, **kwargs) -> None:
+        """Retrieves soil test locations and generates a Plotly plot to show them.
+
+        :param return_fig: Boolean indicating whether the Plotly figure object needs to be returned (default is False which simply shows the plot)
+        :param kwargs: Keyword arguments for the search (see ``get_testlocations``)
+        :return: Plotly figure object with selected asset locations plotted on OpenStreetMap tiles (if requested)
+        """
+        testlocations = self.get_testlocations(**kwargs)["data"]
+        fig = px.scatter_mapbox(
+            testlocations,
+            lat="northing",
+            lon="easting",
+            hover_name="title",
+            hover_data=["projectsite_name", "description"],
+            zoom=10,
+            height=500,
+        )
+        fig.update_layout(mapbox_style="open-street-map")
+        fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+        if return_fig:
+            return fig
+        else:
+            fig.show()
+    
+    def get_insitutest_types(self, **kwargs):
+        """Retrieves the types of in-situ tests available in the database.
+
+        :param kwargs: Keywords arguments for the GET request
+        :return: Dataframe with the available InSituTestType records
+        """
+        url_data_type = "insitutesttype"
+        output_type = "list"
+        df, df_add = self.process_data(url_data_type, {}, output_type)
+        return {"data": df, "exists": df_add["existance"]}
+        
+    def insitutest_type_exists(self, test_type: Union[str, None] = None, **kwargs) -> Union[int, bool]:
+        """Checks if the in-situ test type answering to the search criteria exists and returns the id.
+
+        :param test_type: Title of the in-situ test type (e.g. "Downhole PCPT")
+        :return: Returns the id if the in-situ test type exists, False otherwise
+        """
+        url_params = {"testtype": test_type}
+        url_params = {**url_params, **kwargs}
+        url_data_type = "insitutesttype"
+        output_type = "single"
+        _, df_add = self.process_data(url_data_type, url_params, output_type)
+        return df_add["id"] if df_add["existance"] else False
+
+    def get_insitutests(
+        self,
+        projectsite: str = None,
+        location: str = None,
+        test_type: str = None,
+        insitutest: str = None,
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
+        """Get the detailed information (measurement data) for an in-situ test of given type.
+        
+        :param projectsite: Name of the projectsite (e.g. "Nobelwind")
+        :param location: Name of the test location (e.g. "CPT-7C")
+        :param testtype: Name of the test type (e.g. "PCPT")
+        :param insitutest: Name of the in-situ test
+        :return: Dictionary with the following keys:
+
+            - 'data': Metadata of the insitu tests
+            - 'exists': Boolean indicating whether a matching in-situ test is found
+        """
+        url_params = {
+            "projectsite": projectsite,
+            "location": location,
+            "testtype": test_type,
+            "insitutest": insitutest
+        }
+        url_params = {**url_params, **kwargs}
+        url_data_type = "insitutestsummary"
+        output_type = "list"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return {"data": df, "exists": df_add["existance"]}
+
+    def get_proximity_insitutests(
+        self,
+        latitude: float,
+        longitude: float,
+        radius: float,
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
+        """Get all in-situ tests in a certain radius surrounding a point with given lat/lon.
+        
+        :param latitude: Latitude of the central point in decimal format
+        :param longitude: Longitude of the central point in decimal format
+        :param radius: Radius around the central point in km
+        :return: Dictionary with the following keys:
+
+            - 'data': Pandas dataframe with the in-situ test summary data for each in-situ test in the specified search area
+            - 'exists': Boolean indicating whether matching records are found
+        """
+        return self.get_proximity_entities_2d(
+            api_url="insitutestproximity",
+            latitude=latitude,
+            longitude=longitude,
+            radius=radius,
+            **kwargs
+        )
+    
+    def get_closest_insitutest(
+        self,
+        latitude: float,
+        longitude: float,
+        radius_init: float = 1,
+        target_srid: str = "25831",
+        **kwargs
+    ):
+        """Get the in-situ test closest to a certain point with the name containing a certain string.
+        
+        :param latitude: Latitude of the central point in decimal format
+        :param longitude: Longitude of the central point in decimal format
+        :param initialradius: Initial search radius around the central point in km, the search radius is increased until locations are found
+        :param target_srid: SRID for the offset calculation in meters
+        :param **kwargs: Optional keyword arguments e.g. ``campaign__projectsite__title__icontains='HKN'``
+        :return: Dictionary with the following keys:
+
+            - 'data': Pandas dataframe with the in-situ test data for each in-situ test in the specified search area
+            - 'id': ID of the closest in-situ test
+            - 'title': Title of the closest in-situ test
+            - 'offset [m]': Offset in meters from the specified point
+        """
+        return self.get_closest_entity_2d(
+            api_url="insitutestproximity",
+            latitude=latitude,
+            longitude=longitude,
+            initialradius=radius_init,
+            target_srid=target_srid,
+            **kwargs
+        )   
+
+    # def _process_insitutest_dfs(df):
+    #     try:
+    #         df_raw = pd.DataFrame(df_resp_detail["rawdata"].iloc[0]).reset_index(
+    #             drop=True
+    #         )
+    #     except Exception as err:
+    #         df_raw = pd.DataFrame()
+
+    # def get_insitutest_detail(
+    #     self,
+    #     projectsite: Union[str, None] = None,
+    #     location: Union[str, None] = None,
+    #     test_type: Union[str, None] = None,
+    #     insitutest: Union[str, None] = None,
+    #     combine: bool = False,
+    #     **kwargs
+    # ):
+    #     """Get the detailed information (measurement data) for an in-situ test of give type.
+        
+    #     :param projectsite: Name of the projectsite (e.g. "Nobelwind")
+    #     :param location: Name of the test location (e.g. "CPT-7C")
+    #     :param testtype: Name of the test type (e.g. "PCPT")
+    #     :param insitutest: Name of the in-situ test
+    #     :param combine: Boolean indicating whether raw and processed data needs to be combined (default=False). If true, processed data columns are appended to the rawdata dataframe
+    #     :param kwargs: Optional keyword arguments for further queryset filtering based on model attributes.
+    #     :return: Dictionary with the following keys:
+
+    #         - 'id': id of the selected test
+    #         - 'insitutestsummary': Metadata of the insitu tests
+    #         - 'rawdata': Raw data
+    #         - 'processed': Processed data
+    #         - 'conditions': Test conditions
+    #         - 'response': Response text
+    #         - 'exists': Boolean indicating whether a matching in-situ test is found
+    #     """
+    #     url_params = {
+    #         "projectsite": projectsite,
+    #         "location": location,
+    #         "testtype": test_type,
+    #         "insitutest": insitutest
+    #     }
+    #     url_params = {**url_params, **kwargs}
+    #     url_data_type = "insitutestsummary"
+    #     output_type = "single"
+    #     df_sum, df_add_sum = self.process_data(url_data_type, url_params, output_type)
+    #     url_data_type = "insitutestdetail"
+    #     df_detail, df_add_detail = self.process_data(url_data_type, url_params, output_type)
+    #     self._process_insitutest_dfs(df_detail)
+    #     df_add_sum["existance"], df_add_detail["id"]
