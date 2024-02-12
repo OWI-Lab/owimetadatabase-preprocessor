@@ -1,7 +1,7 @@
 "Module containing the processing functions for the geometry data."
 
 from copy import deepcopy
-from typing import List
+from typing import List, Union
 
 import numpy as np
 import pandas as pd
@@ -17,8 +17,8 @@ class OWT(object):
         materials: pd.DataFrame,
         subassemblies: pd.DataFrame,
         location: pd.DataFrame,
-        tower_base: float,
-        pile_head: float,
+        tower_base: Union[float, None] = None,
+        pile_head: Union[float, None] = None,
     ) -> None:
         """Get all subassemblies for a given Turbine.
 
@@ -35,8 +35,12 @@ class OWT(object):
         self.tp_sub_assemblies = None
         self.mp_sub_assemblies = None
         self._set_members()
-        self.tower_base = tower_base
-        self.pile_head = pile_head
+        if not tower_base or not pile_head:
+            self.tower_base = self.sub_assemblies["TW"].absolute_bottom
+            self.pile_head = self.sub_assemblies["MP"].absolute_top
+        else:
+            self.tower_base = tower_base
+            self.pile_head = pile_head
         self.pile_toe = None
         self.rna = None
         self.tower_geometry = None

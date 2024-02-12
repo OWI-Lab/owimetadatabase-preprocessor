@@ -638,7 +638,7 @@ class SubAssembly(BaseStructure):
     def absolute_bottom(self) -> np.float64:
         """Absolute bottom of the subassembly, m."""
         temp_df = self.as_df(include_absolute_postion=True)
-        return temp_df["absolute_position, m"][-1]
+        return temp_df["absolute_position, m"].iloc[-1]
 
     @property
     def absolute_top(self) -> np.float64:
@@ -646,7 +646,11 @@ class SubAssembly(BaseStructure):
         temp_df = self.as_df(include_absolute_postion=True)
         temp_df.dropna(inplace=True, how="any", axis=0)
         return np.float64(
-            round(temp_df["absolute_position, m"][0] + temp_df["height"][0] / 1000, 3)
+            round(
+                temp_df["absolute_position, m"].iloc[0]
+                + temp_df["height"].iloc[0] / 1000,
+                3,
+            )
         )
 
     def _repr_html_(self) -> str:

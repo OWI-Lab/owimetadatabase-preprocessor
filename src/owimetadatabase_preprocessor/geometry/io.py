@@ -94,8 +94,8 @@ class GeometryAPI(API):
     def get_owt_geometry_processor(
         self,
         turbines: Union[str, List[str]],
-        tower_base: Union[float, List[float]],
-        monopile_head: Union[float, List[float]],
+        tower_base: Union[float, List[float], None] = None,
+        monopile_head: Union[float, List[float], None] = None,
     ) -> OWTs:
         """Return the required processing class."""
         materials = self.get_materials()["data"]
