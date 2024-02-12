@@ -244,34 +244,37 @@ class BuildingBlock(BaseStructure):
     def volume(self) -> Union[np.float64, None]:
         """Volume of the building block, m³."""
         if self.type == "tubular_section":
+            if self.height:
 
-            def _calc_cone_volume(r_bottom, r_top, height):
-                """Calculate the volume of a cone frustum.
-                Source: https://mathworld.wolfram.com/ConicalFrustum.html
+                def _calc_cone_volume(r_bottom, r_top, height):
+                    """Calculate the volume of a cone frustum.
+                    Source: https://mathworld.wolfram.com/ConicalFrustum.html
 
-                :param r_bottom: Radius of the bottom circle, mm.
-                :param r_top: Radius of the top circle, mm.
-                :param height: Height of the cone frustum, mm.
-                :return: Volume of the cone frustum, mm³.
-                """
-                volume = pi * height / 3 * (r_bottom**2 + r_bottom * r_top + r_top**2)
-                return volume
+                    :param r_bottom: Radius of the bottom circle, mm.
+                    :param r_top: Radius of the top circle, mm.
+                    :param height: Height of the cone frustum, mm.
+                    :return: Volume of the cone frustum, mm³.
+                    """
+                    volume = pi * height / 3 * (r_bottom**2 + r_bottom * r_top + r_top**2)
+                    return volume
 
-            r_bottom_inner = (
-                self.json["bottom_outer_diameter"] / 2 - self.json["wall_thickness"]
-            )
-            r_bottom_outer = self.json["bottom_outer_diameter"] / 2
-            r_top_inner = (
-                self.json["top_outer_diameter"] / 2 - self.json["wall_thickness"]
-            )
-            r_top_outer = self.json["top_outer_diameter"] / 2
-            volume_inner_cone = _calc_cone_volume(
-                r_bottom_inner, r_top_inner, self.json["height"]
-            )
-            volume_outer_cone = _calc_cone_volume(
-                r_bottom_outer, r_top_outer, self.json["height"]
-            )
-            return (volume_outer_cone - volume_inner_cone) / 1e9
+                r_bottom_inner = (
+                    self.json["bottom_outer_diameter"] / 2 - self.json["wall_thickness"]
+                )
+                r_bottom_outer = self.json["bottom_outer_diameter"] / 2
+                r_top_inner = (
+                    self.json["top_outer_diameter"] / 2 - self.json["wall_thickness"]
+                )
+                r_top_outer = self.json["top_outer_diameter"] / 2
+                volume_inner_cone = _calc_cone_volume(
+                    r_bottom_inner, r_top_inner, self.json["height"]
+                )
+                volume_outer_cone = _calc_cone_volume(
+                    r_bottom_outer, r_top_outer, self.json["height"]
+                )
+                return (volume_outer_cone - volume_inner_cone) / 1e9
+            else:
+                raise ValueError("Height data is missing.")
         elif self.type == "distributed_mass":
             if self.height:
                 return np.float64(
@@ -471,7 +474,12 @@ class SubAssembly(BaseStructure):
         height = np.float64(0.0)
         if self.building_blocks:
             for bb in self.building_blocks:
-                if bb.height and not np.isnan(bb.height):
+                if (
+                    bb.type == "tubular_section"
+                    and "grout" not in bb.title.lower()
+                    and bb.height
+                    and not np.isnan(bb.height)
+                ):
                     height += bb.height
                 else:
                     continue
