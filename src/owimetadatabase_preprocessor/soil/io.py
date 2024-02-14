@@ -8,7 +8,8 @@ import pandas as pd
 import plotly.express as px
 import requests
 from groundhog.general.soilprofile import profile_from_dataframe
-from groundhog.siteinvestigation.insitutests.pcpt_processing import PCPTProcessing
+from groundhog.siteinvestigation.insitutests.pcpt_processing import \
+    PCPTProcessing
 from pyproj import Transformer
 
 from owimetadatabase_preprocessor.io import API
@@ -44,6 +45,23 @@ class SoilAPI(API):
         """Constructor for the SoilAPI class."""
         super().__init__(api_root, token, uname, password, **kwargs)
         self.api_root = self.api_root + api_subdir
+
+    def process_data(
+        self, url_data_type: str, url_params: Dict[str, str], output_type: str
+    ) -> Tuple[pd.DataFrame, Dict[str, Union[bool, int, requests.Response, None]]]:
+        """Process output data according to specified request parameters.
+
+        :param url_data_type: Type of the data we want to request (according to database model).
+        :param url_params: Parameters to send with the request to the database.
+        :param output_type: Expected type (amount) of the data extracted.
+        :return: A tuple of dataframe with the requested data and additional data from postprocessing.
+        """
+        resp = self.send_request(url_data_type, url_params)
+        self.check_request_health(resp)
+        df = self.output_to_df(resp)
+        df_add = self.postprocess_data(df, output_type)
+        df_add["response"] = resp
+        return df, df_add
 
     def get_proximity_entities_2d(
         self, api_url: str, latitude: float, longitude: float, radius: float, **kwargs
@@ -557,52 +575,161 @@ class SoilAPI(API):
             **kwargs,
         )
 
-    # def _process_insitutest_dfs(df):
-    #     try:
-    #         df_raw = pd.DataFrame(df_resp_detail["rawdata"].iloc[0]).reset_index(
-    #             drop=True
-    #         )
-    #     except Exception as err:
-    #         df_raw = pd.DataFrame()
+    def _process_insitutest_dfs(self, df, cols):
+        dfs = {k: None for k in cols}
+        for col in cols:
+            try:
+                df_ = pd.DataFrame(df[col].iloc[0]).reset_index(
+                    drop=True
+                )
+            except:
+                df_ = pd.DataFrame()
+            dfs[col] = df_
+        for df_ in dfs.values():
+            for col in df_.columns:
+                try:
+                    df_[col] = pd.to_numeric(df_[col], errors="ignore")
+                except Exception as err:
+                    warnings.warn(str(err))
+        return dfs
+    
+    def _combine_dfs(self, dfs):
+        try:
+            df = pd.merge(dfs["rawdata"], dfs["processeddata"], on="z [m]", how="inner", suffixes=("", "_processed"))
+        except Exception as err:
+            warnings.warn(
+                f"ERROR: Combining raw and processed data failed - {str(err)}"
+            )
+        return df
 
-    # def get_insitutest_detail(
-    #     self,
-    #     projectsite: Union[str, None] = None,
-    #     location: Union[str, None] = None,
-    #     test_type: Union[str, None] = None,
-    #     insitutest: Union[str, None] = None,
-    #     combine: bool = False,
-    #     **kwargs
-    # ):
-    #     """Get the detailed information (measurement data) for an in-situ test of give type.
+    def _process_cpt(self, df_sum, df_raw, **kwargs):
+        try:
+            cpt = PCPTProcessing(title=df_sum["title"].iloc[0])
+            if "Push" in df_raw.keys():
+                push_key = "Push"
+            else:
+                push_key = None
+            cpt.load_pandas(
+                df_raw, push_key=push_key, **kwargs
+            )
+        except Exception as err:
+            warnings.warn(
+                f"ERROR: PCPTProcessing object not created - {str(err)}"
+            )
+        return cpt
+ 
+    def get_insitutest_detail(
+        self,
+        projectsite: Union[str, None] = None,
+        location: Union[str, None] = None,
+        test_type: Union[str, None] = None,
+        insitutest: Union[str, None] = None,
+        combine: bool = False,
+        **kwargs
+    ):
+        """Get the detailed information (measurement data) for an in-situ test of give type.
 
-    #     :param projectsite: Name of the projectsite (e.g. "Nobelwind")
-    #     :param location: Name of the test location (e.g. "CPT-7C")
-    #     :param testtype: Name of the test type (e.g. "PCPT")
-    #     :param insitutest: Name of the in-situ test
-    #     :param combine: Boolean indicating whether raw and processed data needs to be combined (default=False). If true, processed data columns are appended to the rawdata dataframe
-    #     :param kwargs: Optional keyword arguments for further queryset filtering based on model attributes.
-    #     :return: Dictionary with the following keys:
+        :param projectsite: Name of the projectsite (e.g. "Nobelwind")
+        :param location: Name of the test location (e.g. "CPT-7C")
+        :param testtype: Name of the test type (e.g. "PCPT")
+        :param insitutest: Name of the in-situ test
+        :param combine: Boolean indicating whether raw and processed data needs to be combined (default=False). If true, processed data columns are appended to the rawdata dataframe
+        :param kwargs: Optional keyword arguments for further queryset filtering based on model attributes.
+        :return: Dictionary with the following keys:
 
-    #         - 'id': id of the selected test
-    #         - 'insitutestsummary': Metadata of the insitu tests
-    #         - 'rawdata': Raw data
-    #         - 'processed': Processed data
-    #         - 'conditions': Test conditions
-    #         - 'response': Response text
-    #         - 'exists': Boolean indicating whether a matching in-situ test is found
-    #     """
-    #     url_params = {
-    #         "projectsite": projectsite,
-    #         "location": location,
-    #         "testtype": test_type,
-    #         "insitutest": insitutest
-    #     }
-    #     url_params = {**url_params, **kwargs}
-    #     url_data_type = "insitutestsummary"
-    #     output_type = "single"
-    #     df_sum, df_add_sum = self.process_data(url_data_type, url_params, output_type)
-    #     url_data_type = "insitutestdetail"
-    #     df_detail, df_add_detail = self.process_data(url_data_type, url_params, output_type)
-    #     self._process_insitutest_dfs(df_detail)
-    #     df_add_sum["existance"], df_add_detail["id"]
+            - 'id': id of the selected test
+            - 'insitutestsummary': Metadata of the insitu tests
+            - 'rawdata': Raw data
+            - 'processed': Processed data
+            - 'conditions': Test conditions
+            - 'response': Response text
+            - 'exists': Boolean indicating whether a matching in-situ test is found
+        """
+        url_params = {
+            "projectsite": projectsite,
+            "location": location,
+            "testtype": test_type,
+            "insitutest": insitutest
+        }
+        url_params = {**url_params, **kwargs}
+        url_data_type = "insitutestsummary"
+        output_type = "single"
+        df_sum, df_add_sum = self.process_data(url_data_type, url_params, output_type)
+        url_data_type = "insitutestdetail"
+        df_detail, df_add_detail = self.process_data(url_data_type, url_params, output_type)
+        cols = ["rawdata", "processeddata", "conditions"]
+        dfs = self._process_insitutest_dfs(df_detail, cols)
+        if combine:
+            df_raw = self._combine_dfs(dfs)
+        else:
+            df_raw = dfs["rawdata"]
+        return {
+            "id": df_add_detail["id"],
+            "insitutestsummary": df_sum,
+            "rawdata": df_raw,
+            "processeddata": dfs["processeddata"],
+            "conditions": dfs["conditions"],
+            "response": df_add_detail["response"],
+            "exists": df_add_sum["existance"],
+        }
+
+    def get_cpttest_detail(
+        self,
+        projectsite: Union[str, None] = None,
+        location: Union[str, None] = None,
+        test_type: Union[str, None] = None,
+        insitutest: Union[str, None] = None,
+        combine: bool = False,
+        cpt: bool = True,
+        **kwargs
+    ):
+        """Get the detailed information (measurement data) for an in-situ test of CPT type (seabed or downhole CPT)
+
+        :param projectsite: Name of the projectsite (e.g. "Nobelwind")
+        :param location: Name of the test location (e.g. "CPT-7C")
+        :param testtype: Name of the test type (e.g. "PCPT")
+        :param insitutest: Name of the in-situ test
+        :param combine: Boolean indicating whether raw and processed data needs to be combined (default=False). If true, processed data columns are appended to the rawdata dataframe
+        :param cpt: Boolean determining whether the in-situ test is a CPT or not. If True (default), a PCPTProcessing object is returned.
+        :param kwargs: Optional keyword arguments for the cpt data loading. Note that further queryset filtering based on model attributes is not possible with this method. The in-situ test needs to be fully defined by the required arguments.
+        :return: Dictionary with the following keys:
+
+            - 'id': id of the selected test
+            - 'insitutestsummary': Metadata of the insitu tests
+            - 'rawdata': Raw data
+            - 'processed': Processed data
+            - 'conditions': Test conditions
+            - 'response': Response text
+            - 'cpt': PCPTProcessing object (only if the CPT data is successfully loaded)
+            - 'exists': Boolean indicating whether a matching in-situ test is found
+        """
+        url_params = {
+            "projectsite": projectsite,
+            "location": location,
+            "testtype": test_type,
+            "insitutest": insitutest
+        }
+        url_data_type = "insitutestsummary"
+        output_type = "single"
+        df_sum, df_add_sum = self.process_data(url_data_type, url_params, output_type)
+        url_data_type = "insitutestdetail"
+        df_detail, df_add_detail = self.process_data(url_data_type, url_params, output_type)
+        cols = ["rawdata", "processeddata", "conditions"]
+        dfs = self._process_insitutest_dfs(df_detail, cols)
+        if combine:
+            df_raw = self._combine_dfs(dfs)
+        else:
+            df_raw = dfs["rawdata"]
+        if cpt:
+            cpt_ = self._process_cpt(df_sum, df_raw, **kwargs)
+        return {
+            "id": df_add_detail["id"],
+            "insitutestsummary": df_sum,
+            "rawdata": df_raw,
+            "processeddata": dfs["processeddata"],
+            "conditions": dfs["conditions"],
+            "response": df_add_detail["response"],
+            "exists": df_add_sum["existance"],
+            "cpt": cpt_ if cpt else None,
+        }
+
