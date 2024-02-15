@@ -884,11 +884,12 @@ class SoilAPI(API):
                     inplace=True,
                 )
             dsp = profile_from_dataframe(soilprofile_df, title=profile_title)
+            return dsp
         except Exception as err:
             warnings.warn(
                 f"Error during loading of soil layers and parameters for {df_sum["title"].iloc[0]} - {err}"
             )
-        return dsp
+            return None
 
     def get_soilprofile_detail(
         self,
@@ -927,12 +928,15 @@ class SoilAPI(API):
         df_sum, df_add_sum = self.process_data(url_data_type, url_params, output_type)
         url_data_type = "soilprofiledetail"
         df_detail, df_add_detail = self.process_data(url_data_type, url_params, output_type)
-        if convert_to_profile:
-            dsp = self._convert_to_profile(df_sum, df_detail, profile_title, drop_info_cols)
-        return {
+        dict_ =  {
             "id": df_add_detail["id"],
             "soilprofilesummary": df_sum,
             "response": df_add_detail["response"],
             "exists": df_add_sum["existance"],
-            "soilprofile": dsp,
         }
+        if convert_to_profile:
+            dsp = self._convert_to_profile(df_sum, df_detail, profile_title, drop_info_cols)
+            if dsp:
+                dict_["soilprofile"] = dsp
+            return dict_
+        return dict_
