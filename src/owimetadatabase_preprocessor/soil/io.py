@@ -595,11 +595,12 @@ class SoilAPI(API):
     def _combine_dfs(self, dfs):
         try:
             df = pd.merge(dfs["rawdata"], dfs["processeddata"], on="z [m]", how="inner", suffixes=("", "_processed"))
+            return df
         except Exception as err:
             warnings.warn(
                 f"ERROR: Combining raw and processed data failed - {err}"
             )
-        return df
+            return dfs["rawdata"]
 
     def _process_cpt(self, df_sum, df_raw, **kwargs):
         try:
@@ -660,8 +661,6 @@ class SoilAPI(API):
         dfs = self._process_insitutest_dfs(df_detail, cols)
         if combine:
             df_raw = self._combine_dfs(dfs)
-        else:
-            df_raw = dfs["rawdata"]
         return {
             "id": df_add_detail["id"],
             "insitutestsummary": df_sum,
