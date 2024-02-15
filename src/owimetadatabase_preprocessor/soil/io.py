@@ -843,3 +843,95 @@ class SoilAPI(API):
             target_srid=target_srid,
             **kwargs
         )
+
+    def _convert_to_profile(self, df_sum, df_detail, profile_title, drop_info_cols):
+        try:
+            soilprofile_df = (
+                pd.DataFrame(df_detail["soillayer_set"].iloc[0])
+                .sort_values("start_depth")
+                .reset_index(drop=True)
+            )
+            soilprofile_df.rename(
+                columns={
+                    "start_depth": "Depth from [m]",
+                    "end_depth": "Depth to [m]",
+                    "soiltype_name": "Soil type",
+                    "totalunitweight": "Total unit weight [kN/m3]",
+                },
+                inplace=True,
+            )
+            for i, row in soilprofile_df.iterrows():
+                try:
+                    for key, value in row["soilparameters"].items():
+                        soilprofile_df.loc[i, key] = value
+                except:
+                    pass
+            if profile_title is None:
+                profile_title = f"{df_sum["location_name"].iloc[0]} - {df_sum["title"].iloc[0]}"            
+            if drop_info_cols:
+                soilprofile_df.drop(
+                    [
+                        "id",
+                        "profile",
+                        "soilparameters",
+                        "soilprofile_name",
+                        "soilunit",
+                        "description",
+                        "soilunit_name",
+                    ],
+                    axis=1,
+                    inplace=True,
+                )
+            dsp = profile_from_dataframe(soilprofile_df, title=profile_title)
+        except Exception as err:
+            warnings.warn(
+                f"Error during loading of soil layers and parameters for {df_sum["title"].iloc[0]} - {err}"
+            )
+        return dsp
+
+    def get_soilprofile_detail(
+        self,
+        projectsite: Union[str, None] = None,
+        location: Union[str, None] = None,
+        soilprofile: Union[str, None] = None,
+        convert_to_profile: bool = True,
+        profile_title: Union[str, None] = None,
+        drop_info_cols: bool = True,
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, int, str, bool, None]]:
+        """Retrieves a soil profile from the owimetadatabase and converts it to a groundhog SoilProfile object.
+
+        :param projectsite: Name of the projectsite (e.g. "Nobelwind")
+        :param location: Name of the test location (e.g. "CPT-7C")
+        :param soilprofile: Title of the soil profile (e.g. "Borehole log")
+        :param convert_to_profile: Boolean determining whether the soil profile needs to be converted to a groundhog SoilProfile object
+        :param drop_info_cols: Boolean determining whether or not to drop the columns with additional info (e.g. soil description, ...)
+        :return: Dictionary with the following keys:
+
+            - 'id': id for the selected soil profile
+            - 'soilprofilesummary': Metadata for the soil profile
+            - 'response': Response text
+            - 'soilprofile': Groundhog SoilProfile object (only if successfully processed)
+            - 'exists': Boolean indicating whether a matching in-situ test is found
+        """
+        # TODO: Ensure that an option for retrieving soilprofiles in mLAT is also available
+        url_params = {
+            "projectsite": projectsite,
+            "location": location,
+            "soilprofile": soilprofile
+        }
+        url_params = {**url_params, **kwargs}
+        url_data_type = "soilprofilesummary"
+        output_type = "single"
+        df_sum, df_add_sum = self.process_data(url_data_type, url_params, output_type)
+        url_data_type = "soilprofiledetail"
+        df_detail, df_add_detail = self.process_data(url_data_type, url_params, output_type)
+        if convert_to_profile:
+            dsp = self._convert_to_profile(df_sum, df_detail, profile_title, drop_info_cols)
+        return {
+            "id": df_add_detail["id"],
+            "soilprofilesummary": df_sum,
+            "response": df_add_detail["response"],
+            "exists": df_add_sum["existance"],
+            "soilprofile": dsp,
+        }
