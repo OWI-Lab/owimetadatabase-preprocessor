@@ -612,11 +612,12 @@ class SoilAPI(API):
             cpt.load_pandas(
                 df_raw, push_key=push_key, **kwargs
             )
+            return cpt
         except Exception as err:
             warnings.warn(
                 f"ERROR: PCPTProcessing object not created - {err}"
             )
-        return cpt
+            return None
  
     def get_insitutest_detail(
         self,
@@ -716,11 +717,7 @@ class SoilAPI(API):
         dfs = self._process_insitutest_dfs(df_detail, cols)
         if combine:
             df_raw = self._combine_dfs(dfs)
-        else:
-            df_raw = dfs["rawdata"]
-        if cpt:
-            cpt_ = self._process_cpt(df_sum, df_raw, **kwargs)
-        return {
+        dict_ = {
             "id": df_add_detail["id"],
             "insitutestsummary": df_sum,
             "rawdata": df_raw,
@@ -728,8 +725,13 @@ class SoilAPI(API):
             "conditions": dfs["conditions"],
             "response": df_add_detail["response"],
             "exists": df_add_sum["existance"],
-            "cpt": cpt_ if cpt else None,
         }
+        if cpt:
+            cpt_ = self._process_cpt(df_sum, df_raw, **kwargs)
+            if cpt_:
+                dict_["cpt"] = cpt_
+            return dict_
+        return dict_
 
     def insitutest_exists(
         self,
