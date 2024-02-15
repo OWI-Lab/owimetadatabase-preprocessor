@@ -762,12 +762,12 @@ class SoilAPI(API):
 
     def get_soilprofiles(
         self,
-        projectsite: str = None,
-        location: str = None,
-        soilprofile: str = None,
+        projectsite: Union[str, None] = None,
+        location: Union[str, None] = None,
+        soilprofile: Union[str, None] = None,
         **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
-        """Retrieves soil profiles corresponding to the search criteria
+        """Retrieves soil profiles corresponding to the search criteria.
 
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
         :param location: Name of the test location (e.g. "CPT-7C")
@@ -788,3 +788,58 @@ class SoilAPI(API):
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
 
+    def get_proximity_soilprofiles(
+        self,
+        latitude: float,
+        longitude: float,
+        radius: float,
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
+        """Get all soil profiles in a certain radius surrounding a point with given lat/lon.
+        
+        :param latitude: Latitude of the central point in decimal format
+        :param longitude: Longitude of the central point in decimal format
+        :param radius: Radius around the central point in km
+        :return: Dictionary with the following keys:
+
+            - 'data': Pandas dataframe with the soil profile summary data for each soil profile in the specified search area
+            - 'exists': Boolean indicating whether matching records are found
+        """
+        return self.get_proximity_entities_2d(
+            api_url="soilprofileproximity",
+            latitude=latitude,
+            longitude=longitude,
+            radius=radius,
+            **kwargs
+        )
+    
+    def get_closest_soilprofile(
+        self,
+        latitude: float,
+        longitude: float,
+        initialradius: float = 1.0,
+        target_srid: str = "25831",
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, int, str, float, None]]:
+        """Get the soil profile closest to a certain point with additional conditions as optional keyword arguments.
+
+        :param latitude: Latitude of the central point in decimal format
+        :param longitude: Longitude of the central point in decimal format
+        :param initialradius: Initial search radius around the central point in km, the search radius is increased until locations are found
+        :param target_srid: SRID for the offset calculation in meters
+        :param **kwargs: Optional keyword arguments e.g. ``location__title__icontains='HKN'``
+        :return: Dictionary with the following keys:
+
+            - 'data': Pandas dataframe with the soil profile data for each soil profile in the specified search area
+            - 'id': ID of the closest in-situ test
+            - 'title': Title of the closest in-situ test
+            - 'offset [m]': Offset in meters from the specified point
+        """
+        return self.get_closest_entity_2d(
+            api_url="soilprofileproximity",
+            latitude=latitude,
+            longitude=longitude,
+            initialradius=initialradius,
+            target_srid=target_srid,
+            **kwargs
+        )
