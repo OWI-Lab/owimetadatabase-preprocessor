@@ -597,7 +597,7 @@ class SoilAPI(API):
             df = pd.merge(dfs["rawdata"], dfs["processeddata"], on="z [m]", how="inner", suffixes=("", "_processed"))
         except Exception as err:
             warnings.warn(
-                f"ERROR: Combining raw and processed data failed - {str(err)}"
+                f"ERROR: Combining raw and processed data failed - {err}"
             )
         return df
 
@@ -613,7 +613,7 @@ class SoilAPI(API):
             )
         except Exception as err:
             warnings.warn(
-                f"ERROR: PCPTProcessing object not created - {str(err)}"
+                f"ERROR: PCPTProcessing object not created - {err}"
             )
         return cpt
  
