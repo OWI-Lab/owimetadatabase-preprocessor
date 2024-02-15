@@ -478,14 +478,14 @@ class SoilAPI(API):
         return {"data": df, "exists": df_add["existance"]}
 
     def insitutest_type_exists(
-        self, test_type: Union[str, None] = None, **kwargs
+        self, testtype: Union[str, None] = None, **kwargs
     ) -> Union[int, bool]:
         """Checks if the in-situ test type answering to the search criteria exists and returns the id.
 
-        :param test_type: Title of the in-situ test type (e.g. "Downhole PCPT")
+        :param testtype: Title of the in-situ test type (e.g. "Downhole PCPT")
         :return: Returns the id if the in-situ test type exists, False otherwise
         """
-        url_params = {"testtype": test_type}
+        url_params = {"testtype": testtype}
         url_params = {**url_params, **kwargs}
         url_data_type = "insitutesttype"
         output_type = "single"
@@ -496,7 +496,7 @@ class SoilAPI(API):
         self,
         projectsite: str = None,
         location: str = None,
-        test_type: str = None,
+        testtype: str = None,
         insitutest: str = None,
         **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
@@ -514,7 +514,7 @@ class SoilAPI(API):
         url_params = {
             "projectsite": projectsite,
             "location": location,
-            "testtype": test_type,
+            "testtype": testtype,
             "insitutest": insitutest,
         }
         url_params = {**url_params, **kwargs}
@@ -586,11 +586,10 @@ class SoilAPI(API):
                 df_ = pd.DataFrame()
             dfs[col] = df_
         for df_ in dfs.values():
-            for col in df_.columns:
-                try:
-                    df_[col] = pd.to_numeric(df_[col], errors="ignore")
-                except Exception as err:
-                    warnings.warn(str(err))
+            try:
+                df_ = df_.apply(lambda x: pd.to_numeric(x, errors="ignore"))
+            except Exception as err:
+                warnings.warn(str(err))
         return dfs
     
     def _combine_dfs(self, dfs):
@@ -622,7 +621,7 @@ class SoilAPI(API):
         self,
         projectsite: Union[str, None] = None,
         location: Union[str, None] = None,
-        test_type: Union[str, None] = None,
+        testtype: Union[str, None] = None,
         insitutest: Union[str, None] = None,
         combine: bool = False,
         **kwargs
@@ -648,7 +647,7 @@ class SoilAPI(API):
         url_params = {
             "projectsite": projectsite,
             "location": location,
-            "testtype": test_type,
+            "testtype": testtype,
             "insitutest": insitutest
         }
         url_params = {**url_params, **kwargs}
@@ -677,7 +676,7 @@ class SoilAPI(API):
         self,
         projectsite: Union[str, None] = None,
         location: Union[str, None] = None,
-        test_type: Union[str, None] = None,
+        testtype: Union[str, None] = None,
         insitutest: Union[str, None] = None,
         combine: bool = False,
         cpt: bool = True,
@@ -706,7 +705,7 @@ class SoilAPI(API):
         url_params = {
             "projectsite": projectsite,
             "location": location,
-            "testtype": test_type,
+            "testtype": testtype,
             "insitutest": insitutest
         }
         url_data_type = "insitutestsummary"
@@ -732,4 +731,60 @@ class SoilAPI(API):
             "exists": df_add_sum["existance"],
             "cpt": cpt_ if cpt else None,
         }
+
+    def insitutest_exists(
+        self,
+        projectsite: Union[str, None] = None,
+        location: Union[str, None] = None,
+        testtype: Union[str, None] = None,
+        insitutest: Union[str, None] = None,
+        **kwargs,
+    ) -> Union[int, bool]:
+        """Checks if the in-situ test answering to the search criteria exists.
+
+        :param projectsite: Name of the projectsite (e.g. "Nobelwind")
+        :param location: Name of the test location (e.g. "CPT-7C")
+        :param testtype: Name of the test type (e.g. "PCPT")
+        :param insitutest: Name of the in-situ test
+        :return: Returns the id if the in-situ test exists, False otherwise
+        """
+        url_params = {
+            "projectsite": projectsite,
+            "location": location,
+            "testtype": testtype,
+            "insitutest": insitutest
+        }
+        url_params = {**url_params, **kwargs}
+        url_data_type = "insitutestdetail"
+        output_type = "single"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return df["location"].iloc[0] if df_add["existance"] else False
+
+    def get_soilprofiles(
+        self,
+        projectsite: str = None,
+        location: str = None,
+        soilprofile: str = None,
+        **kwargs,
+    ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
+        """Retrieves soil profiles corresponding to the search criteria
+
+        :param projectsite: Name of the projectsite (e.g. "Nobelwind")
+        :param location: Name of the test location (e.g. "CPT-7C")
+        :param soilprofile: Title of the soil profile (e.g. "Borehole log")
+        :return: Dictionary with the following keys:
+
+            - 'data': Metadata for the soil profiles
+            - 'exists': Boolean indicating whether a matching in-situ test is found
+        """
+        url_params = {
+            "projectsite": projectsite,
+            "location": location,
+            "soilprofile": soilprofile
+        }
+        url_params = {**url_params, **kwargs}
+        url_data_type = "soilprofilesummary"
+        output_type = "list"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return {"data": df, "exists": df_add["existance"]}
 
