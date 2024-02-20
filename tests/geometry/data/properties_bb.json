@@ -1,0 +1,493 @@
+[
+  {
+    "id": 1,
+    "type": "distributed_mass",
+    "wall_thickness": null,
+    "bottom_outer_diameter": null,
+    "top_outer_diameter": null,
+    "diameter_str": "",
+    "height": 4500.0,
+    "volume": 0.0,
+    "mass": 124.0,
+    "moment_of_inertia": {
+      "x": null,
+      "y": null,
+      "z": null
+    },
+    "outline": null,
+    "marker": null,
+    "line": {
+      "x": [500.0, 500.0],
+      "y": [2770.0, 2770.0],
+      "z": [14500.0, 19000.0],
+      "color": "black"
+    },
+    "dict_": {
+      "title": "AAA01_TP_LADDER",
+      "x": 500.0,
+      "y": 2770.0,
+      "z": 14500.0,
+      "OD": "",
+      "wall_thickness": null,
+      "height": 4500.0,
+      "volume": 0.0,
+      "mass": 124.0,
+      "moment_of_inertia": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "description": "Some ladder"
+    },
+    "str_": "AAA01_TP_LADDER (distributed_mass)"
+  },
+  {
+    "id": 2,
+    "type": "tubular_section",
+    "wall_thickness": 50.0,
+    "bottom_outer_diameter": 5150.0,
+    "top_outer_diameter": 5150.0,
+    "diameter_str": "5150",
+    "height": 7500.0,
+    "volume": 6.00829595,
+    "mass": 16823.2,
+    "moment_of_inertia": {
+      "x": null,
+      "y": null,
+      "z": null
+    },
+    "outline": [
+      [2575.0, -2575.0, -2575.0, 2575.0, 2575.0],
+      [50.0, 50.0, 7550.0, 7550.0, 50.0]
+    ],
+    "marker": null,
+    "line": null,
+    "dict_": {
+      "title": "aaa01_tp_grout",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 50.0,
+      "OD": "5150",
+      "wall_thickness": 50.0,
+      "height": 7500.0,
+      "volume": 6.00829595,
+      "mass": 16823.2,
+      "moment_of_inertia": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "description": ""
+    },
+    "str_": "aaa01_tp_grout (tubular_section)"
+  },
+  {
+    "id": 3,
+    "type": "lumped_mass",
+    "wall_thickness": null,
+    "bottom_outer_diameter": null,
+    "top_outer_diameter": null,
+    "diameter_str": "",
+    "height": "nan",
+    "volume": null,
+    "mass": 1500.0,
+    "moment_of_inertia": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "outline": null,
+    "marker": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0,
+      "radius": 150.0,
+      "hovertext": "AAA01_TP_FLANGE<br>Mass: 1500.0 kg<br>x: 0.0<br>y: 0.0<br>z: 0.0"
+    },
+    "line": null,
+    "dict_": {
+      "title": "AAA01_TP_FLANGE",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0,
+      "OD": "",
+      "wall_thickness": null,
+      "height": "nan",
+      "volume": null,
+      "mass": 1500.0,
+      "moment_of_inertia": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "description": ""
+    },
+    "str_": "AAA01_TP_FLANGE (lumped_mass)"
+  },
+  {
+    "id": 4,
+    "type": "tubular_section",
+    "wall_thickness": 50.0,
+    "bottom_outer_diameter": 5250.0,
+    "top_outer_diameter": 4500.0,
+    "diameter_str": "5250/4500",
+    "height": 200.0,
+    "volume": 0.151581846,
+    "mass": 1167.2,
+    "moment_of_inertia": {
+      "x": null,
+      "y": null,
+      "z": null
+    },
+    "outline": [
+      [2625.0, -2625.0, -2250.0, 2250.0, 2625.0],
+      [18800.0, 18800.0, 19000.0, 19000.0, 18800.0]
+    ],
+    "marker": null,
+    "line": null,
+    "dict_": {
+      "title": "aaa01_tp_01",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 18800.0,
+      "OD": "5250/4500",
+      "wall_thickness": 50.0,
+      "height": 200.0,
+      "volume": 0.151581846,
+      "mass": 1167.2,
+      "moment_of_inertia": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "description": ""
+    },
+    "str_": "aaa01_tp_01 (tubular_section)"
+  },
+  {
+    "id": 5,
+    "type": "tubular_section",
+    "wall_thickness": 50.0,
+    "bottom_outer_diameter": 5250.0,
+    "top_outer_diameter": 5250.0,
+    "diameter_str": "5250",
+    "height": 18800.0,
+    "volume": 15.35610489,
+    "mass": 118242.0,
+    "moment_of_inertia": {
+      "x": null,
+      "y": null,
+      "z": null
+    },
+    "outline": [
+      [2625.0, -2625.0, -2625.0, 2625.0, 2625.0],
+      [0.0, 0.0, 18800.0, 18800.0, 0.0]
+    ],
+    "marker": null,
+    "line": null,
+    "dict_": {
+      "title": "aaa01_tp_10",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0,
+      "OD": "5250",
+      "wall_thickness": 50.0,
+      "height": 18800.0,
+      "volume": 15.35610489,
+      "mass": 118242.0,
+      "moment_of_inertia": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "description": ""
+    },
+    "str_": "aaa01_tp_10 (tubular_section)"
+  },
+  {
+    "id": 6,
+    "type": "tubular_section",
+    "wall_thickness": 50.0,
+    "bottom_outer_diameter": 5050.0,
+    "top_outer_diameter": 5050.0,
+    "diameter_str": "5050",
+    "height": 1000.0,
+    "volume": 0.785398163,
+    "mass": 6047.6,
+    "moment_of_inertia": {
+      "x": null,
+      "y": null,
+      "z": null
+    },
+    "outline": [
+      [2525.0, -2525.0, -2525.0, 2525.0, 2525.0],
+      [69000.0, 69000.0, 70000.0, 70000.0, 69000.0]
+    ],
+    "marker": null,
+    "line": null,
+    "dict_": {
+      "title": "aaa01_mp_01",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 69000.0,
+      "OD": "5050",
+      "wall_thickness": 50.0,
+      "height": 1000.0,
+      "volume": 0.785398163,
+      "mass": 6047.6,
+      "moment_of_inertia": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "description": ""
+    },
+    "str_": "aaa01_mp_01 (tubular_section)"
+  },
+  {
+    "id": 7,
+    "type": "tubular_section",
+    "wall_thickness": 100.0,
+    "bottom_outer_diameter": 5500.0,
+    "top_outer_diameter": 5050.0,
+    "diameter_str": "5500/5050",
+    "height": 29000.0,
+    "volume": 47.14745175,
+    "mass": 363035.4,
+    "moment_of_inertia": {
+      "x": null,
+      "y": null,
+      "z": null
+    },
+    "outline": [
+      [2750.0, -2750.0, -2525.0, 2525.0, 2750.0],
+      [40000.0, 40000.0, 69000.0, 69000.0, 40000.0]
+    ],
+    "marker": null,
+    "line": null,
+    "dict_": {
+      "title": "aaa01_mp_10",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 40000.0,
+      "OD": "5500/5050",
+      "wall_thickness": 100.0,
+      "height": 29000.0,
+      "volume": 47.14745175,
+      "mass": 363035.4,
+      "moment_of_inertia": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "description": ""
+    },
+    "str_": "aaa01_mp_10 (tubular_section)"
+  },
+  {
+    "id": 8,
+    "type": "tubular_section",
+    "wall_thickness": 150.0,
+    "bottom_outer_diameter": 6000.0,
+    "top_outer_diameter": 5500.0,
+    "diameter_str": "6000/5500",
+    "height": 40000.0,
+    "volume": 105.5575132,
+    "mass": 812792.9,
+    "moment_of_inertia": {
+      "x": null,
+      "y": null,
+      "z": null
+    },
+    "outline": [
+      [3000.0, -3000.0, -2750.0, 2750.0, 3000.0],
+      [0.0, 0.0, 40000.0, 40000.0, 0.0]
+    ],
+    "marker": null,
+    "line": null,
+    "dict_": {
+      "title": "aaa01_mp_20",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0,
+      "OD": "6000/5500",
+      "wall_thickness": 150.0,
+      "height": 40000.0,
+      "volume": 105.5575132,
+      "mass": 812792.9,
+      "moment_of_inertia": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "description": ""
+    },
+    "str_": "aaa01_mp_20 (tubular_section)"
+  },
+  {
+    "id": 9,
+    "type": "lumped_mass",
+    "wall_thickness": null,
+    "bottom_outer_diameter": null,
+    "top_outer_diameter": null,
+    "diameter_str": "",
+    "height": "nan",
+    "volume": null,
+    "mass": 1600.0,
+    "moment_of_inertia": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "outline": null,
+    "marker": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 100.0,
+      "radius": 160.0,
+      "hovertext": "AAA01_TW_FLANGE<br>Mass: 1600.0 kg<br>x: 0.0<br>y: 0.0<br>z: 100.0"
+    },
+    "line": null,
+    "dict_": {
+      "title": "AAA01_TW_FLANGE",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 100.0,
+      "OD": "",
+      "wall_thickness": null,
+      "height": "nan",
+      "volume": null,
+      "mass": 1600.0,
+      "moment_of_inertia": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "description": ""
+    },
+    "str_": "AAA01_TW_FLANGE (lumped_mass)"
+  },
+  {
+    "id": 10,
+    "type": "lumped_mass",
+    "wall_thickness": null,
+    "bottom_outer_diameter": null,
+    "top_outer_diameter": null,
+    "diameter_str": "",
+    "height": "nan",
+    "volume": null,
+    "mass": 130000.0,
+    "moment_of_inertia": {
+      "x": 150000.0,
+      "y": 525000.0,
+      "z": 450000.0
+    },
+    "outline": null,
+    "marker": {
+      "x": -1500.0,
+      "y": 0.0,
+      "z": 61000.0,
+      "radius": 13000.0,
+      "hovertext": "AAA01_RNA_NACELLE<br>Mass: 130000.0 kg<br>x: -1500.0<br>y: 0.0<br>z: 61000.0"
+    },
+    "line": null,
+    "dict_": {
+      "title": "AAA01_RNA_NACELLE",
+      "x": -1500.0,
+      "y": 0.0,
+      "z": 61000.0,
+      "OD": "",
+      "wall_thickness": null,
+      "height": "nan",
+      "volume": null,
+      "mass": 130000.0,
+      "moment_of_inertia": {
+        "x": 150000.0,
+        "y": 525000.0,
+        "z": 450000.0
+      },
+      "description": ""
+    },
+    "str_": "AAA01_RNA_NACELLE (lumped_mass)"
+  },
+  {
+    "id": 11,
+    "type": "tubular_section",
+    "wall_thickness": 50.0,
+    "bottom_outer_diameter": 4500.0,
+    "top_outer_diameter": 3500.0,
+    "diameter_str": "4500/3500",
+    "height": 59000.0,
+    "volume": 36.6074084,
+    "mass": 281877.0,
+    "moment_of_inertia": {
+      "x": null,
+      "y": null,
+      "z": null
+    },
+    "outline": [
+      [2250.0, -2250.0, -1750.0, 1750.0, 2250.0],
+      [1000.0, 1000.0, 60000.0, 60000.0, 1000.0]
+    ],
+    "marker": null,
+    "line": null,
+    "dict_": {
+      "title": "aaa01_tw_01",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 1000.0,
+      "OD": "4500/3500",
+      "wall_thickness": 50.0,
+      "height": 59000.0,
+      "volume": 36.6074084,
+      "mass": 281877.0,
+      "moment_of_inertia": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "description": ""
+    },
+    "str_": "aaa01_tw_01 (tubular_section)"
+  },
+  {
+    "id": 12,
+    "type": "tubular_section",
+    "wall_thickness": 75.0,
+    "bottom_outer_diameter": 4500.0,
+    "top_outer_diameter": 4500.0,
+    "diameter_str": "4500",
+    "height": 1000.0,
+    "volume": 1.042616062,
+    "mass": 8028.1,
+    "moment_of_inertia": {
+      "x": null,
+      "y": null,
+      "z": null
+    },
+    "outline": [
+      [2250.0, -2250.0, -2250.0, 2250.0, 2250.0],
+      [0.0, 0.0, 1000.0, 1000.0, 0.0]
+    ],
+    "marker": null,
+    "line": null,
+    "dict_": {
+      "title": "aaa01_tw_30",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0,
+      "OD": "4500",
+      "wall_thickness": 75.0,
+      "height": 1000.0,
+      "volume": 1.042616062,
+      "mass": 8028.1,
+      "moment_of_inertia": {
+        "x": null,
+        "y": null,
+        "z": null
+      },
+      "description": ""
+    },
+    "str_": "aaa01_tw_30 (tubular_section)"
+  }
+]

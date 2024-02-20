@@ -1,0 +1,20 @@
+[
+    {
+        "title": "S228",
+        "slug": "steel",
+        "id": 1,
+        "description": "SS228 structural steel",
+        "young_modulus": 200.0,
+        "density": 7700.0,
+        "poisson_ratio": 0.3
+    },
+    {
+        "title": "Grout D5",
+        "slug": "grout-d5",
+        "id": 2,
+        "description": "Some special grout",
+        "young_modulus": 50.0,
+        "density": 2800.0,
+        "poisson_ratio": 0.2
+    }
+]

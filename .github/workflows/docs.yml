@@ -17,7 +17,7 @@ permissions: write-all
 jobs:
   build-deploy:
     environment:
-      name: github-pages
+      name: github-pages-docs
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
