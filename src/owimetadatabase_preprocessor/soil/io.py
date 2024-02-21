@@ -1837,6 +1837,34 @@ class SoilAPI(API):
         """
         return self._process_data_units(soilunit, self.get_sampletests, **kwargs)
     
+    def _objects_to_list(self, selected_obj, func_get_detail, data_type):
+        obj = []
+        for _, row in selected_obj.iterrows():
+            try:
+                if data_type == "soilprofile":
+                    params = {
+                        "projectsite": row['projectsite_name'],
+                        "location": row['location_name'],
+                        "soilprofile": row['title'],
+                        "drop_info_cols": False,
+                        "profile_title": row['location_name']
+                    }
+                elif data_type == "cpt":
+                    params = {
+                        "projectsite": row['projectsite_name'],
+                        "location": row['location_name'],
+                        "insitutest": row['title'],
+                        "testtype": row['test_type_name']
+                    }
+                else:
+                    raise ValueError(f"Data type {data_type} not supported.")
+                _obj = func_get_detail(**params)[data_type]
+                _obj.set_position(easting=row['easting'], northing=row['northing'], elevation=row['elevation'])
+                obj.append(_obj)
+            except:
+                warnings.warn(f"Error loading {row['projectsite_name']}-{row['location_name']}-{row['title']}")
+        return obj
+
     def get_soilprofile_profile(
         self,
         lat1: float,
@@ -1895,21 +1923,7 @@ class SoilAPI(API):
             - 'diagram': Plotly figure with the fence diagram
         """
         selected_profiles = soilprofiles_df
-        soilprofiles = []
-        for _, row in selected_profiles.iterrows():
-            try:
-                _profile = self.get_soilprofile_detail(
-                    projectsite=row['projectsite_name'],
-                    location=row['location_name'],
-                    soilprofile=row['title'],
-                    drop_info_cols=False,
-                    profile_title=row['location_name']
-                )['soilprofile']
-                _profile.set_position(easting=row['easting'], northing=row['northing'], elevation=row['elevation'])
-                soilprofiles.append(_profile)
-            except:
-                warnings.warn(f"Error loading {row['projectsite_name']}-{row['location_name']}-{row['title']}")
-                pass
+        soilprofiles = self._objects_to_list(selected_profiles, self.get_soilprofile_detail, 'soilprofile')
         fence_diagram_1 = plot_fence_diagram(
             profiles=soilprofiles,
             start=start,
@@ -1989,19 +2003,7 @@ class SoilAPI(API):
             - 'diagram': Plotly figure with the fence diagram
         """
         selected_cpts = cpt_df
-        cpts = []
-        for _, row in selected_cpts.iterrows():
-            try:
-                _cpt = self.get_cpttest_detail(
-                    projectsite=row['projectsite_name'],
-                    location=row['location_name'],
-                    insitutest=row['title'],
-                    testtype=row['test_type_name']
-                )['cpt']
-                _cpt.set_position(easting=row['easting'], northing=row['northing'], elevation=row['elevation'])
-                cpts.append(_cpt)
-            except Exception as err:
-                print(f"{err} for {row['title']}")
+        cpts = self._objects_to_list(selected_cpts, self.get_cpttest_detail, 'cpt')
         cpt_fence_fig_1 = plot_longitudinal_profile(
             cpts=cpts,
             latlon=True,
