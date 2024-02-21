@@ -627,7 +627,7 @@ class SoilAPI(API):
         insitutest: Union[str, None] = None,
         combine: bool = False,
         **kwargs
-    ):
+    ) -> Dict[str, Union[pd.DataFrame, int, bool, requests.Response, None]]:
         """Get the detailed information (measurement data) for an in-situ test of give type.
 
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
@@ -681,7 +681,7 @@ class SoilAPI(API):
         combine: bool = False,
         cpt: bool = True,
         **kwargs
-    ):
+    ) -> Dict[str, Union[pd.DataFrame, int, bool, requests.Response, None]]:
         """Get the detailed information (measurement data) for an in-situ test of CPT type (seabed or downhole CPT)
 
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
@@ -900,7 +900,7 @@ class SoilAPI(API):
         profile_title: Union[str, None] = None,
         drop_info_cols: bool = True,
         **kwargs
-    ) -> Dict[str, Union[pd.DataFrame, int, str, bool, None]]:
+    ) -> Dict[str, Union[pd.DataFrame, int, str, bool, requests.Response, None]]:
         """Retrieves a soil profile from the owimetadatabase and converts it to a groundhog SoilProfile object.
 
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
@@ -1234,7 +1234,7 @@ class SoilAPI(API):
         campaign: Union[str, None] = None,
         batchlabtest: Union[str, None] = None,
         **kwargs
-    ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
+    ) -> Dict[str, Union[pd.DataFrame, int, bool, requests.Response, None]]:
         """Retrieves detailed data for a specific batch lab test.
 
         :param projectsite: Title of the project site
@@ -1274,7 +1274,6 @@ class SoilAPI(API):
             "rawdata": dfs["rawdata"],
             "processeddata": dfs["processeddata"],
             "conditions": dfs["conditions"],
-            "response": df_add_detail["response"],
             "exists": df_add_sum["existance"],
         }
 
