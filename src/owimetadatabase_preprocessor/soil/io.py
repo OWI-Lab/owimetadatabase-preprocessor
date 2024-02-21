@@ -1704,3 +1704,28 @@ class SoilAPI(API):
         output_type = "single"
         _, df_add = self.process_data(url_data_type, url_params, output_type)
         return df_add["id"] if df_add["existance"] else False
+    
+    def get_soilunit_depthranges(
+        self,
+        soilunit: str,
+        projectsite: Union[str, None] = None,
+        location: Union[str, None] = None,
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, bool]]:
+        """Retrieves the depth ranges for where the soil unit occurs.
+
+        :param soilunit: Title of the soil unit for which depth ranges need to be retrieved
+        :param projectsite: Title of the project site (optional)
+        :param location: Title of the test location (optional)
+        :return: Dataframe with the depth ranges for the soil unit
+        """
+        url_params = {
+            "soilunit": soilunit,
+            "projectsite": projectsite,
+            "location": location,
+        }
+        url_params = {**url_params, **kwargs}
+        url_data_type = "soillayer"
+        output_type = "list"
+        df, _ = self.process_data(url_data_type, url_params, output_type)
+        return df
