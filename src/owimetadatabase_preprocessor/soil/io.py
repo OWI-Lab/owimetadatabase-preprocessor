@@ -1226,4 +1226,55 @@ class SoilAPI(API):
             **kwargs
         )
 
+    def get_batchlabtest_detail(
+        self,
+        projectsite: Union[str, None] = None,
+        location: Union[str, None] = None,
+        testtype: Union[str, None] = None,
+        campaign: Union[str, None] = None,
+        batchlabtest: Union[str, None] = None,
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
+        """Retrieves detailed data for a specific batch lab test.
+
+        :param projectsite: Title of the project site
+        :param campaign: Title of the survey campaign
+        :param location: Title of the test location
+        :param testtype: Title of the test type
+        :param batchlabtest: Title of the batch lab test
+        :return: Dictionary with the following keys:
+
+            - 'id': id for the selected soil profile
+            - 'summary': Metadata for the batch lab test
+            - 'response': Response text
+            - 'rawdata': Dataframe with the raw data
+            - 'processeddata': Dataframe with the raw data
+            - 'conditions': Dataframe with test conditions
+            - 'exists': Boolean indicating whether a matching record is found
+        """
+        url_params = {
+            "projectsite": projectsite,
+            "campaign": campaign,
+            "location": location,
+            "testtype": testtype,
+            "batchlabtest": batchlabtest,
+        }
+        url_params = {**url_params, **kwargs}
+        url_data_type = "batchlabtestsummary"
+        output_type = "single"
+        df_sum, df_add_sum = self.process_data(url_data_type, url_params, output_type)
+        url_data_type = "batchlabtestdetail"
+        df_detail, df_add_detail = self.process_data(url_data_type, url_params, output_type)
+        cols = ["rawdata", "processeddata", "conditions"]
+        dfs = self._process_insitutest_dfs(df_detail, cols)
+        return {
+            "id": df_add_detail["id"],
+            "summary": df_sum,
+            "response": df_add_detail["response"],
+            "rawdata": dfs["rawdata"],
+            "processeddata": dfs["processeddata"],
+            "conditions": dfs["conditions"],
+            "response": df_add_detail["response"],
+            "exists": df_add_sum["existance"],
+        }
 
