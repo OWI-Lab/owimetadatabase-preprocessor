@@ -440,7 +440,7 @@ class SoilAPI(API):
         url_data_type = "testlocation"
         output_type = "single"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
-        return df["location"].iloc[0] if df_add["existance"] else False
+        return df_add["id"] if df_add["existance"] else False
 
     def plot_testlocations(self, return_fig: bool = False, **kwargs) -> None:
         """Retrieves soil test locations and generates a Plotly plot to show them.
@@ -759,7 +759,7 @@ class SoilAPI(API):
         url_data_type = "insitutestdetail"
         output_type = "single"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
-        return df["location"].iloc[0] if df_add["existance"] else False
+        return df_add["id"] if df_add["existance"] else False
 
     def get_soilprofiles(
         self,
@@ -1019,7 +1019,7 @@ class SoilAPI(API):
         url_data_type = "soilprofiledetail"
         output_type = "single"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
-        return df["location"].iloc[0] if df_add["existance"] else False
+        return df_add["id"] if df_add["existance"] else False
     
     def soiltype_exists(
         self,
@@ -1307,7 +1307,7 @@ class SoilAPI(API):
         url_data_type = "batchlabtestdetail"
         output_type = "single"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
-        return df["location"].iloc[0] if df_add["existance"] else False
+        return df_add["id"] if df_add["existance"] else False
     
     def geotechnicalsampletype_exists(
         self,
@@ -1490,4 +1490,4 @@ class SoilAPI(API):
         url_data_type = "geotechnicalsample"
         output_type = "single"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
-        return df["location"].iloc[0] if df_add["existance"] else False
+        return df_add["id"] if df_add["existance"] else False
