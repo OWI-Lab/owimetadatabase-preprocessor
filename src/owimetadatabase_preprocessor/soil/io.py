@@ -1,15 +1,16 @@
 import json
 import warnings
 from copy import deepcopy
-from typing import Callable, Dict, Tuple, Union
+from typing import Any, Callable, Dict, List, Tuple, Union
 
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import requests
-from groundhog.general.soilprofile import profile_from_dataframe
+from groundhog.general.soilprofile import profile_from_dataframe, plot_fence_diagram
 from groundhog.siteinvestigation.insitutests.pcpt_processing import \
-    PCPTProcessing
+    PCPTProcessing, plot_longitudinal_profile, plot_combined_longitudinal_profile
+from groundhog.general.parameter_mapping import offsets
 from pyproj import Transformer
 
 from owimetadatabase_preprocessor.io import API
@@ -1835,3 +1836,244 @@ class SoilAPI(API):
         :return: Dataframe with sample test metadata in the selected soil unit.
         """
         return self._process_data_units(soilunit, self.get_sampletests, **kwargs)
+    
+    def get_soilprofile_profile(
+        self,
+        lat1: float,
+        lon1: float,
+        lat2: float,
+        lon2: float,
+        band: float = 1000
+    ) -> pd.DataFrame:
+        """Retrieves soil profiles along a profile line.
+
+        :param lat1: Latitude of the start point
+        :param lon1: Longitude of the start point
+        :param lat2: Latitude of the end point
+        :param lon2: Longitude of the end point
+        :param band: Thickness of the band (in m, default=1000m)
+        :return: Returns a dataframe with the summary data of the selected soil profiles
+        """
+        url_params = {
+            "lat1": lat1,
+            "lon1": lon1,
+            "lat2": lat2,
+            "lon2": lon2,
+            "offset": band,
+        }
+        url_data_type = "soilprofileprofile"
+        output_type = "list"
+        df, _ = self.process_data(url_data_type, url_params, output_type)
+        return df
+
+    def plot_soilprofile_fence(
+        self,
+        soilprofiles_df: pd.DataFrame,
+        start: str,
+        end: str,
+        plotmap: bool = False,
+        fillcolordict: Dict[str, str] = {'SAND': 'yellow', 'CLAY': 'brown', 'SAND/CLAY': 'orange'},
+        logwidth: float = 100.0,
+        show_annotations: bool = True,
+        general_layout: Dict[Any, Any] = dict(),
+        **kwargs
+    ) -> Dict[str, Union[List[SoilProfile], go.Figure]]:
+        """Creates a fence diagram for soil profiles.
+
+        :param soilprofiles_df: Dataframe with summary data for the selected soil profiles
+        :param start: Name of the soil profile at the start
+        :param end: Name of the soil profile at the end
+        :param plotmap: Boolean determining whether a map with the locations is shown (default=False)
+        :param fillcolordict: Dictionary used for mapping soil types to colors
+        :param logwidth: Width of the logs in the fence diagram (default=100)
+        :param show_annotations: Boolean determining whether annotations are shown (default=True)
+        :param general_layout: Dictionary with general layout options (default = dict())
+        :param kwargs: Keyword arguments for the get_soilprofiles method
+        :return: Dictionary with the following keys:
+
+            - 'profiles': List of SoilProfile objects
+            - 'diagram': Plotly figure with the fence diagram
+        """
+        selected_profiles = soilprofiles_df
+        soilprofiles = []
+        for _, row in selected_profiles.iterrows():
+            try:
+                _profile = self.get_soilprofile_detail(
+                    projectsite=row['projectsite_name'],
+                    location=row['location_name'],
+                    soilprofile=row['title'],
+                    drop_info_cols=False,
+                    profile_title=row['location_name']
+                )['soilprofile']
+                _profile.set_position(easting=row['easting'], northing=row['northing'], elevation=row['elevation'])
+                soilprofiles.append(_profile)
+            except:
+                warnings.warn(f"Error loading {row['projectsite_name']}-{row['location_name']}-{row['title']}")
+                pass
+        fence_diagram_1 = plot_fence_diagram(
+            profiles=soilprofiles,
+            start=start,
+            end=end,
+            plotmap=plotmap,
+            latlon=True,
+            fillcolordict=fillcolordict,
+            logwidth=logwidth,
+            show_annotations=show_annotations,
+            general_layout=general_layout,
+            **kwargs
+        )
+        return {
+            'profiles': soilprofiles,
+            'diagram': fence_diagram_1
+        }
+
+    def get_insitutests_profile(
+        self,
+        lat1: float,
+        lon1: float,
+        lat2: float,
+        lon2: float,
+        band: float = 1000
+    ) -> pd.DataFrame:
+        """Retrieves in-situ tests along a profile line.
+
+        :param lat1: Latitude of the start point
+        :param lon1: Longitude of the start point
+        :param lat2: Latitude of the end point
+        :param lon2: Longitude of the end point
+        :param band: Thickness of the band (in m, default=1000m)
+        :return: Returns a dataframe with the summary data of the selected in-situ tests
+        """
+        url_params = {
+            "lat1": lat1,
+            "lon1": lon1,
+            "lat2": lat2,
+            "lon2": lon2,
+            "offset": band,
+        }
+        url_data_type = "insitutestprofile"
+        output_type = "list"
+        df, _ = self.process_data(url_data_type, url_params, output_type)
+        return df
+    
+    def plot_cpt_fence(
+        self,
+        cpt_df: pd.DataFrame,
+        start: str,
+        end: str,
+        band: float = 1000.0,
+        scale_factor: float = 10.0,
+        extend_profile: bool = True,
+        plotmap: bool = False,
+        show_annotations: bool = True,
+        general_layout: Dict[Any, Any] = dict(),
+        uniformcolor: Union[str, None] = None,
+        **kwargs
+    ) -> Dict[str, Union[List[CPT], go.Figure]]:
+        """Creates a fence diagram for CPTs.
+
+        :param cpt_df: Dataframe with the summary data of the selected CPTs
+        :param start: Name of the location for the start point
+        :param end: Name of the location for the end point
+        :param band: Thickness of the band (in m, default=1000m)
+        :param scale_factor: Width of the CPT axis in the fence diagram (default=10)
+        :param extend_profile: Boolean determining whether the profile needs to be extended (default=True)
+        :param plotmap: Boolean determining whether a map with the locations is shown (default=False)
+        :param show_annotations: Boolean determining whether annotations are shown (default=True)
+        :param general_layout: Dictionary with general layout options (default = dict())
+        :param uniformcolor: If a valid color is provided (e.g. 'black'), it is used for all CPT traces
+        :param kwargs: Keyword arguments for the get_insitutests method
+        :return: Dictionary with the following keys:
+
+            - 'cpts': List of CPT objects
+            - 'diagram': Plotly figure with the fence diagram
+        """
+        selected_cpts = cpt_df
+        cpts = []
+        for _, row in selected_cpts.iterrows():
+            try:
+                _cpt = self.get_cpttest_detail(
+                    projectsite=row['projectsite_name'],
+                    location=row['location_name'],
+                    insitutest=row['title'],
+                    testtype=row['test_type_name']
+                )['cpt']
+                _cpt.set_position(easting=row['easting'], northing=row['northing'], elevation=row['elevation'])
+                cpts.append(_cpt)
+            except Exception as err:
+                print(f"{err} for {row['title']}")
+        cpt_fence_fig_1 = plot_longitudinal_profile(
+            cpts=cpts,
+            latlon=True,
+            start=start,
+            end=end,
+            band=band,
+            scale_factor=scale_factor,
+            extend_profile=extend_profile,
+            plotmap=plotmap,
+            show_annotations=show_annotations,
+            general_layout=general_layout,
+            uniformcolor=uniformcolor,
+            **kwargs
+        )
+        return {
+            'cpts': cpts,
+            'diagram': cpt_fence_fig_1
+        }
+    
+    def plot_combined_fence(
+        self,
+        profiles: List[pd.DataFrame],
+        cpts: List[pd.DataFrame],
+        startpoint: str,
+        endpoint: str,
+        band: float = 1000.0,
+        scale_factor: float = 10.0,
+        extend_profile: bool = True,
+        show_annotations: bool = True,
+        general_layout: Dict[Any, Any] = dict(),
+        fillcolordict: Dict[str, str] = {'SAND': 'yellow', 'CLAY': 'brown', 'SAND/CLAY': 'orange'},
+        logwidth: float = 100.0,
+        opacity: float = 0.5,
+        uniformcolor: Union[str, None] = None,
+        **kwargs
+    ) -> Dict[str, go.Figure]:
+        """Creates a combined fence diagram with soil profile and CPT data.
+
+        :param profiles: List with georeferenced soil profiles (run plot_soilprofile_fence first)
+        :param cpts: List with georeference CPTs (run plot_cpt_fence first)
+        :param startpoint: Name of the CPT location for the start point
+        :param endpoint: Name of the CPT location for the end point
+        :param band: Thickness of the band (in m, default=1000m)
+        :param scale_factor: Width of the CPT axis in the fence diagram (default=10)
+        :param extend_profile: Boolean determining whether the profile needs to be extended (default=True)
+        :param show_annotations: Boolean determining whether annotations are shown (default=True)
+        :param general_layout: Dictionary with general layout options (default = dict())
+        :param fillcolordict: Dictionary with colors for soil types
+        :param logwidth: Width of the log in the fence diagram
+        :param opacity: Opacity of the soil profile logs
+        :param uniformcolor: If a valid color is provided (e.g. 'black'), it is used for all CPT traces
+        :return: Dictionary with the following keys:
+
+            - 'diagram': Plotly figure with the fence diagram for CPTs and soil profiles
+        """
+        combined_fence_fig_1 = plot_combined_longitudinal_profile(
+            cpts=cpts,
+            profiles=profiles,
+            latlon=True,
+            start=startpoint,
+            end=endpoint,
+            band=band,
+            scale_factor=scale_factor,
+            logwidth=logwidth,
+            opacity=opacity,
+            extend_profile=extend_profile,
+            show_annotations=show_annotations,
+            uniformcolor=uniformcolor,
+            fillcolordict=fillcolordict,
+            general_layout=general_layout,
+            **kwargs
+        )
+        return {
+            'diagram': combined_fence_fig_1
+        }
