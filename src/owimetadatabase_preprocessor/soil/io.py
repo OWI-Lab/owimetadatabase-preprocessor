@@ -1,7 +1,7 @@
 import json
 import warnings
 from copy import deepcopy
-from typing import Dict, Tuple, Union
+from typing import Callable, Dict, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -1711,7 +1711,7 @@ class SoilAPI(API):
         projectsite: Union[str, None] = None,
         location: Union[str, None] = None,
         **kwargs
-    ) -> Dict[str, Union[pd.DataFrame, bool]]:
+    ) -> pd.DataFrame:
         """Retrieves the depth ranges for where the soil unit occurs.
 
         :param soilunit: Title of the soil unit for which depth ranges need to be retrieved
@@ -1729,3 +1729,109 @@ class SoilAPI(API):
         output_type = "list"
         df, _ = self.process_data(url_data_type, url_params, output_type)
         return df
+
+    def _fulldata_processing(self, unitdata, row, selected_depths, func_get_details, depthcol, **kwargs):
+        _fulldata = func_get_details(
+            location=row["location_name"], **kwargs
+        )["rawdata"]
+        _depthranges = selected_depths[
+            selected_depths["location_name"] == row["location_name"]
+        ]
+        for _, _layer in _depthranges.iterrows():
+            _unitdata = _fulldata[
+                (_fulldata[depthcol] >= _layer["start_depth"])
+                & (_fulldata[depthcol] <= _layer["end_depth"])
+            ]
+            unitdata = pd.concat([unitdata, _unitdata])
+        unitdata.reset_index(drop=True, inplace=True)
+        unitdata.loc[:, "location_name"] = row["location_name"]
+        unitdata.loc[:, "projectsite_name"] = row["projectsite_name"]
+        unitdata.loc[:, "test_type_name"] = row["test_type_name"]
+        return unitdata
+    
+    def _partialdata_processing(self, unitdata, row, selected_depths, selected_tests):    
+        _depthranges = selected_depths[
+            selected_depths["location_name"] == row["location_name"]
+        ]
+        for _, _layer in _depthranges.iterrows():
+            if (
+                row["depth"] >= _layer["start_depth"]
+                and row["depth"] <= _layer["end_depth"]
+            ):
+                _unitdata = selected_tests[selected_tests["id"] == row["id"]]
+                unitdata = pd.concat([unitdata, _unitdata])
+            else:
+                pass
+        unitdata.reset_index(drop=True, inplace=True)
+
+    def _process_data_units(
+        self,
+        soilunit: str,
+        func_get: Callable,
+        func_get_details: Union[Callable, None] = None,
+        depthcol: Union[str, None] = None,
+        full: bool = True,
+        **kwargs
+    ) -> pd.DataFrame:
+        selected_depths = self.get_soilunit_depthranges(soilunit=soilunit)
+        selected_tests = func_get(**kwargs)["data"]
+        all_unit_data = pd.DataFrame()
+        for _, row in selected_tests.iterrows():
+            unitdata = pd.DataFrame()
+            if row["location_name"] in selected_depths["location_name"].unique():
+                if full:
+                    unitdata = self._fulldata_processing(unitdata, row, selected_depths, func_get_details, depthcol, **kwargs)
+                else:
+                    unitdata = self._partialdata_processing(unitdata, row, selected_depths, selected_tests)
+            else:
+                print(f"Soil unit not found for {row["location_name"]}")
+            all_unit_data = pd.concat([all_unit_data, unitdata])
+        all_unit_data.reset_index(drop=True, inplace=True)
+        return all_unit_data
+
+    def get_unit_insitutestdata(
+        self,
+        soilunit: str,
+        depthcol: Union[str, None] = "z [m]",
+        **kwargs
+    ) -> pd.DataFrame:
+        """Retrieves proportions of in-situ test data located inside a soil unit. 
+        The data in the ``rawdata`` field is filtered based on the depth column.
+
+        :param soilunit: Name of the soil unit
+        :param depthcol: Name of the column with the depth in the ``rawdata`` field
+        :param kwargs: Optional keyword arguments for retrieval of in-situ tests (e.g. ``projectsite`` and ``testtype``)
+        :return: Dataframe with in-situ test data in the selected soil unit.
+        """
+        return self._process_data_units(soilunit, self.get_insitutests, self.get_insitutest_detail, depthcol=depthcol, **kwargs)
+    
+    def get_unit_batchlabtestdata(
+        self,
+        soilunit: str,
+        depthcol: Union[str, None] = "z [m]",
+        **kwargs
+    ) -> pd.DataFrame:
+        """Retrieves proportions of batch lab test data located inside a soil unit.        
+        The data in the ``rawdata`` field is filtered based on the depth column.
+
+        :param soilunit: Name of the soil unit
+        :param depthcol: Name of the column with the depth in the ``rawdata`` field
+        :param kwargs: Optional keyword arguments for retrieval of in-situ tests (e.g. ``projectsite`` and ``testtype``)
+        :return: Dataframe with batch lab test data in the selected soil unit.
+        """
+        return self._process_data_units(soilunit, depthcol, self.get_batchlabtests, self.get_batchlabtest_detail, depthcol=depthcol, **kwargs)
+
+    def get_unit_sampletests(
+        self,
+        soilunit: str,
+        **kwargs
+    ) -> pd.DataFrame:
+        """Retrieves the sample tests data located inside a soil unit.
+        The metadata of the samples is filtered based on the depth column.
+        Further retrieval of the test data can follow after this method.
+
+        :param soilunit: Name of the soil unit
+        :param kwargs: Optional keyword arguments for retrieval of sample tests (e.g. ``projectsite`` and ``testtype``)
+        :return: Dataframe with sample test metadata in the selected soil unit.
+        """
+        return self._process_data_units(soilunit, self.get_sampletests, **kwargs)
