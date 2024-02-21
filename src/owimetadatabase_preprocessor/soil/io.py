@@ -439,7 +439,7 @@ class SoilAPI(API):
         url_params = {**url_params, **kwargs}
         url_data_type = "testlocation"
         output_type = "single"
-        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        _, df_add = self.process_data(url_data_type, url_params, output_type)
         return df_add["id"] if df_add["existance"] else False
 
     def plot_testlocations(self, return_fig: bool = False, **kwargs) -> None:
@@ -758,7 +758,7 @@ class SoilAPI(API):
         url_params = {**url_params, **kwargs}
         url_data_type = "insitutestdetail"
         output_type = "single"
-        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        _, df_add = self.process_data(url_data_type, url_params, output_type)
         return df_add["id"] if df_add["existance"] else False
 
     def get_soilprofiles(
@@ -1018,7 +1018,7 @@ class SoilAPI(API):
         url_params = {**url_params, **kwargs}
         url_data_type = "soilprofiledetail"
         output_type = "single"
-        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        _, df_add = self.process_data(url_data_type, url_params, output_type)
         return df_add["id"] if df_add["existance"] else False
     
     def soiltype_exists(
@@ -1035,7 +1035,7 @@ class SoilAPI(API):
         url_params = {**url_params, **kwargs}
         url_data_type = "soiltype"
         output_type = "single"
-        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        _, df_add = self.process_data(url_data_type, url_params, output_type)
         return df_add["id"] if df_add["existance"] else False
     
     def soilunit_exists(
@@ -1060,7 +1060,7 @@ class SoilAPI(API):
         url_params = {**url_params, **kwargs}
         url_data_type = "soilunit"
         output_type = "single"
-        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        _, df_add = self.process_data(url_data_type, url_params, output_type)
         return df_add["id"] if df_add["existance"] else False
     
     def get_soilunits(
@@ -1116,7 +1116,7 @@ class SoilAPI(API):
         url_params = {**url_params, **kwargs}
         url_data_type = "batchlabtesttype"
         output_type = "single"
-        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        _, df_add = self.process_data(url_data_type, url_params, output_type)
         return df_add["id"] if df_add["existance"] else False
 
     def get_batchlabtests(
@@ -1167,7 +1167,7 @@ class SoilAPI(API):
         url_params = {**url_params, **kwargs}
         url_data_type = "batchlabtesttype"
         output_type = "single"
-        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        _, df_add = self.process_data(url_data_type, url_params, output_type)
         return df_add["id"] if df_add["existance"] else False
 
     def get_proximity_batchlabtests(
@@ -1306,7 +1306,7 @@ class SoilAPI(API):
         url_params = {**url_params, **kwargs}
         url_data_type = "batchlabtestdetail"
         output_type = "single"
-        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        _, df_add = self.process_data(url_data_type, url_params, output_type)
         return df_add["id"] if df_add["existance"] else False
     
     def geotechnicalsampletype_exists(
@@ -1323,7 +1323,7 @@ class SoilAPI(API):
         url_params = {**url_params, **kwargs}
         url_data_type = "geotechnicalsampletype"
         output_type = "single"
-        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        _, df_add = self.process_data(url_data_type, url_params, output_type)
         return df_add["id"] if df_add["existance"] else False
     
     def get_geotechnicalsamples(
@@ -1489,5 +1489,5 @@ class SoilAPI(API):
         url_params = {**url_params, **kwargs}
         url_data_type = "geotechnicalsample"
         output_type = "single"
-        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        _, df_add = self.process_data(url_data_type, url_params, output_type)
         return df_add["id"] if df_add["existance"] else False
