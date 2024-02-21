@@ -585,9 +585,9 @@ class SoilAPI(API):
             except:
                 df_ = pd.DataFrame()
             dfs[col] = df_
-        for df_ in dfs.values():
+        for k, df_ in dfs.items():
             try:
-                df_ = df_.apply(lambda x: pd.to_numeric(x, errors="ignore"))
+                dfs[k] = df_.apply(lambda x: pd.to_numeric(x, errors="ignore"))
             except Exception as err:
                 warnings.warn(str(err))
         return dfs
