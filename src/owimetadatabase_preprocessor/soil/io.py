@@ -1278,3 +1278,216 @@ class SoilAPI(API):
             "exists": df_add_sum["existance"],
         }
 
+    def batchlabtest_exists(
+        self,
+        projectsite: Union[str, None] = None,
+        location: Union[str, None] = None,
+        testtype: Union[str, None] = None,
+        campaign: Union[str, None] = None,
+        batchlabtest: Union[str, None] = None,
+        **kwargs
+    ) -> Union[int, bool]:
+        """Checks if the batch lab test answering to the search criteria exists.
+
+        :param projectsite: Project site name (e.g. 'Nobelwind')
+        :param campaign: Title of the survey campaign
+        :param location: Title of the test location
+        :param testtype: Title of the test type
+        :param batchlabtest: Title of the batch lab test
+        :return: Returns the id if batch lab test exists, False otherwise
+        """
+        url_params = {
+            "projectsite": projectsite,
+            "campaign": campaign,
+            "location": location,
+            "testtype": testtype,
+            "batchlabtest": batchlabtest,
+        }
+        url_params = {**url_params, **kwargs}
+        url_data_type = "batchlabtestdetail"
+        output_type = "single"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return df["location"].iloc[0] if df_add["existance"] else False
+    
+    def geotechnicalsampletype_exists(
+        self,
+        sampletype: Union[str, None] = None,
+        **kwargs
+    ) -> Union[int, bool]:
+        """Checks if the geotechnical sample type answering to the search criteria exists.
+
+        :param sampletype: Title of the sample type
+        :return: Returns the id if the sample type exists, False otherwise
+        """
+        url_params = {"sampletype": sampletype}
+        url_params = {**url_params, **kwargs}
+        url_data_type = "geotechnicalsampletype"
+        output_type = "single"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return df_add["id"] if df_add["existance"] else False
+    
+    def get_geotechnicalsamples(
+        self,
+        projectsite: Union[str, None] = None,
+        campaign: Union[str, None] = None,
+        location: Union[str, None] = None,
+        sampletype: Union[str, None] = None,
+        sample: Union[str, None] = None,
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
+        """Retrieves geotechnical samples corresponding to the specified search criteria.
+
+        :param projectsite: Project site name (e.g. 'Nobelwind')
+        :param campaign: Title of the survey campaign
+        :param location: Title of the test location
+        :param sampletype: Title of the sample type
+        :param sample: Title of the sample
+        :return: Dictionary with the following keys
+
+            - 'data': Dataframe with details on the sample
+            - 'exists': Boolean indicating whether records meeting the specified search criteria exist
+        """
+        url_params = {
+            "projectsite": projectsite,
+            "campaign": campaign,
+            "location": location,
+            "sampletype": sampletype,
+            "sample": sample,
+        }
+        url_params = {**url_params, **kwargs}
+        url_data_type = "geotechnicalsample"
+        output_type = "list"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return {"data": df, "exists": df_add["existance"]}
+
+    def get_proximity_geotechnicalsamples(
+        self,
+        latitude: float,
+        longitude: float,
+        radius: float,
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
+        """Gets all geotechnical samples in a certain radius surrounding a point with given lat/lon.
+
+        :param latitude: Latitude of the central point in decimal format
+        :param longitude: Longitude of the central point in decimal format
+        :param radius: Radius around the central point in km
+        :return: Dictionary with the following keys:
+
+            - 'data': Pandas dataframe with the geotechnical sample data for each geotechnical sample in the specified search area
+            - 'exists': Boolean indicating whether matching records are found
+        """
+        return self.get_proximity_entities_2d(
+            api_url="geotechnicalsampleproximity",
+            latitude=latitude,
+            longitude=longitude,
+            radius=radius,
+            **kwargs
+        )
+
+    def get_closest_geotechnicalsample(
+        self,
+        latitude: float,
+        longitude: float,
+        depth: float,
+        initialradius: float = 1.0,
+        target_srid: str = "25831",
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, int, str, float, None]]:
+        """Gets the geotechnical sample closest to a certain point with the name containing a certain string.
+
+        :param latitude: Latitude of the central point in decimal format
+        :param longitude: Longitude of the central point in decimal format
+        :param depth: Depth of the central point in meters below seabed
+        :param initialradius: Initial search radius around the central point in km, the search radius is increased until locations are found
+        :param target_srid: SRID for the offset calculation in meters
+        :param **kwargs: Optional keyword arguments e.g. ``location__title__icontains='BH'``
+        :return: Dictionary with the following keys:
+
+            - 'data': Pandas dataframe with the geotechnical sample data for each geotechnical sample in the specified search area
+            - 'id': ID of the closest batch lab test
+            - 'title': Title of the closest batch lab test
+            - 'offset [m]': Offset in meters from the specified point
+        """
+        return self.get_closest_entity_3d(
+            api_url="geotechnicalsampleproximity",
+            latitude=latitude,
+            longitude=longitude,
+            depth=depth,
+            initialradius=initialradius,
+            target_srid=target_srid,
+            sampletest=False,
+            **kwargs
+        )
+
+    def get_geotechnicalsample_detail(
+        self,
+        projectsite: Union[str, None] = None,
+        location: Union[str, None] = None,
+        sampletype: Union[str, None] = None,
+        campaign: Union[str, None] = None,
+        sample: Union[str, None] = None,
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, int, bool, requests.Response, None]]:
+        """Retrieves detailed data for a specific sample.
+
+        :param projectsite: Title of the project site
+        :param campaign: Title of the survey campaign
+        :param location: Title of the test location
+        :param sampletype: Title of the sample type
+        :param sample: Title of the sample
+        :return: Dictionary with the following keys:
+
+            - 'id': id for the selected soil profile
+            - 'data': Metadata for the batch lab test
+            - 'response': Response text
+            - 'exists': Boolean indicating whether a matching record is found
+        """
+        url_params = {
+            "projectsite": projectsite,
+            "campaign": campaign,
+            "location": location,
+            "sampletype": sampletype,
+            "sample": sample,
+        }
+        url_params = {**url_params, **kwargs}
+        url_data_type = "geotechnicalsample"
+        output_type = "single"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return {
+            "id": df_add["id"],
+            "data": df,
+            "response": df_add["response"],
+            "exists": df_add["existance"]
+        }
+
+    def geotechnicalsample_exists(
+        self,
+        projectsite: Union[str, None] = None,
+        location: Union[str, None] = None,
+        sampletype: Union[str, None] = None,
+        campaign: Union[str, None] = None,
+        sample: Union[str, None] = None,
+        **kwargs
+    ) -> Union[int, bool]:
+        """Checks if the geotechnical sample answering to the search criteria exists.
+
+        :param projectsite: Project site name (e.g. 'Nobelwind')
+        :param campaign: Title of the survey campaign
+        :param location: Title of the test location
+        :param sampletype: Title of the sample type
+        :param sample: Title of the sample
+        :return: Returns the id if the geotechnical sample exists, False otherwise
+        """
+        url_params = {
+            "projectsite": projectsite,
+            "campaign": campaign,
+            "location": location,
+            "sampletype": sampletype,
+            "sample": sample,
+        }
+        url_params = {**url_params, **kwargs}
+        url_data_type = "geotechnicalsample"
+        output_type = "single"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return df["location"].iloc[0] if df_add["existance"] else False
