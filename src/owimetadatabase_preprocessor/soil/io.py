@@ -941,3 +941,289 @@ class SoilAPI(API):
             return dict_
         return dict_
     
+    @staticmethod
+    def soilprofile_pisa(
+        soil_profile: pd.DataFrame,
+        pw: float = 1.025,
+        sbl: Union[float, None] = None
+    ) -> pd.DataFrame:
+        """Converts dataframes with soil profile data to a format suitable for PISA analysis.
+
+        :param soil_profile: Groundhog SoilProfile object obtained through the get_soilprofile_detail method
+        :param pw: Sea water density (default=1.025 t/m3)
+        :param sbl: Sea bed level in mLAT coordinates
+        :return: Dataframe containing soil model to carry out FE analysis through ```owi_monopylat``` of monopile
+        following PISA guidance.
+        """
+        required_keys = [
+            "Depth from [m]",
+            "Depth to [m]",
+            "Soil type",
+            "Gmax from [kPa]",
+            "Gmax to [kPa]",
+            "Su from [kPa]",
+            "Su to [kPa]",
+            "Dr from [-]",
+            "Dr to [-]",
+            "Total unit weight [kN/m3]",
+        ]
+        for req_key in required_keys:
+            if req_key not in soil_profile.columns:
+                raise ValueError(f"Column key {req_key} not in dataframe")
+        pisa_profile = deepcopy(soil_profile[required_keys])
+        if sbl:
+            pisa_profile["Depth from [mLAT]"] = sbl - pisa_profile["Depth from [m]"]
+            pisa_profile["Depth to [mLAT]"] = sbl - pisa_profile["Depth to [m]"]
+        else:
+            raise ValueError(
+                "You need to set a value for the mudline depth in mLAT coordinates."
+            )
+        g = 9.81  # gravity acceleration (m/s2)
+        pisa_profile["Submerged unit weight from [kN/m3]"] = (
+            pisa_profile["Total unit weight [kN/m3]"] - pw * g
+        )
+        pisa_profile["Submerged unit weight to [kN/m3]"] = (
+            pisa_profile["Total unit weight [kN/m3]"] - pw * g
+        )
+        pisa_profile.rename(
+            columns={
+                "Su from [kPa]": "Undrained shear strength from [kPa]",
+                "Su to [kPa]": "Undrained shear strength to [kPa]",
+                "Dr from [-]": "Relative density from [-]",
+                "Dr to [-]": "Relative density to [-]",
+            },
+            inplace=True,
+        )
+        return pisa_profile
+
+    def soilprofile_exists(
+        self,
+        projectsite: Union[str, None] = None,
+        location: Union[str, None] = None,
+        soilprofile: Union[str, None] = None,
+        **kwargs
+    ) -> Union[int, bool]:
+        """Checks if the in-situ test answering to the search criteria exists.
+
+        :param projectsite: Name of the projectsite (e.g. "Nobelwind")
+        :param location: Name of the test location (e.g. "CPT-7C")
+        :param soilprofile: Title of the soil profile (e.g. "Borehole log")
+        :return: Returns the id if soil profile exists, False otherwise
+        """
+        url_params = {
+            "projectsite": projectsite,
+            "location": location,
+            "soilprofile": soilprofile,
+        }
+        url_params = {**url_params, **kwargs}
+        url_data_type = "soilprofiledetail"
+        output_type = "single"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return df["location"].iloc[0] if df_add["existance"] else False
+    
+    def soiltype_exists(
+        self,
+        soiltype: Union[str, None] = None,
+        **kwargs
+    ) -> Union[int, bool]:
+        """Checks if a soiltype with a given name exists.
+
+        :param soiltype: Name of the soil type
+        :return: id of the soil type if it exists, False otherwise
+        """
+        url_params = {"soiltype": soiltype}
+        url_params = {**url_params, **kwargs}
+        url_data_type = "soiltype"
+        output_type = "single"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return df_add["id"] if df_add["existance"] else False
+    
+    def soilunit_exists(
+        self,
+        projectsite: Union[str, None] = None,
+        soiltype: Union[str, None] = None,
+        soilunit: Union[str, None] = None,
+        **kwargs
+    ) -> Union[int, bool]:
+        """Checks if a certain soil unit exists.
+
+        :param projectsite: Name of the project site
+        :param soiltype: Name of the soil type
+        :param soilunit: Name of the soil unit
+        :return: id of the soil unit if it exists, False otherwise
+        """
+        url_params = {
+            "projectsite": projectsite,
+            "soiltype": soiltype,
+            "soilunit": soilunit,
+        }
+        url_params = {**url_params, **kwargs}
+        url_data_type = "soilunit"
+        output_type = "single"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return df_add["id"] if df_add["existance"] else False
+    
+    def get_soilunits(
+        self,
+        projectsite: Union[str, None] = None,
+        soiltype: Union[str, None] = None,
+        soilunit: Union[str, None] = None,
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
+        """Finds all soil units corresponding to the search parameters.
+
+        :param projectsite: Name of the projectsite (e.g. ``"HKN"``)
+        :param soiltype: Name of the soil type (e.g. ``"SAND"``)
+        :param soilunit: Name of the soil unit (e.g. ``"Asse sand-clay"``)
+        :return: Dictionary with the following keys:
+
+            - 'data': Dataframe with the soil units returned from the query
+            - 'exists': Boolean containing whether data is in the returned query
+        """
+        url_params = {
+            "projectsite": projectsite,
+            "soiltype": soiltype,
+            "soilunit": soilunit,
+        }
+        url_params = {**url_params, **kwargs}
+        url_data_type = "soilunit"
+        output_type = "list"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return {"data": df, "exists": df_add["existance"]}
+    
+    def get_batchlabtest_types(self, **kwargs) -> Dict[str, Union[pd.DataFrame, bool, None]]:
+        """Retrieves the types of batch lab tests available in the database.
+
+        :param kwargs: Keywords arguments for the GET request
+        :return: Dataframe with the available InSituTestType records
+        """
+        url_data_type = "batchlabtesttype"
+        output_type = "list"
+        df, df_add = self.process_data(url_data_type, kwargs, output_type)
+        return {"data": df, "exists": df_add["existance"]}
+    
+    def batchlabtesttype_exists(
+        self,
+        testtype: Union[str, None] = None,
+        **kwargs
+    ) -> Union[int, bool]:
+        """Checks if the in-situ test type answering to the search criteria exists and returns the id.
+
+        :param testtype: Title of the in-situ test type (e.g. "Downhole PCPT")
+        :return: Returns the id if the in-situ test type exists, False otherwise
+        """
+        url_params = {"testtype": testtype}
+        url_params = {**url_params, **kwargs}
+        url_data_type = "batchlabtesttype"
+        output_type = "single"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return df_add["id"] if df_add["existance"] else False
+
+    def get_batchlabtests(
+        self,
+        projectsite: Union[str, None] = None,
+        campaign: Union[str, None] = None,
+        location: Union[str, None] = None,
+        testtype: Union[str, None] = None,
+        batchlabtest: Union[str, None] = None,
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
+        """Retrieves a summary of batch lab tests corresponding to the specified search criteria.
+
+        :param projectsite: Project site name (e.g. 'Nobelwind')
+        :param campaign: Title of the survey campaign
+        :param location: Title of the test location
+        :param testtype: Title of the test type
+        :param batchlabtest: Title of the batch lab test
+        :return: Dictionary with the following keys
+
+            - 'data': Dataframe with details on the batch lab test
+            - 'exists': Boolean indicating whether records meeting the specified search criteria exist
+        """
+        url_params = {
+            "projectsite": projectsite,
+            "campaign": campaign,
+            "location": location,
+            "testtype": testtype,
+            "batchlabtest": batchlabtest,
+        }
+        url_params = {**url_params, **kwargs}
+        url_data_type = "batchlabtestsummary"
+        output_type = "list"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return {"data": df, "exists": df_add["existance"]}
+
+    def batchlabtesttype_exists(
+        self,
+        batchlabtesttype: Union[str, None] = None,
+        **kwargs
+    ) -> Union[int, bool]:
+        """Checks if the geotechnical sample type answering to the search criteria exists.
+
+        :param batchlabtesttype: Title of the batch lab test type
+        :return: Returns the id if the sample type exists, False otherwise
+        """
+        url_params = {"testtype": batchlabtesttype}
+        url_params = {**url_params, **kwargs}
+        url_data_type = "batchlabtesttype"
+        output_type = "single"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return df_add["id"] if df_add["existance"] else False
+
+    def get_proximity_batchlabtests(
+        self,
+        latitude: float,
+        longitude: float,
+        radius: float,
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
+        """Gets all batch lab tests in a certain radius surrounding a point with given lat/lon.
+
+        :param latitude: Latitude of the central point in decimal format
+        :param longitude: Longitude of the central point in decimal format
+        :param radius: Radius around the central point in km
+        :return: Dictionary with the following keys:
+
+            - 'data': Pandas dataframe with the batch lab test summary data for each batch lab test in the specified search area
+            - 'exists': Boolean indicating whether matching records are found
+        """
+        return self.get_proximity_entities_2d(
+            api_url="batchlabtestproximity",
+            latitude=latitude,
+            longitude=longitude,
+            radius=radius,
+            **kwargs
+        )
+    
+    def get_closest_batchlabtest(
+        self,
+        latitude: float,
+        longitude: float,
+        initialradius: float = 1.0,
+        target_srid: str = "25831",
+        **kwargs
+    ):
+        """Gets the batch lab test closest to a certain point with the name containing a certain string.
+
+        :param latitude: Latitude of the central point in decimal format
+        :param longitude: Longitude of the central point in decimal format
+        :param initialradius: Initial search radius around the central point in km, the search radius is increased until locations are found
+        :param target_srid: SRID for the offset calculation in meters
+        :param **kwargs: Optional keyword arguments e.g. ``location__title__icontains='BH'``
+        :return: Dictionary with the following keys:
+
+            - 'data': Pandas dataframe with the batch lab test data for each batch lab test in the specified search area
+            - 'id': ID of the closest batch lab test
+            - 'title': Title of the closest batch lab test
+            - 'offset [m]': Offset in meters from the specified point
+        """
+        return self.get_closest_entity_2d(
+            api_url="batchlabtestproximity",
+            latitude=latitude,
+            longitude=longitude,
+            initialradius=initialradius,
+            target_srid=target_srid,
+            **kwargs
+        )
+
+
