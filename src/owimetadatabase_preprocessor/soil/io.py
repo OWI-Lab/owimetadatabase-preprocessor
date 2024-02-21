@@ -1490,3 +1490,217 @@ class SoilAPI(API):
         output_type = "single"
         _, df_add = self.process_data(url_data_type, url_params, output_type)
         return df_add["id"] if df_add["existance"] else False
+
+    def get_sampletests(
+        self,
+        projectsite: Union[str, None] = None,
+        campaign: Union[str, None] = None,
+        location: Union[str, None] = None,
+        sample: Union[str, None] = None,
+        testtype: Union[str, None] = None,
+        sampletest: Union[str, None] = None,
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
+        """Retrieves a summary of geotechnical sample lab tests corresponding to the specified search criteria.
+
+        :param projectsite: Title of the project site
+        :param campaign: Title of the survey campaign
+        :param location: Title of the test location
+        :param sample: Title of the sample
+        :param testtype: Title of the test type
+        :param sampletest: Title of the sample test
+        :return: Dictionary with the following keys
+
+            - 'data': Dataframe with details on the batch lab test
+            - 'exists': Boolean indicating whether records meeting the specified search criteria exist
+        """
+        url_params = {
+            "projectsite": projectsite,
+            "campaign": campaign,
+            "location": location,
+            "sample": sample,
+            "testtype": testtype,
+            "sampletest": sampletest,
+        }
+        url_params = {**url_params, **kwargs}
+        url_data_type = "sampletestsummary"
+        output_type = "list"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return {"data": df, "exists": df_add["existance"]}
+    
+    def get_proximity_sampletests(
+        self,
+        latitude: float,
+        longitude: float,
+        radius: float,
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
+        """Gets all sample tests in a certain radius surrounding a point with given lat/lon.
+
+        :param latitude: Latitude of the central point in decimal format
+        :param longitude: Longitude of the central point in decimal format
+        :param radius: Radius around the central point in km
+        :return: Dictionary with the following keys:
+
+            - 'data': Pandas dataframe with the sample test summary data for each sample test in the specified search area
+            - 'exists': Boolean indicating whether matching records are found
+        """
+        return self.get_proximity_entities_2d(
+            api_url="sampletestproximity",
+            latitude=latitude,
+            longitude=longitude,
+            radius=radius,
+            **kwargs
+        )
+
+    def get_closest_sampletest(
+        self,
+        latitude: float,
+        longitude: float,
+        depth: float,
+        initialradius: float = 1.0,
+        target_srid: str = "25831",
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, int, str, float, None]]:
+        """Gets the sample test closest to a certain point.
+
+        :param latitude: Latitude of the central point in decimal format
+        :param longitude: Longitude of the central point in decimal format
+        :param Depth: Depth of the central point in meters below seabed
+        :param initialradius: Initial search radius around the central point in km, the search radius is increased until locations are found
+        :param target_srid: SRID for the offset calculation in meters
+        :param **kwargs: Optional keyword arguments e.g. ``sample__location__title__icontains='BH'``
+        :return: Dictionary with the following keys:
+
+            - 'data': Pandas dataframe with the sample test data for each sample test in the specified search area
+            - 'id': ID of the closest sample test
+            - 'title': Title of the closest sample test
+            - 'offset [m]': Offset in meters from the specified point
+        """
+        return self.get_closest_entity_3d(
+            api_url="sampletestproximity",
+            latitude=latitude,
+            longitude=longitude,
+            depth=depth,
+            initialradius=initialradius,
+            target_srid=target_srid,
+            **kwargs
+        )
+
+    def sampletesttype_exists(
+        self,
+        sampletesttype: Union[str, None] = None,
+        **kwargs
+    ) -> Union[int, bool]:
+        """Checks if the sample test type answering to the search criteria exists.
+
+        :param sampletesttype: Title of the sample test type
+        :return: Returns the id if the sample test type exists, False otherwise
+        """
+        url_params = {"testtype": sampletesttype}
+        url_params = {**url_params, **kwargs}
+        url_data_type = "sampletesttype"
+        output_type = "single"
+        _, df_add = self.process_data(url_data_type, url_params, output_type)
+        return df_add["id"] if df_add["existance"] else False
+
+    def get_sampletesttypes(self, **kwargs) -> Dict[str, Union[pd.DataFrame, bool, None]]:
+        """Retrieves all sample tests types available in owimetadatabase.
+
+        :return: Dictionary with the following keys
+
+            - 'data': Dataframe with details on the batch lab test
+            - 'exists': Boolean indicating whether records meeting the specified search criteria exist
+        """
+        url_data_type = "sampletesttype"
+        output_type = "list"
+        df, df_add = self.process_data(url_data_type, kwargs, output_type)
+        return {"data": df, "exists": df_add["existance"]}
+
+    def get_sampletest_detail(
+        self,
+        projectsite: Union[str, None] = None,
+        location: Union[str, None] = None,
+        testtype: Union[str, None] = None,
+        sample: Union[str, None] = None,
+        campaign: Union[str, None] = None,
+        sampletest: Union[str, None] = None,
+        **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, int, bool, requests.Response, None]]:
+        """Retrieves detailed information on a specific sample test based on the specified search criteria.
+
+        :param projectsite: Title of the project site
+        :param campaign: Title of the survey campaign
+        :param location: Title of the test location
+        :param sample: Title of the sample
+        :param testtype: Title of the test type
+        :param sampletest: Title of the sample test
+        :return: Dictionary with the following keys:
+
+            - 'id': id for the selected soil profile
+            - 'summary': Metadata for the batch lab test
+            - 'response': Response text
+            - 'rawdata': Dataframe with the raw data
+            - 'processeddata': Dataframe with the raw data
+            - 'conditions': Dataframe with test conditions
+            - 'exists': Boolean indicating whether a matching record is found
+        """
+        url_params = {
+            "projectsite": projectsite,
+            "campaign": campaign,
+            "location": location,
+            "sample": sample,
+            "testtype": testtype,
+            "sampletest": sampletest,
+        }
+        url_params = {**url_params, **kwargs}
+        url_data_type = "sampletestsummary"
+        output_type = "single"
+        df_sum, df_add_sum = self.process_data(url_data_type, url_params, output_type)
+        url_data_type = "sampletestdetail"
+        df_detail, df_add_detail = self.process_data(url_data_type, url_params, output_type)
+        cols = ["rawdata", "processeddata", "conditions"]
+        dfs = self._process_insitutest_dfs(df_detail, cols)
+        return {
+            "id": df_add_detail["id"],
+            "summary": df_sum,
+            "rawdata": dfs["rawdata"],
+            "processeddata": dfs["processeddata"],
+            "conditions": dfs["conditions"],
+            "response": df_add_detail["response"],
+            "exists": df_add_sum["existance"],
+        }
+    
+    def sampletest_exists(
+        self,
+        projectsite: Union[str, None] = None,
+        location: Union[str, None] = None,
+        testtype: Union[str, None] = None,
+        sample: Union[str, None] = None,
+        campaign: Union[str, None] = None,
+        sampletest: Union[str, None] = None,
+        **kwargs
+    ) -> Union[int, bool]:
+        """Checks if the batch lab test answering to the search criteria exists.
+
+        :param projectsite: Title of the project site
+        :param campaign: Title of the survey campaign
+        :param location: Title of the test location
+        :param sample: Title of the sample
+        :param testtype: Title of the test type
+        :param sampletest: Title of the sample test
+        :return: Returns the id if the sample test exists, False otherwise
+        """
+        url_params = {
+            "projectsite": projectsite,
+            "campaign": campaign,
+            "location": location,
+            "sample": sample,
+            "testtype": testtype,
+            "sampletest": sampletest,
+        }
+        url_params = {**url_params, **kwargs}
+        url_data_type = "sampletestdetail"
+        output_type = "single"
+        _, df_add = self.process_data(url_data_type, url_params, output_type)
+        return df_add["id"] if df_add["existance"] else False
