@@ -556,7 +556,7 @@ class OWTs(object):
         df = pd.DataFrame(df_list, columns=cols)
         self.all_turbines = df.round(2)
 
-    def process_structure(self) -> None:
+    def process_structures(self, option) -> None:
         """Set dataframes containing the required properties to model the tower geometry, including the RNA system."""
         attr_list = []
         for attr in list(self.__dict__.keys()):
@@ -565,7 +565,7 @@ class OWTs(object):
                 setattr(self, attr, [])
         attr_list.remove("all_turbines")
         for owt in self.owts.values():
-            owt.process_structure()
+            owt.process_structure(option)
             owt.assembly_tp_mp()
             for attr in attr_list:
                 if attr == "pile_toe":
