@@ -412,18 +412,16 @@ class OWT(object):
 
         :return:
         """
-        if self.substructure:
-            if self.tower_geometry:
+        if self.substructure is not None:
+            if self.tower_geometry is not None:
                 self.full_structure = pd.concat([self.tower_geometry, self.substructure])
             else:
                 raise TypeError("Tower needs to be processed before!")
         else:
             raise TypeError("Substructure needs to be processed before!")
 
-    def get_monopile_pyles(
+    def transform_monopile_geometry(
         self,
-        projectsite: str,
-        assetlocation: str,
         cutoff_point: np.float64 = np.nan,
     ) -> pd.DataFrame:
         """Returns a dataframe with the monopile geometry with the mudline as reference
@@ -432,34 +430,28 @@ class OWT(object):
         :param assetlocation: Title of the turbine.
         :return: Dataframe with the monopile geometry.
         """
-        building_blocks = self.api.get_buildingblocks(
-            projectsite=projectsite, assetlocation=assetlocation, subassembly_type="MP"
-        )
-        subassemblies = self.api.get_subassemblies(
-            projectsite=projectsite, assetlocation=assetlocation, subassembly_type="MP"
-        )
-        toe_depth_lat = subassemblies["data"]["z_position"].iloc[0]
+        toe_depth_lat = self.sub_assemblies["MP"].position.z
         penetration = -((1e-3 * toe_depth_lat) - self.water_depth)
         pile = pd.DataFrame()
-        for i, row in building_blocks["data"].iterrows():
+        for i, row in enumerate(self.mp_sub_assemblies.bb):
             if i != 0:
                 pile.loc[i, "Depth from [m]"] = (
                     penetration
-                    - 1e-3 * building_blocks["data"].loc[i - 1, "z_position"]
+                    - 1e-3 * self.mp_sub_assemblies.bb[i-1].position.z_position
                 )
-                pile.loc[i, "Depth to [m]"] = penetration - 1e-3 * row["z_position"]
-                pile.loc[i, "Pile material"] = row["material_name"]
+                pile.loc[i, "Depth to [m]"] = penetration - 1e-3 * row.position.z_position
+                pile.loc[i, "Pile material"] = row.material.title
                 pile.loc[i, "Pile material submerged unit weight [kN/m3]"] = (
-                    1e-2 * row["density"] - 10
+                    1e-2 * row.material.density - 10
                 )
-                pile.loc[i, "Wall thickness [mm]"] = row["wall_thickness"]
+                pile.loc[i, "Wall thickness [mm]"] = row.wall_thickness
                 pile.loc[i, "Diameter [m]"] = (
                     1e-3
                     * 0.5
-                    * (row["bottom_outer_diameter"] + row["top_outer_diameter"])
+                    * (row.bottom_outer_diameter + row.top_outer_diameter)
                 )
-                pile.loc[i, "Youngs modulus [GPa]"] = row["youngs_modulus"]
-                pile.loc[i, "Poissons ratio [-]"] = row["poissons_ratio"]
+                pile.loc[i, "Youngs modulus [GPa]"] = row.material.youngs_modulus
+                pile.loc[i, "Poissons ratio [-]"] = row.material.poissons_ratio
         if not np.math.isnan(cutoff_point):
             pile = pile.loc[pile["Depth to [m]"] > cutoff_point].reset_index(drop=True)
             pile.loc[0, "Depth from [m]"] = cutoff_point
@@ -580,7 +572,7 @@ class OWTs(object):
         df = pd.DataFrame(df_list, columns=cols)
         self.all_turbines = df.round(2)
 
-    def process_structures(self, option) -> None:
+    def process_structures(self, option="full") -> None:
         """Set dataframes containing the required properties to model the tower geometry, including the RNA system."""
         attr_list = []
         for attr in list(self.__dict__.keys()):
