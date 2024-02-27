@@ -520,7 +520,7 @@ class OWTs(object):
         self.water_depth = {
             k: owt.water_depth for k, owt in zip(turbines, self.owts.values())
         }
-        self.all_cans = None
+        self.all_structural = None
         self.all_distributed_mass = None
         self.all_lumped_mass = None
         self.all_turbines = None
@@ -595,8 +595,8 @@ class OWTs(object):
             for attr in attr_list:
                 if attr == "pile_toe":
                     self.pile_toe.append(getattr(owt, attr))
-                elif attr == "all_cans":
-                    self.all_cans.extend(
+                elif attr == "all_structural":
+                    self.all_structural.extend(
                         [owt.tower_geometry, owt.transition_piece, owt.monopile]
                     )
                 elif attr == "all_distributed_mass":
