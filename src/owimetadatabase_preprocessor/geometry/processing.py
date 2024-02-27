@@ -590,6 +590,20 @@ class OWTs(object):
         self.pile_toe = {k: v for k, v in zip(self.owts.keys(), self.pile_toe)}
         self._concat_list(attr_list)
         self.assembly_turbine()
+    
+    def select_owt(self, turbine: Union[str, int]) -> OWT:
+        """Select OWT object from the OWTs object.
+
+        :param turbine: Title of the turbine or itss index in the original list of turbine titles (from get method).
+        :return: OWT object.
+        """
+        if isinstance(turbine, int):
+            return self.owts[list(self.owts.keys())[turbine]]
+        elif isinstance(turbine, str):
+            return self.owts[turbine]
+        else:
+            raise ValueError("You must specify a single turbine title or \
+                its index from the the get method input turbine list.")
 
     def __eq__(self, other) -> bool:
         if isinstance(other, type(self)):
