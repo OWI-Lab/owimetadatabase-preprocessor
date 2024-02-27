@@ -433,25 +433,28 @@ class OWT(object):
         toe_depth_lat = self.sub_assemblies["MP"].position.z
         penetration = -((1e-3 * toe_depth_lat) - self.water_depth)
         pile = pd.DataFrame()
-        for i, row in enumerate(self.mp_sub_assemblies.bb):
+        df = self.mp_sub_assemblies.copy()
+        df.reset_index(inplace=True)
+        for i, row in df.iterrows():
             if i != 0:
                 pile.loc[i, "Depth from [m]"] = (
-                    penetration
-                    - 1e-3 * self.mp_sub_assemblies.bb[i-1].position.z_position
+                    penetration - 1e-3 * df["z"].iloc[i-1]
                 )
-                pile.loc[i, "Depth to [m]"] = penetration - 1e-3 * row.position.z_position
-                pile.loc[i, "Pile material"] = row.material.title
+                pile.loc[i, "Depth to [m]"] = penetration - 1e-3 * row["z"]
+                pile.loc[i, "Pile material"] = self.sub_assemblies["MP"].bb[0].material.title
                 pile.loc[i, "Pile material submerged unit weight [kN/m3]"] = (
-                    1e-2 * row.material.density - 10
+                    1e-2 * self.sub_assemblies["MP"].bb[0].material.density - 10
                 )
-                pile.loc[i, "Wall thickness [mm]"] = row.wall_thickness
+                pile.loc[i, "Wall thickness [mm]"] = row["wall_thickness"]
+                bot_od = row["OD"].split("/")[0] if "/" in row["OD"] else row["OD"]
+                top_od = row["OD"].split("/")[1] if "/" in row["OD"] else row["OD"]
                 pile.loc[i, "Diameter [m]"] = (
                     1e-3
                     * 0.5
-                    * (row.bottom_outer_diameter + row.top_outer_diameter)
+                    * (float(bot_od) + float(top_od))
                 )
-                pile.loc[i, "Youngs modulus [GPa]"] = row.material.youngs_modulus
-                pile.loc[i, "Poissons ratio [-]"] = row.material.poissons_ratio
+                pile.loc[i, "Youngs modulus [GPa]"] = self.sub_assemblies["MP"].bb[0].material.young_modulus
+                pile.loc[i, "Poissons ratio [-]"] = self.sub_assemblies["MP"].bb[0].material.poisson_ratio
         if not np.math.isnan(cutoff_point):
             pile = pile.loc[pile["Depth to [m]"] > cutoff_point].reset_index(drop=True)
             pile.loc[0, "Depth from [m]"] = cutoff_point
