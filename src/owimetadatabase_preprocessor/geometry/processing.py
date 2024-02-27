@@ -54,6 +54,7 @@ class OWT(object):
         self.tp_distributed_mass = None
         self.mp_distributed_mass = None
         self.grout = None
+        self.full_structure = None
         self.water_depth = location["elevation"].values[0]
 
     def _set_subassemblies(self, subassemblies: pd.DataFrame) -> None:
@@ -406,6 +407,19 @@ class OWT(object):
         else:
             raise TypeError("TP or MP items need to be processed before!")
 
+    def assembly_full_structure(self) -> None:
+        """Process the full structure of the OWT: tower + tp combiantion with monopile.
+
+        :return:
+        """
+        if self.substructure:
+            if self.tower_geometry:
+                self.full_structure = pd.concat([self.tower_geometry, self.substructure])
+            else:
+                raise TypeError("Tower needs to be processed before!")
+        else:
+            raise TypeError("Substructure needs to be processed before!")
+
     def get_monopile_pyles(
         self,
         projectsite: str,
@@ -502,6 +516,7 @@ class OWTs(object):
         self.tp_distributed_mass = None
         self.mp_distributed_mass = None
         self.grout = None
+        self.full_structure = None
         self.water_depth = {
             k: owt.water_depth for k, owt in zip(turbines, self.owts.values())
         }
@@ -576,6 +591,7 @@ class OWTs(object):
         for owt in self.owts.values():
             owt.process_structure(option)
             owt.assembly_tp_mp()
+            owt.assembly_full_structure()
             for attr in attr_list:
                 if attr == "pile_toe":
                     self.pile_toe.append(getattr(owt, attr))
