@@ -53,6 +53,7 @@ class OWT(object):
         self.mp_lumped_mass = None
         self.tp_distributed_mass = None
         self.mp_distributed_mass = None
+        self.grout = None
         self.water_depth = location["elevation"].values[0]
 
     def _set_subassemblies(self, subassemblies: pd.DataFrame) -> None:
@@ -242,10 +243,7 @@ class OWT(object):
         """
         cols = ["mass", "x", "y", "z", "height", "volume", "description"]
         if idx == "TP":
-            # Grout is included here
-            df_index = (self.tp_sub_assemblies.index.str.contains(idx)) | (
-                self.tp_sub_assemblies.index.str.contains("grout")
-            )
+            df_index = self.tp_sub_assemblies.index.str.contains(idx)
             df = deepcopy(self.tp_sub_assemblies.loc[df_index, cols])
             # Lumped masses have 'None' height whereas distributed masses present not 'None' values
             df["height"] = pd.to_numeric(df["height"])
@@ -260,6 +258,14 @@ class OWT(object):
             df = df[df["height"].notnull()]
             bottom = self.pile_toe
             df["Z [mLAT]"] = bottom + df["z"] * 1e-3
+        elif idx == "grout":
+            df_index = self.tp_sub_assemblies.index.str.contains(idx)
+            df = deepcopy(self.tp_sub_assemblies.loc[df_index, cols])
+            # Lumped masses have 'None' height whereas distributed masses present not 'None' values
+            df["height"] = pd.to_numeric(df["height"])
+            df = df[df["height"].notnull()]
+            bottom_tp = self.tower_base - self.tp_sub_assemblies.iloc[0]["z"] * 1e-3
+            df["Z [mLAT]"] = bottom_tp + df["z"] * 1e-3
         else:
             raise ValueError(
                 "Unknown index or non distributed lumped masses located outside the transition piece."
@@ -311,6 +317,7 @@ class OWT(object):
             self.mp_lumped_mass = self.process_lumped_masses("MP")
             self.tp_distributed_mass = self.process_distributed_lumped_masses("TP")
             self.mp_distributed_mass = self.process_distributed_lumped_masses("MP")
+            self.grout = self.process_distributed_lumped_masses("grout")
         elif option == "tower":
             self.process_rna()
             self.tower_geometry = self.process_structure_geometry("tw")
@@ -319,6 +326,7 @@ class OWT(object):
             self.transition_piece = self.process_structure_geometry("tp")
             self.tp_lumped_mass = self.process_lumped_masses("TP")
             self.tp_distributed_mass = self.process_distributed_lumped_masses("TP")
+            self.grout = self.process_distributed_lumped_masses("grout")
         elif option == "monopile":
             self.monopile = self.process_structure_geometry("mp")
             self.mp_lumped_mass = self.process_lumped_masses("MP")
@@ -493,6 +501,7 @@ class OWTs(object):
         self.mp_lumped_mass = None
         self.tp_distributed_mass = None
         self.mp_distributed_mass = None
+        self.grout = None
         self.water_depth = {
             k: owt.water_depth for k, owt in zip(turbines, self.owts.values())
         }
@@ -576,7 +585,7 @@ class OWTs(object):
                     )
                 elif attr == "all_distributed_mass":
                     self.all_distributed_mass.extend(
-                        [owt.tp_distributed_mass, owt.mp_distributed_mass]
+                        [owt.tp_distributed_mass, owt.grout, owt.mp_distributed_mass]
                     )
                 elif attr == "all_lumped_mass":
                     self.all_lumped_mass.extend(
