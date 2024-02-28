@@ -14,7 +14,7 @@ from owimetadatabase_preprocessor.locations.io import LocationsAPI
 
 class GeometryAPI(API):
     """Class to connect to the geometry data API with methods to retrieve data."""
-
+    
     def get_subassemblies(
         self,
         projectsite: Union[str, None] = None,
@@ -145,7 +145,8 @@ class GeometryAPI(API):
                 subassembly = SubAssembly(materials, sa.to_dict(), api_object=self)
                 subassembly.building_blocks
                 plotly_data = subassembly.plotly()
-                fig.add_trace(plotly_data[0], row=rows[i], col=cols[i])
+                for k in range(len(plotly_data[0])):
+                    fig.add_trace(plotly_data[0][k], row=rows[i], col=cols[i])
             plotly_layout = plotly_data[1]
             if i > 0:
                 plotly_layout["scene" + str(i + 1)] = plotly_layout["scene"]
@@ -153,6 +154,6 @@ class GeometryAPI(API):
                 plotly_layout["yaxis" + str(i + 1)]["scaleanchor"] = "x" + str(i + 1)
                 plotly_layout.pop("scene")
                 plotly_layout.pop("yaxis")
-                plotly_layout["yaxis" + str(j + 1)].pop("title")
+                plotly_layout["yaxis" + str(i + 1)].pop("title")
             fig.update_layout(plotly_layout, autosize=autosize)
         fig.show()
