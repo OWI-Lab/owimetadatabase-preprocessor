@@ -22,6 +22,18 @@ class LocationsAPI(API):
     (see ``owimetadatabase`` code).
     """
 
+    def __init__(
+        self,
+        api_root: str = "https://owimetadatabase.owilab.be/api/v1",
+        api_subdir: str = "/locations/",
+        token: Union[str, None] = None,
+        uname: Union[str, None] = None,
+        password: Union[str, None] = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(api_root, token, uname, password, **kwargs)
+        self.api_root = self.api_root + api_subdir
+
     def get_projectsites(
         self, **kwargs
     ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
@@ -35,7 +47,7 @@ class LocationsAPI(API):
         """
         url_params = {}  # type: Dict[str, str]
         url_params = {**url_params, **kwargs}
-        url_data_type = "/locations/projectsites/"
+        url_data_type = "projectsites"
         output_type = "list"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
@@ -54,7 +66,7 @@ class LocationsAPI(API):
         """
         url_params = {"projectsite": projectsite}
         url_params = {**url_params, **kwargs}
-        url_data_type = "/locations/projectsites/"
+        url_data_type = "projectsites"
         output_type = "single"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"id": df_add["id"], "data": df, "exists": df_add["existance"]}
@@ -75,7 +87,7 @@ class LocationsAPI(API):
         url_params = {**url_params, **kwargs}
         if projectsite:
             url_params["projectsite__title"] = projectsite
-        url_data_type = "/locations/assetlocations/"
+        url_data_type = "assetlocations"
         if "assetlocations" in url_params.keys() and isinstance(
             url_params["assetlocations"], list
         ):
@@ -113,7 +125,7 @@ class LocationsAPI(API):
         else:
             url_params = {"projectsite": projectsite, "assetlocation": assetlocation}
         url_params = {**url_params, **kwargs}
-        url_data_type = "/locations/assetlocations/"
+        url_data_type = "assetlocations"
         output_type = "single"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"id": df_add["id"], "data": df, "exists": df_add["existance"]}

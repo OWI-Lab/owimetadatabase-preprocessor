@@ -14,7 +14,19 @@ from owimetadatabase_preprocessor.locations.io import LocationsAPI
 
 class GeometryAPI(API):
     """Class to connect to the geometry data API with methods to retrieve data."""
-    
+
+    def __init__(
+        self,
+        api_root: str = "https://owimetadatabase.owilab.be/api/v1",
+        api_subdir: str = "/geometry/userroutes/",
+        token: Union[str, None] = None,
+        uname: Union[str, None] = None,
+        password: Union[str, None] = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(api_root, token, uname, password, **kwargs)
+        self.api_root = self.api_root + api_subdir
+
     def get_subassemblies(
         self,
         projectsite: Union[str, None] = None,
@@ -38,7 +50,7 @@ class GeometryAPI(API):
             url_params["asset__title"] = assetlocation
         if subassembly_type is not None:
             url_params["subassembly_type"] = subassembly_type
-        url_data_type = "/geometry/userroutes/subassemblies"
+        url_data_type = "subassemblies"
         output_type = "list"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
@@ -71,7 +83,7 @@ class GeometryAPI(API):
             url_params["sub_assembly__subassembly_type"] = subassembly_type
         if subassembly_id is not None:
             url_params["sub_assembly__id"] = str(subassembly_id)
-        url_data_type = "/geometry/userroutes/buildingblocks"
+        url_data_type = "buildingblocks"
         output_type = "list"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
@@ -86,7 +98,7 @@ class GeometryAPI(API):
             - "exists": Boolean indicating whether matching records are found
         """
         url_params = {}  # type: Dict[str, str]
-        url_data_type = "/geometry/userroutes/materials"
+        url_data_type = "materials"
         output_type = "list"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
