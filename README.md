@@ -34,7 +34,7 @@ The repository also has ``.lock`` file if you use ``poetry``.
 
 ## Acknowledgements
 
-This package was developed as part of the ETF Smartlife (FOD165) project.
+This package was developed as part of the ETF Smartlife (FOD165) and WILLOW (EUAR157) projects.
 
 ## License
 
