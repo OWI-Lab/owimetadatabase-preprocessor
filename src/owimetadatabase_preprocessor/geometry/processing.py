@@ -575,41 +575,43 @@ class OWTs(object):
         df = pd.DataFrame(df_list, columns=cols)
         self.all_turbines = df.round(2)
 
-    def process_structures(self, option="full") -> None:
+    def process_structures(self) -> None:
         """Set dataframes containing the required properties to model the tower geometry, including the RNA system."""
         attr_list = []
         for attr in list(self.__dict__.keys()):
             if getattr(self, attr) is None:
                 attr_list.append(attr)
                 setattr(self, attr, [])
-        attr_list.remove("all_turbines")
-        for owt in self.owts.values():
-            owt.process_structure(option)
-            owt.assembly_tp_mp()
-            owt.assembly_full_structure()
-            for attr in attr_list:
-                if attr == "pile_toe":
-                    self.pile_toe.append(getattr(owt, attr))
-                elif attr == "all_structural":
-                    self.all_structural.extend(
-                        [owt.tower_geometry, owt.transition_piece, owt.monopile]
-                    )
-                elif attr == "all_distributed_mass":
-                    self.all_distributed_mass.extend(
-                        [owt.tp_distributed_mass, owt.grout, owt.mp_distributed_mass]
-                    )
-                elif attr == "all_lumped_mass":
-                    self.all_lumped_mass.extend(
-                        [owt.tower_lumped_mass, owt.tp_lumped_mass, owt.mp_lumped_mass]
-                    )
-                else:
-                    attr_val = getattr(self, attr)
-                    owt_attr_val = getattr(owt, attr)
-                    attr_val.append(owt_attr_val)
-        attr_list.remove("pile_toe")
-        self.pile_toe = {k: v for k, v in zip(self.owts.keys(), self.pile_toe)}
-        self._concat_list(attr_list)
-        self.assembly_turbine()
+        if "all_turbines" in attr_list:
+            attr_list.remove("all_turbines")
+        if len(attr_list) > 0:
+            for owt in self.owts.values():
+                owt.process_structure()
+                owt.assembly_tp_mp()
+                owt.assembly_full_structure()
+                for attr in attr_list:
+                    if attr == "pile_toe":
+                        self.pile_toe.append(getattr(owt, attr))
+                    elif attr == "all_structural":
+                        self.all_structural.extend(
+                            [owt.tower_geometry, owt.transition_piece, owt.monopile]
+                        )
+                    elif attr == "all_distributed_mass":
+                        self.all_distributed_mass.extend(
+                            [owt.tp_distributed_mass, owt.grout, owt.mp_distributed_mass]
+                        )
+                    elif attr == "all_lumped_mass":
+                        self.all_lumped_mass.extend(
+                            [owt.tower_lumped_mass, owt.tp_lumped_mass, owt.mp_lumped_mass]
+                        )
+                    else:
+                        attr_val = getattr(self, attr)
+                        owt_attr_val = getattr(owt, attr)
+                        attr_val.append(owt_attr_val)
+            attr_list.remove("pile_toe")
+            self.pile_toe = {k: v for k, v in zip(self.owts.keys(), self.pile_toe)}
+            self._concat_list(attr_list)
+            self.assembly_turbine()
     
     def select_owt(self, turbine: Union[str, int]) -> OWT:
         """Select OWT object from the OWTs object.
