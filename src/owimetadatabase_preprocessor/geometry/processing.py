@@ -414,7 +414,9 @@ class OWT(object):
         """
         if self.substructure is not None:
             if self.tower_geometry is not None:
-                self.full_structure = pd.concat([self.tower_geometry, self.substructure])
+                self.full_structure = pd.concat(
+                    [self.tower_geometry, self.substructure]
+                )
             else:
                 raise TypeError("Tower needs to be processed before!")
         else:
@@ -437,11 +439,11 @@ class OWT(object):
         df.reset_index(inplace=True)
         for i, row in df.iterrows():
             if i != 0:
-                pile.loc[i, "Depth from [m]"] = (
-                    penetration - 1e-3 * df["z"].iloc[i-1]
-                )
+                pile.loc[i, "Depth from [m]"] = penetration - 1e-3 * df["z"].iloc[i - 1]
                 pile.loc[i, "Depth to [m]"] = penetration - 1e-3 * row["z"]
-                pile.loc[i, "Pile material"] = self.sub_assemblies["MP"].bb[0].material.title
+                pile.loc[i, "Pile material"] = (
+                    self.sub_assemblies["MP"].bb[0].material.title
+                )
                 pile.loc[i, "Pile material submerged unit weight [kN/m3]"] = (
                     1e-2 * self.sub_assemblies["MP"].bb[0].material.density - 10
                 )
@@ -449,12 +451,14 @@ class OWT(object):
                 bot_od = row["OD"].split("/")[0] if "/" in row["OD"] else row["OD"]
                 top_od = row["OD"].split("/")[1] if "/" in row["OD"] else row["OD"]
                 pile.loc[i, "Diameter [m]"] = (
-                    1e-3
-                    * 0.5
-                    * (float(bot_od) + float(top_od))
+                    1e-3 * 0.5 * (float(bot_od) + float(top_od))
                 )
-                pile.loc[i, "Youngs modulus [GPa]"] = self.sub_assemblies["MP"].bb[0].material.young_modulus
-                pile.loc[i, "Poissons ratio [-]"] = self.sub_assemblies["MP"].bb[0].material.poisson_ratio
+                pile.loc[i, "Youngs modulus [GPa]"] = (
+                    self.sub_assemblies["MP"].bb[0].material.young_modulus
+                )
+                pile.loc[i, "Poissons ratio [-]"] = (
+                    self.sub_assemblies["MP"].bb[0].material.poisson_ratio
+                )
         if not np.math.isnan(cutoff_point):
             pile = pile.loc[pile["Depth to [m]"] > cutoff_point].reset_index(drop=True)
             pile.loc[0, "Depth from [m]"] = cutoff_point
@@ -598,11 +602,19 @@ class OWTs(object):
                         )
                     elif attr == "all_distributed_mass":
                         self.all_distributed_mass.extend(
-                            [owt.tp_distributed_mass, owt.grout, owt.mp_distributed_mass]
+                            [
+                                owt.tp_distributed_mass,
+                                owt.grout,
+                                owt.mp_distributed_mass,
+                            ]
                         )
                     elif attr == "all_lumped_mass":
                         self.all_lumped_mass.extend(
-                            [owt.tower_lumped_mass, owt.tp_lumped_mass, owt.mp_lumped_mass]
+                            [
+                                owt.tower_lumped_mass,
+                                owt.tp_lumped_mass,
+                                owt.mp_lumped_mass,
+                            ]
                         )
                     else:
                         attr_val = getattr(self, attr)
@@ -612,7 +624,7 @@ class OWTs(object):
             self.pile_toe = {k: v for k, v in zip(self.owts.keys(), self.pile_toe)}
             self._concat_list(attr_list)
             self.assembly_turbine()
-    
+
     def select_owt(self, turbine: Union[str, int]) -> OWT:
         """Select OWT object from the OWTs object.
 
@@ -624,8 +636,10 @@ class OWTs(object):
         elif isinstance(turbine, str):
             return self.owts[turbine]
         else:
-            raise ValueError("You must specify a single turbine title or \
-                its index from the the get method input turbine list.")
+            raise ValueError(
+                "You must specify a single turbine title or \
+                its index from the the get method input turbine list."
+            )
 
     def __eq__(self, other) -> bool:
         if isinstance(other, type(self)):

@@ -29,7 +29,7 @@ def mock_requests_get_projectsites(mocker: mock.Mock) -> mock.Mock:
 def test_get_projectsites(
     api_root: str, header: Dict[str, str], mock_requests_get_projectsites: mock.Mock
 ) -> None:
-    api_test = LocationsAPI(api_root, header)
+    api_test = LocationsAPI(api_root, header=header)
     data = api_test.get_projectsites()
     assert isinstance(data["data"], pd.DataFrame)
     assert isinstance(data["exists"], bool)
@@ -57,7 +57,7 @@ def test_get_projectsite_detail(
     header: Dict[str, str],
     mock_requests_get_projectsite_detail: mock.Mock,
 ) -> None:
-    api_test = LocationsAPI(api_root, header)
+    api_test = LocationsAPI(api_root, header=header)
     data = api_test.get_projectsite_detail(projectsite="Nobelwind")
     assert isinstance(data["id"], np.int64)
     assert isinstance(data["data"], pd.DataFrame)
@@ -93,7 +93,7 @@ def mock_requests_get_assetlocations(mocker: mock.Mock) -> mock.Mock:
 def test_get_assetlocations_single(
     api_root: str, header: Dict[str, str], mock_requests_get_assetlocations: mock.Mock
 ) -> None:
-    api_test = LocationsAPI(api_root, header)
+    api_test = LocationsAPI(api_root, header=header)
     data = api_test.get_assetlocations(projectsite="Nobelwind")
     assert isinstance(data["data"], pd.DataFrame)
     assert isinstance(data["exists"], bool)
@@ -108,7 +108,7 @@ def test_get_assetlocations_all(
     header: Dict[str, str],
     mock_requests_get_assetlocations: mock.Mock,
 ) -> None:
-    api_test = LocationsAPI(api_root, header)
+    api_test = LocationsAPI(api_root, header=header)
     data = api_test.get_assetlocations()
     assert isinstance(data["data"], pd.DataFrame)
     assert isinstance(data["exists"], bool)
@@ -124,7 +124,7 @@ def test_get_assetlocation_detail(
     header: Dict[str, str],
     mock_requests_get_projectsite_detail: mock.Mock,
 ) -> None:
-    api_test = LocationsAPI(api_root, header)
+    api_test = LocationsAPI(api_root, header=header)
     data = api_test.get_assetlocation_detail(
         projectsite="Nobelwind", assetlocation="BBK01"
     )

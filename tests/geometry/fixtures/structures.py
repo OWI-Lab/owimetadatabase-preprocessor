@@ -242,7 +242,7 @@ def sa_out(sa_in, position_sa_1, materials, api_root, header):
     data_["bb"] = None
     data_["materials"] = materials
     data_["api"] = {
-        "api_root": api_root,
+        "api_root": api_root + "/geometry/userroutes/",
         "header": header,
         "uname": None,
         "password": None,

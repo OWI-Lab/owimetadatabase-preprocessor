@@ -45,7 +45,7 @@ def test_get_subassemblies(
     params: Union[Dict[str, Union[str, int]], None],
     data_subassemblies: Union[Dict[str, str], None],
 ) -> None:
-    api_test = GeometryAPI(api_root, header)
+    api_test = GeometryAPI(api_root, header=header)
     data_ = api_test.get_subassemblies(**params)  # type: ignore
     expected_data = pd.DataFrame(data_subassemblies)
     assert isinstance(data_["data"], pd.DataFrame)
@@ -133,7 +133,7 @@ def test_get_buildingblocks(
     params: Union[Dict[str, Union[str, int]], None],
     data_buildingblocks: Union[Dict[str, str], None],
 ) -> None:
-    api_test = GeometryAPI(api_root, header)
+    api_test = GeometryAPI(api_root, header=header)
     data_ = api_test.get_buildingblocks(**params)  # type: ignore
     expected_data = pd.DataFrame(data_buildingblocks)
     assert isinstance(data_["data"], pd.DataFrame)
@@ -145,7 +145,7 @@ def test_get_buildingblocks(
 def test_get_materials(
     api_root: str, header: Dict[str, str], mock_requests_get_materials: mock.Mock
 ) -> None:
-    api_test = GeometryAPI(api_root, header)
+    api_test = GeometryAPI(api_root, header=header)
     data = api_test.get_materials()
     assert isinstance(data["data"], pd.DataFrame)
     assert isinstance(data["exists"], bool)
@@ -164,7 +164,7 @@ def test_get_materials(
 #     with mock.patch(
 #         "owimetadatabase_preprocessor.geometry.io.OWT", return_value=OWT_mock
 #     ):
-#         api_test = GeometryAPI(api_root, header)
+#         api_test = GeometryAPI(api_root, header=header)
 #         processor = api_test.get_owt_geometry_processor(
 #             turbines="BBK01", tower_base=10.0, monopile_head=5.0
 #         )
