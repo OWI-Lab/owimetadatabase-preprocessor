@@ -28,6 +28,27 @@ class API(object):
         self.header = None
         if "header" in kwargs.keys():
             self.header = kwargs["header"]
+            if "Authorization" in self.header:
+                if not self.header["Authorization"].startswith("Token "):
+                    if self.header["Authorization"].startswith("token "):
+                        self.header = {
+                            "Authorization": f"Token {self.header['Authorization'][6:]}"
+                        }
+                    elif self.header["Authorization"].startswith(
+                        "token"
+                    ) or self.header["Authorization"].startswith("Token"):
+                        self.header = {
+                            "Authorization": f"Token {self.header['Authorization'][5:]}"
+                        }
+                    else:
+                        self.header = {
+                            "Authorization": f"Token {self.header['Authorization']}"
+                        }
+            else:
+                raise ValueError(
+                    "If you provide a header directly, \
+                    the header must contain the 'Authorization' key with the value starting with 'Token'."
+                )
         elif token:
             self.header = {"Authorization": f"Token {token}"}
         elif self.uname and self.password:

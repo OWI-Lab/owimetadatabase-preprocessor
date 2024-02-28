@@ -18,9 +18,18 @@ def mock_requests_get(mocker: mock.Mock) -> mock.Mock:
 class TestAPIAuth:
     """Tests of authentication setup."""
 
-    def test_API_header(self, api_root: str) -> None:
+    @pytest.mark.parametrize(
+        "header",
+        [
+            ({"Authorization": "Token 12345"}),
+            ({"Authorization": "token 12345"}),
+            ({"Authorization": "token12345"}),
+            ({"Authorization": "Token12345"}),
+            ({"Authorization": "12345"}),
+        ],
+    )
+    def test_API_header(self, api_root: str, header) -> None:
         """Test parent API class with header that it initializes everything correctly."""
-        header = {"Authorization": "Token 12345"}
         api_test = API(api_root, header=header)
         assert api_test.api_root == api_root
         assert api_test.header == header
