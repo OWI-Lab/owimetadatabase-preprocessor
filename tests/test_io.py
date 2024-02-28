@@ -30,9 +30,10 @@ class TestAPIAuth:
     )
     def test_API_header(self, api_root: str, header) -> None:
         """Test parent API class with header that it initializes everything correctly."""
+        header_expected = {"Authorization": "Token 12345"}
         api_test = API(api_root, header=header)
         assert api_test.api_root == api_root
-        assert api_test.header == header
+        assert api_test.header == header_expected
         assert api_test.uname is None
         assert api_test.password is None
         assert api_test.auth is None
