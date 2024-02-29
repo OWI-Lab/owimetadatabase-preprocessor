@@ -110,17 +110,34 @@ class GeometryAPI(API):
         monopile_head: Union[float, List[float], None] = None,
     ) -> OWTs:
         """Return the required processing class."""
-        materials = self.get_materials()["data"]
+        materials_data = self.get_materials()
+        if materials_data["exists"]:
+            materials = materials_data["data"]
+        else:
+            raise ValueError("No materials found in the database.")
         owts = []
         turbines = [turbines] if isinstance(turbines, str) else turbines
         if not isinstance(tower_base, List) and not isinstance(monopile_head, List):
             tower_base = [tower_base] * len(turbines)
             monopile_head = [monopile_head] * len(turbines)
         for i in range(len(turbines)):
-            subassemblies = self.get_subassemblies(assetlocation=turbines[i])["data"]
-            location = LocationsAPI(header=self.header).get_assetlocation_detail(
+            subassemblies_data = self.get_subassemblies(assetlocation=turbines[i])
+            location_data = LocationsAPI(header=self.header).get_assetlocation_detail(
                 assetlocation=turbines[i]
-            )["data"]
+            )
+            if subassemblies_data["exists"] and location_data["exists"]:
+                subassemblies = subassemblies_data["data"]
+                location = location_data["data"]
+            elif not subassemblies_data["exists"] and not location_data["exists"]:
+                raise ValueError(
+                    f"No subassemblies and location found for turbine {turbines[i]}."
+                )
+            elif not subassemblies_data["exists"]:
+                raise ValueError(f"No subassemblies found for turbine {turbines[i]}.")
+            elif not location_data["exists"]:
+                raise ValueError(f"No location found for turbine {turbines[i]}.")
+            else:
+                raise ValueError("Unexpected error.")
             owts.append(
                 OWT(
                     self,
@@ -137,7 +154,11 @@ class GeometryAPI(API):
         self, turbines: Union[List[str], str], figures_per_line: int = 5
     ) -> None:
         """Plot turbines' frontal geometry."""
-        materials = self.get_materials()["data"]
+        materials_data = self.get_materials()
+        if materials_data["exists"]:
+            materials = materials_data["data"]
+        else:
+            raise ValueError("No materials found in the database.")
         turbines = [turbines] if isinstance(turbines, str) else turbines
         if len(turbines) > figures_per_line:
             n_rows = len(turbines) // figures_per_line + 1
@@ -152,7 +173,11 @@ class GeometryAPI(API):
         autosize = False if len(turbines) < 3 else True
         fig = make_subplots(n_rows, n_cols, subplot_titles=turbines)
         for i, turbine in enumerate(turbines):
-            subassemblies = self.get_subassemblies(assetlocation=turbine)["data"]
+            subassemblies_data = self.get_subassemblies(assetlocation=turbine)
+            if subassemblies_data["exists"]:
+                subassemblies = subassemblies_data["data"]
+            else:
+                raise ValueError(f"No subassemblies found for turbine {turbine}.")
             for j, sa in subassemblies.iterrows():
                 subassembly = SubAssembly(materials, sa.to_dict(), api_object=self)
                 subassembly.building_blocks

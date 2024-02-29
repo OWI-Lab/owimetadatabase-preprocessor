@@ -140,7 +140,14 @@ class LocationsAPI(API):
         :param kwargs: Keyword arguments for the search (see ``get_assetlocations``).
         :return: Plotly figure object with selected asset locations plotted on OpenStreetMap tiles (if requested).
         """
-        assetlocations = self.get_assetlocations(**kwargs)["data"]
+        assetlocations_data = self.get_assetlocations(**kwargs)
+        if assetlocations_data["exists"]:
+            assetlocations = assetlocations_data["data"]
+        else:
+            raise ValueError(
+                f"No asset locations found for the given parameters: {kwargs}. \
+                Please check for typos or if it is expected to exists."
+            )
         fig = px.scatter_mapbox(
             assetlocations,
             lat="northing",
