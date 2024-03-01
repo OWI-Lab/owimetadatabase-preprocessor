@@ -628,8 +628,10 @@ class OWTs(object):
                         ]
                     )
                 elif attr == "all_lumped_mass":
+                    cols = ["X [m]", "Y [m]", "Z [mLAT]", "Mass [t]"]
                     self.all_lumped_mass.extend(
                         [
+                            owt.rna[cols],
                             owt.tw_lumped_mass,
                             owt.tp_lumped_mass,
                             owt.mp_lumped_mass,
