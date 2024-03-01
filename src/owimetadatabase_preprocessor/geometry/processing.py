@@ -17,11 +17,11 @@ warnings.formatwarning = custom_formatwarning
 
 
 ATTR_PROC = [
-    "pile_toe", "rna", "tower_geometry", "transition_piece", "monopile", "tower_lumped_mass",
+    "pile_toe", "rna", "tower", "transition_piece", "monopile", "tw_lumped_mass",
     "tp_lumped_mass", "mp_lumped_mass", "tp_distributed_mass", "mp_distributed_mass", "grout"
 ]
 ATTR_SPEC = ["full_structure", "tp_skirt", "substructure"]
-ATTR_FULL = ["all_structural", "all_distributed_mass", "all_lumped_mass", "all_turbines"]
+ATTR_FULL = ["all_tubular_structures", "all_distributed_mass", "all_lumped_mass", "all_turbines"]
 
 
 class OWT(object):
@@ -320,10 +320,10 @@ class OWT(object):
         self._init_proc = True
         if option == "full":
             self.process_rna()
-            self.tower_geometry = self.process_structure_geometry("tw")
+            self.tower = self.process_structure_geometry("tw")
             self.transition_piece = self.process_structure_geometry("tp")
             self.monopile = self.process_structure_geometry("mp")
-            self.tower_lumped_mass = self.process_lumped_masses("TW")
+            self.tw_lumped_mass = self.process_lumped_masses("TW")
             self.tp_lumped_mass = self.process_lumped_masses("TP")
             self.mp_lumped_mass = self.process_lumped_masses("MP")
             self.tp_distributed_mass = self.process_distributed_lumped_masses("TP")
@@ -331,8 +331,8 @@ class OWT(object):
             self.grout = self.process_distributed_lumped_masses("grout")
         elif option == "tower":
             self.process_rna()
-            self.tower_geometry = self.process_structure_geometry("tw")
-            self.tower_lumped_mass = self.process_lumped_masses("TW")
+            self.tower = self.process_structure_geometry("tw")
+            self.tw_lumped_mass = self.process_lumped_masses("TW")
         elif option == "TP":
             self.transition_piece = self.process_structure_geometry("tp")
             self.tp_lumped_mass = self.process_lumped_masses("TP")
@@ -425,9 +425,9 @@ class OWT(object):
         """
         self._init_spec_full = True
         if self.substructure is not None:
-            if self.tower_geometry is not None:
+            if self.tower is not None:
                 self.full_structure = pd.concat(
-                    [self.tower_geometry, self.substructure]
+                    [self.tower, self.substructure]
                 )
             else:
                 raise TypeError("Tower needs to be processed before!")
@@ -571,10 +571,10 @@ class OWTs(object):
                         + self.owts[turb].tp_lumped_mass["Mass [t]"].sum()
                         + self.owts[turb].grout["Mass [t]"].sum()
                     ),
-                    self.owts[turb].tower_geometry["Height [m]"].sum(),
+                    self.owts[turb].tower["Height [m]"].sum(),
                     (
-                        self.owts[turb].tower_geometry["Mass [t]"].sum()
-                        + self.owts[turb].tower_lumped_mass["Mass [t]"].sum()
+                        self.owts[turb].tower["Mass [t]"].sum()
+                        + self.owts[turb].tw_lumped_mass["Mass [t]"].sum()
                         + self.owts[turb].rna["Mass [t]"].sum()
                     ),
                 ]
@@ -596,9 +596,9 @@ class OWTs(object):
             for attr in attr_list:
                 if attr == "pile_toe":
                     self.pile_toe.append(getattr(owt, attr))
-                elif attr == "all_structural":
-                    self.all_structural.extend(
-                        [owt.tower_geometry, owt.transition_piece, owt.monopile]
+                elif attr == "all_tubular_structures":
+                    self.all_tubular_structures.extend(
+                        [owt.tower, owt.transition_piece, owt.monopile]
                     )
                 elif attr == "all_distributed_mass":
                     self.all_distributed_mass.extend(
@@ -611,7 +611,7 @@ class OWTs(object):
                 elif attr == "all_lumped_mass":
                     self.all_lumped_mass.extend(
                         [
-                            owt.tower_lumped_mass,
+                            owt.tw_lumped_mass,
                             owt.tp_lumped_mass,
                             owt.mp_lumped_mass,
                         ]
