@@ -6,11 +6,27 @@ from typing import List, Union
 import numpy as np
 import pandas as pd
 
+import warnings
+
 from owimetadatabase_preprocessor.geometry.structures import SubAssembly
-from owimetadatabase_preprocessor.utils import deepcompare
+from owimetadatabase_preprocessor.utils import deepcompare, custom_formatwarning
+
+
+warnings.simplefilter('always')
+warnings.formatwarning = custom_formatwarning
+
+
+ATTR_PROC = [
+    "pile_toe", "rna", "tower_geometry", "transition_piece", "monopile", "tower_lumped_mass",
+    "tp_lumped_mass", "mp_lumped_mass", "tp_distributed_mass", "mp_distributed_mass", "grout"
+]
+ATTR_SPEC = ["full_structure", "tp_skirt", "substructure"]
+ATTR_FULL = ["all_structural", "all_distributed_mass", "all_lumped_mass", "all_turbines"]
 
 
 class OWT(object):
+    """Class to process the geometry data of a single OWT."""
+
     def __init__(
         self,
         api,
@@ -28,6 +44,9 @@ class OWT(object):
 
         :return:
         """
+        self._init_proc = False
+        self._init_spec_part = False
+        self._init_spec_full = False
         self.api = api
         self.materials = materials
         self._set_subassemblies(subassemblies)
@@ -35,27 +54,17 @@ class OWT(object):
         self.tp_sub_assemblies = None
         self.mp_sub_assemblies = None
         self._set_members()
+        for attr in ATTR_PROC:
+            setattr(self, attr, None)
+        for attr in ATTR_SPEC:
+            setattr(self, attr, None)
+        self.water_depth = location["elevation"].values[0]
         if not tower_base or not pile_head:
             self.tower_base = self.sub_assemblies["TW"].absolute_bottom
             self.pile_head = self.sub_assemblies["MP"].absolute_top
         else:
             self.tower_base = tower_base
             self.pile_head = pile_head
-        self.pile_toe = None
-        self.rna = None
-        self.tower_geometry = None
-        self.transition_piece = None
-        self.monopile = None
-        self.substructure = None
-        self.tp_skirt = None
-        self.tower_lumped_mass = None
-        self.tp_lumped_mass = None
-        self.mp_lumped_mass = None
-        self.tp_distributed_mass = None
-        self.mp_distributed_mass = None
-        self.grout = None
-        self.full_structure = None
-        self.water_depth = location["elevation"].values[0]
 
     def _set_subassemblies(self, subassemblies: pd.DataFrame) -> None:
         """Create a dictionary containing the subassemblies of the OWT."""
@@ -308,6 +317,7 @@ class OWT(object):
             - "monopile": To process only the data for the monopile foundation subassembly.
         :return:
         """
+        self._init_proc = True
         if option == "full":
             self.process_rna()
             self.tower_geometry = self.process_structure_geometry("tw")
@@ -391,6 +401,7 @@ class OWT(object):
 
         :return:
         """
+        self._init_spec_part = True
         if (self.transition_piece is not None) and (self.monopile is not None):
             mp_head = self.pile_head
             tp = self.transition_piece
@@ -412,6 +423,7 @@ class OWT(object):
 
         :return:
         """
+        self._init_spec_full = True
         if self.substructure is not None:
             if self.tower_geometry is not None:
                 self.full_structure = pd.concat(
@@ -471,6 +483,18 @@ class OWT(object):
             return deepcompare(self.__dict__, other)
         else:
             return False
+    
+    def __getattribute__(self, name):
+        if name in ATTR_PROC and not self._init_proc:
+            warnings.warn(f"Attribute '{name}' accessed before processing. \
+                    Run process_structure() first if you want to process values.")
+        elif name in ATTR_SPEC and not self._init_spec_part:
+            warnings.warn(f"Attribute '{name}' accessed before processing. \
+                    Run assembly_tp_mp() first if you want to process values.")
+        elif name in ATTR_SPEC and not self._init_spec_full:
+            warnings.warn(f"Attribute '{name}' accessed before processing. \
+                    Run assembly_full_structure() first if you want to process values.")          
+        return object.__getattribute__(self, name)
 
 
 class OWTs(object):
@@ -484,45 +508,23 @@ class OWTs(object):
         self.owts = {k: v for k, v in zip(turbines, owts)}
         self.api = self.owts[turbines[0]].api
         self.materials = self.owts[turbines[0]].materials
-        self.sub_assemblies = {
-            k: owt.sub_assemblies for k, owt in zip(turbines, self.owts.values())
-        }
-        self.tower_sub_assemblies = pd.concat(
-            [owt.tower_sub_assemblies for owt in self.owts.values()]
-        )
-        self.tp_sub_assemblies = pd.concat(
-            [owt.tp_sub_assemblies for owt in self.owts.values()]
-        )
-        self.mp_sub_assemblies = pd.concat(
-            [owt.mp_sub_assemblies for owt in self.owts.values()]
-        )
-        self.tower_base = {
-            k: owt.tower_base for k, owt in zip(turbines, self.owts.values())
-        }
-        self.pile_head = {
-            k: owt.pile_head for k, owt in zip(turbines, self.owts.values())
-        }
-        self.pile_toe = None
-        self.rna = None
-        self.tower_geometry = None
-        self.transition_piece = None
-        self.monopile = None
-        self.substructure = None
-        self.tp_skirt = None
-        self.tower_lumped_mass = None
-        self.tp_lumped_mass = None
-        self.mp_lumped_mass = None
-        self.tp_distributed_mass = None
-        self.mp_distributed_mass = None
-        self.grout = None
-        self.full_structure = None
-        self.water_depth = {
-            k: owt.water_depth for k, owt in zip(turbines, self.owts.values())
-        }
-        self.all_structural = None
-        self.all_distributed_mass = None
-        self.all_lumped_mass = None
-        self.all_turbines = None
+        for attr in ["sub_assemblies", "tower_base", "pile_head", "water_depth"]:
+            dict_ = {
+                k: getattr(owt, attr) for k, owt in zip(turbines, self.owts.values())
+            }
+            setattr(self, attr, dict_)
+        for attr in ["tower_sub_assemblies", "tp_sub_assemblies", "mp_sub_assemblies"]:
+            df = pd.concat(
+                [getattr(owt, attr) for owt in self.owts.values()]
+            )
+            setattr(self, attr, df)
+        for attr in ATTR_PROC:
+            setattr(self, attr, [])
+        for attr in ATTR_SPEC:
+            setattr(self, attr, [])
+        for attr in ATTR_FULL:
+            setattr(self, attr, [])
+        self._init = False
 
     def _concat_list(self, attr_list) -> None:
         """Internal method to concatenate lists of dataframes for attributes.
@@ -567,6 +569,7 @@ class OWTs(object):
                         self.owts[turb].transition_piece["Mass [t]"].sum()
                         + self.owts[turb].tp_distributed_mass["Mass [t]"].sum()
                         + self.owts[turb].tp_lumped_mass["Mass [t]"].sum()
+                        + self.owts[turb].grout["Mass [t]"].sum()
                     ),
                     self.owts[turb].tower_geometry["Height [m]"].sum(),
                     (
@@ -581,49 +584,46 @@ class OWTs(object):
 
     def process_structures(self) -> None:
         """Set dataframes containing the required properties to model the tower geometry, including the RNA system."""
-        attr_list = []
-        for attr in list(self.__dict__.keys()):
-            if getattr(self, attr) is None:
-                attr_list.append(attr)
-                setattr(self, attr, [])
-        if "all_turbines" in attr_list:
-            attr_list.remove("all_turbines")
-        if len(attr_list) > 0:
-            for owt in self.owts.values():
-                owt.process_structure()
-                owt.assembly_tp_mp()
-                owt.assembly_full_structure()
-                for attr in attr_list:
-                    if attr == "pile_toe":
-                        self.pile_toe.append(getattr(owt, attr))
-                    elif attr == "all_structural":
-                        self.all_structural.extend(
-                            [owt.tower_geometry, owt.transition_piece, owt.monopile]
-                        )
-                    elif attr == "all_distributed_mass":
-                        self.all_distributed_mass.extend(
-                            [
-                                owt.tp_distributed_mass,
-                                owt.grout,
-                                owt.mp_distributed_mass,
-                            ]
-                        )
-                    elif attr == "all_lumped_mass":
-                        self.all_lumped_mass.extend(
-                            [
-                                owt.tower_lumped_mass,
-                                owt.tp_lumped_mass,
-                                owt.mp_lumped_mass,
-                            ]
-                        )
-                    else:
-                        attr_val = getattr(self, attr)
-                        owt_attr_val = getattr(owt, attr)
-                        attr_val.append(owt_attr_val)
-            attr_list.remove("pile_toe")
-            self.pile_toe = {k: v for k, v in zip(self.owts.keys(), self.pile_toe)}
-            self._concat_list(attr_list)
-            self.assembly_turbine()
+        attr_list = ATTR_PROC + ATTR_SPEC + ATTR_FULL
+        attr_list.remove("all_turbines")
+        if self._init:
+            return
+        self._init = True
+        for owt in self.owts.values():
+            owt.process_structure()
+            owt.assembly_tp_mp()
+            owt.assembly_full_structure()
+            for attr in attr_list:
+                if attr == "pile_toe":
+                    self.pile_toe.append(getattr(owt, attr))
+                elif attr == "all_structural":
+                    self.all_structural.extend(
+                        [owt.tower_geometry, owt.transition_piece, owt.monopile]
+                    )
+                elif attr == "all_distributed_mass":
+                    self.all_distributed_mass.extend(
+                        [
+                            owt.tp_distributed_mass,
+                            owt.grout,
+                            owt.mp_distributed_mass,
+                        ]
+                    )
+                elif attr == "all_lumped_mass":
+                    self.all_lumped_mass.extend(
+                        [
+                            owt.tower_lumped_mass,
+                            owt.tp_lumped_mass,
+                            owt.mp_lumped_mass,
+                        ]
+                    )
+                else:
+                    attr_val = getattr(self, attr)
+                    owt_attr_val = getattr(owt, attr)
+                    attr_val.append(owt_attr_val)
+        attr_list.remove("pile_toe")
+        self.pile_toe = {k: v for k, v in zip(self.owts.keys(), self.pile_toe)}
+        self._concat_list(attr_list)
+        self.assembly_turbine()
 
     def select_owt(self, turbine: Union[str, int]) -> OWT:
         """Select OWT object from the OWTs object.
@@ -648,3 +648,9 @@ class OWTs(object):
             return deepcompare(self.__dict__, other)
         else:
             return False
+    
+    def __getattribute__(self, name):
+        if name in ATTR_PROC + ATTR_SPEC + ATTR_FULL and not self._init:
+            warnings.warn(f"Attribute '{name}' accessed before processing. \
+                    Run process_structures() first if you want to process values.")       
+        return object.__getattribute__(self, name)

@@ -4,6 +4,10 @@ import numpy as np
 import pandas as pd
 
 
+def custom_formatwarning(message, category, filename, lineno, line=None):
+    return f"{category.__name__}: {message}\n"
+
+
 def dict_generator(dict_, keys_=None, method_="exclude"):
     if method_ == "exclude":
         return {k: dict_[k] for k in dict_.keys() if k not in keys_}
