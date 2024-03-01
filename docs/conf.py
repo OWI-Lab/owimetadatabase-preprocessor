@@ -32,6 +32,9 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 html_theme = "sphinx_rtd_theme"  # "alabaster"
 html_static_path = ["_static"]
+autodoc_default_options = {
+    'private-members': False
+}
 # html_theme_options = {
 #    'body_max_width': '100%',
 # }

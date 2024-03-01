@@ -1,3 +1,5 @@
+"""Utility functions for the owimetadatabase_preprocessor package."""
+
 import math
 
 import numpy as np

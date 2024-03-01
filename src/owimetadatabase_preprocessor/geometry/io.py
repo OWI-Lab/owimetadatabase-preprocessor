@@ -24,6 +24,16 @@ class GeometryAPI(API):
         password: Union[str, None] = None,
         **kwargs,
     ) -> None:
+        """Create an instance of the GeometryAPI class with the required parameters.
+
+        :param api_root: Optional: root URL of the API endpoint, the default working database url is provided.
+        :param api_subdir: Optional: subdirectory of the API endpooint url for specific type of data.
+        :param token: Optional: token to access the API.
+        :param uname: Optional: username to access the API.
+        :param password: Optional: password to access the API.
+        :param kwargs: Additional parameters to pass to the API.
+        :return: None
+        """
         super().__init__(api_root, token, uname, password, **kwargs)
         self.api_root = self.api_root + api_subdir
 
@@ -62,8 +72,7 @@ class GeometryAPI(API):
         subassembly_type: Union[str, None] = None,
         subassembly_id: Union[str, None] = None,
     ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
-        """
-        Get all building blocks for a given location.
+        """Get all building blocks for a given location.
 
         :param projectsite: Title of the projectsite.
         :param assetlocation: Title of the asset location.
@@ -89,8 +98,7 @@ class GeometryAPI(API):
         return {"data": df, "exists": df_add["existance"]}
 
     def get_materials(self) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
-        """
-        Get all the materials of building blocks.
+        """Get all the materials of building blocks.
 
         :return: Dictionary with the following keys:
 
@@ -109,7 +117,13 @@ class GeometryAPI(API):
         tower_base: Union[float, List[float], None] = None,
         monopile_head: Union[float, List[float], None] = None,
     ) -> OWTs:
-        """Return the required processing class."""
+        """Return the required processing class.
+
+        :param turbines: Title(s) of the turbines.
+        :param tower_base: Optional: height(s) of the tower base.
+        :param monopile_head: Optional: height(s) of the monopile head.
+        :return: OWTs object: containing information about all the requested turbines.
+        """
         materials_data = self.get_materials()
         if materials_data["exists"]:
             materials = materials_data["data"]
@@ -153,7 +167,12 @@ class GeometryAPI(API):
     def plot_turbines(
         self, turbines: Union[List[str], str], figures_per_line: int = 5
     ) -> None:
-        """Plot turbines' frontal geometry."""
+        """Plot turbines' frontal geometry.
+
+        :param turbines: Title(s) of the turbines.
+        :param figures_per_line: Number of figures per line.
+        :return: None
+        """
         materials_data = self.get_materials()
         if materials_data["exists"]:
             materials = materials_data["data"]

@@ -1,48 +1,87 @@
 "Module containing the processing functions for the geometry data."
 
+import warnings
 from copy import deepcopy
-from typing import List, Union
+from typing import Any, List, Union
 
 import numpy as np
 import pandas as pd
 
-import warnings
-
 from owimetadatabase_preprocessor.geometry.structures import SubAssembly
-from owimetadatabase_preprocessor.utils import deepcompare, custom_formatwarning
+from owimetadatabase_preprocessor.utils import custom_formatwarning, deepcompare
 
-
-warnings.simplefilter('always')
+warnings.simplefilter("always")
 warnings.formatwarning = custom_formatwarning
 
 
 ATTR_PROC = [
-    "pile_toe", "rna", "tower", "transition_piece", "monopile", "tw_lumped_mass",
-    "tp_lumped_mass", "mp_lumped_mass", "tp_distributed_mass", "mp_distributed_mass", "grout"
+    "pile_toe",
+    "rna",
+    "tower",
+    "transition_piece",
+    "monopile",
+    "tw_lumped_mass",
+    "tp_lumped_mass",
+    "mp_lumped_mass",
+    "tp_distributed_mass",
+    "mp_distributed_mass",
+    "grout",
 ]
 ATTR_SPEC = ["full_structure", "tp_skirt", "substructure"]
-ATTR_FULL = ["all_tubular_structures", "all_distributed_mass", "all_lumped_mass", "all_turbines"]
+ATTR_FULL = [
+    "all_tubular_structures",
+    "all_distributed_mass",
+    "all_lumped_mass",
+    "all_turbines",
+]
 
 
 class OWT(object):
-    """Class to process the geometry data of a single OWT."""
+    """Class to process the geometry data of a single OWT.
+
+    :param api: API object used to call get_* methods.
+    :param materials: Pandas dataframe with the materials data.
+    :param sub_assemblies: Dictionary of the subassemblies.
+    :param tw_sub_assemblies: Pandas dataframe with the tower subassemblies data for a given turbine.
+    :param tp_sub_assemblies: Pandas dataframe with the transition piece subassemblies data for a given turbine.
+    :param mp_sub_assemblies: Pandas dataframe with the monopile subassemblies data for a given turbine.
+    :param tower_base: Elevation of the OWT tower base in mLAT.
+    :param pile_head: Elevation of the pile head in mLAT.
+    :param water_depth: Water depth in mLAT.
+    :param pile_toe: Elevation of the pile toe in mLAT.
+    :param rna: Pandas dataframe with the RNA data.
+    :param tower: Pandas dataframe with the tower data.
+    :param transition_piece: Pandas dataframe with the transition piece data.
+    :param monopile: Pandas dataframe with the monopile data.
+    :param tw_lumped_mass: Pandas dataframe with the lumped masses data for the tower.
+    :param tp_lumped_mass: Pandas dataframe with the lumped masses data for the transition piece.
+    :param mp_lumped_mass: Pandas dataframe with the lumped masses data for the monopile.
+    :param tp_distributed_mass: Pandas dataframe with the distributed masses data for the transition piece.
+    :param mp_distributed_mass: Pandas dataframe with the distributed masses data for the monopile.
+    :param grout: Pandas dataframe with the grout data.
+    :param full_structure: Pandas dataframe with the full structure data.
+    :param tp_skirt: Pandas dataframe with the transition piece skirt data.
+    :param substructure: Pandas dataframe with the substructure data.
+    """
 
     def __init__(
         self,
-        api,
+        api: Any,
         materials: pd.DataFrame,
         subassemblies: pd.DataFrame,
         location: pd.DataFrame,
         tower_base: Union[float, None] = None,
         pile_head: Union[float, None] = None,
     ) -> None:
-        """Get all subassemblies for a given Turbine.
+        """Create an instance of the OWT class with the required parameters.
 
+        :param api: API object used to call get_* methods.
+        :param materials: Pandas dataframe with the materials data.
         :param subassemblies: Pandas dataframe with the subassemblies data for a given turbine.
-        :param tower_base: Elevation of the OWT tower base in mLAT.
-        :param pile_head: Elevation of the pile head in mLAT.
-
-        :return:
+        :param location: Pandas dataframe with the location data for a given turbine.
+        :param tower_base: Optional: elevation of the OWT tower base in mLAT.
+        :param pile_head: Optional: elevation of the pile head in mLAT.
+        :return: None
         """
         self._init_proc = False
         self._init_spec_part = False
@@ -50,7 +89,7 @@ class OWT(object):
         self.api = api
         self.materials = materials
         self._set_subassemblies(subassemblies)
-        self.tower_sub_assemblies = None
+        self.tw_sub_assemblies = None
         self.tp_sub_assemblies = None
         self.mp_sub_assemblies = None
         self._set_members()
@@ -67,7 +106,11 @@ class OWT(object):
             self.pile_head = pile_head
 
     def _set_subassemblies(self, subassemblies: pd.DataFrame) -> None:
-        """Create a dictionary containing the subassemblies of the OWT."""
+        """Create a dictionary containing the subassemblies of the OWT.
+
+        :param subassemblies: Pandas dataframe with the subassemblies data for a given turbine.
+        :return: None
+        """
         subassemblies_types = [
             sa["subassembly_type"] for _, sa in subassemblies.iterrows()
         ]
@@ -82,10 +125,12 @@ class OWT(object):
     def _set_members(self) -> None:
         """Identify and stores in separate data frames each part of the support structure (tower=TW, transition piece=TP,
         monopile=MP).
+
+        :return: None
         """
         for k, v in self.sub_assemblies.items():
             if k == "TW":
-                self.tower_sub_assemblies = v.as_df()
+                self.tw_sub_assemblies = v.as_df()
             if k == "TP":
                 self.tp_sub_assemblies = v.as_df()
             if k == "MP":
@@ -99,8 +144,8 @@ class OWT(object):
         """
         cols = ["OD", "height", "mass", "volume", "wall_thickness", "x", "y", "z"]
         if idx == "tw":
-            df_index = self.tower_sub_assemblies.index.str.contains(idx)
-            df = deepcopy(self.tower_sub_assemblies.loc[df_index, cols])
+            df_index = self.tw_sub_assemblies.index.str.contains(idx)
+            df = deepcopy(self.tw_sub_assemblies.loc[df_index, cols])
             depth_to = self.tower_base + df.z * 1e-3
             depth_from = depth_to + df.height * 1e-3
         elif idx == "tp":
@@ -168,11 +213,11 @@ class OWT(object):
     def process_rna(self) -> None:
         """Set dataframe containing the required properties to model the RNA system.
 
-        :return:
+        :return: None
         """
-        rna_index = self.tower_sub_assemblies.index.str.contains("RNA")
+        rna_index = self.tw_sub_assemblies.index.str.contains("RNA")
         rna = deepcopy(
-            self.tower_sub_assemblies.loc[
+            self.tw_sub_assemblies.loc[
                 rna_index, ["mass", "moment_of_inertia", "x", "y", "z", "description"]
             ]
         )
@@ -210,8 +255,8 @@ class OWT(object):
         """
         cols = ["mass", "x", "y", "z", "description"]
         if idx == "TW":
-            df_index = self.tower_sub_assemblies.index.str.contains(idx)
-            df = deepcopy(self.tower_sub_assemblies.loc[df_index, cols])
+            df_index = self.tw_sub_assemblies.index.str.contains(idx)
+            df = deepcopy(self.tw_sub_assemblies.loc[df_index, cols])
             df["Z [mLAT]"] = self.tower_base + df["z"] * 1e-3
         elif idx == "TP":
             df_index = self.tp_sub_assemblies.index.str.contains(idx)
@@ -319,7 +364,7 @@ class OWT(object):
             - "tower": To process only the data for the tower subassembly.
             - "TP": To process only the data for the transition piece subassembly.
             - "monopile": To process only the data for the monopile foundation subassembly.
-        :return:
+        :return: None
         """
         self._init_proc = True
         if option == "full":
@@ -353,7 +398,7 @@ class OWT(object):
         volume [m3], mass [t], rho [t/m].
 
         :param row: Original can properties.
-        :return: Recalculated can properties.
+        :return: Pandas series of recalculated can properties.
         """
         density = row["Mass [t]"] / row["Volume [m3]"]
         height = row["Depth from [mLAT]"] - row["Depth to [mLAT]"]
@@ -403,7 +448,7 @@ class OWT(object):
         """Process TP structural item to assembly with MP foundation ensuring continuity. TP skirt is processed
         as well.
 
-        :return:
+        :return: None
         """
         self._init_spec_part = True
         if (self.transition_piece is not None) and (self.monopile is not None):
@@ -425,20 +470,22 @@ class OWT(object):
     def assembly_full_structure(self) -> None:
         """Process the full structure of the OWT: tower + tp combiantion with monopile.
 
-        :return:
+        :return: None
         """
         self._init_spec_full = True
         if self.substructure is not None:
             if self.tower is not None:
-                self.full_structure = pd.concat(
-                    [self.tower, self.substructure]
-                )
+                self.full_structure = pd.concat([self.tower, self.substructure])
             else:
                 raise TypeError("Tower needs to be processed before!")
         else:
             raise TypeError("Substructure needs to be processed before!")
-    
-    def extend_dfs(self):
+
+    def extend_dfs(self) -> None:
+        """Extend the dataframes with the subassembly columns.
+
+        :return: None
+        """
         self.tower["Subassembly"] = "TW"
         self.transition_piece["Subassembly"] = "TP"
         self.monopile["Subassembly"] = "MP"
@@ -458,8 +505,7 @@ class OWT(object):
     ) -> pd.DataFrame:
         """Returns a dataframe with the monopile geometry with the mudline as reference
 
-        :param projectsite: Title of the projectsite.
-        :param assetlocation: Title of the turbine.
+        :param cutoff_point: Depth from the mudline to cut the monopile geometry.
         :return: Dataframe with the monopile geometry.
         """
         toe_depth_lat = self.sub_assemblies["MP"].position.z
@@ -501,28 +547,70 @@ class OWT(object):
             return deepcompare(self.__dict__, other)
         else:
             return False
-    
-    def __getattribute__(self, name):
+
+    def __getattribute__(self, name: str) -> object:
         if name in ATTR_PROC and not self._init_proc:
-            warnings.warn(f"Attribute '{name}' accessed before processing. \
-                    Run process_structure() first if you want to process values.")
+            warnings.warn(
+                f"Attribute '{name}' accessed before processing. \
+                    Run process_structure() first if you want to process values."
+            )
         elif name in ATTR_SPEC and not self._init_spec_part:
-            warnings.warn(f"Attribute '{name}' accessed before processing. \
-                    Run assembly_tp_mp() first if you want to process values.")
+            warnings.warn(
+                f"Attribute '{name}' accessed before processing. \
+                    Run assembly_tp_mp() first if you want to process values."
+            )
         elif name in ATTR_SPEC and not self._init_spec_full:
-            warnings.warn(f"Attribute '{name}' accessed before processing. \
-                    Run assembly_full_structure() first if you want to process values.")          
+            warnings.warn(
+                f"Attribute '{name}' accessed before processing. \
+                    Run assembly_full_structure() first if you want to process values."
+            )
         return object.__getattribute__(self, name)
 
 
 class OWTs(object):
-    """Class to process the geometry data of multiple OWTs."""
+    """Class to process the geometry data of multiple OWTs.
+
+    :param owts: List of OWT objects.
+    :param api: API object used to call get_* methods.
+    :param materials: Pandas dataframe with the materials data.
+    :param sub_assemblies: Dictionary of dictionaries of the subassemblies for each turbine.
+    :param tower_base: Dictionary of the elevation of the OWT tower base in mLAT for each turbine.
+    :param pile_head: Dictionary of the elevation of the pile head in mLAT for each turbine.
+    :param water_depth: Dictionary of the water depth in mLAT for each turbine.
+    :param tw_sub_assemblies: Dataframe of the tower subassemblies data from each turbine.
+    :param tp_sub_assemblies: Dataframe of the transition piece subassemblies data from each turbine.
+    :param mp_sub_assemblies: Dataframe of the monopile subassemblies data from each turbine.
+    :param pile_toe: Dataframe of the elevation of the pile toe in mLAT from each turbine.
+    :param rna: Dataframe of the RNA data from each turbine.
+    :param tower: Dataframe of the tower data from each turbine.
+    :param transition_piece: Dataframe of the transition piece data from each turbine.
+    :param monopile: Dataframe of the monopile data from each turbine.
+    :param tw_lumped_mass: Dataframe of the lumped masses data of the tower from each turbine.
+    :param tp_lumped_mass: Dataframe of the lumped masses data of the transition piece from each turbine.
+    :param mp_lumped_mass: Dataframe of the lumped masses data of the monopile from each turbine.
+    :param tp_distributed_mass: Dataframe of the distributed masses data of the transition piece from each turbine.
+    :param mp_distributed_mass: Dataframe of the distributed masses data of the monopile from each turbine.
+    :param grout: Dataframe of the grout data from each turbine.
+    :param full_structure: Dataframe of the full structure data from each turbine.
+    :param tp_skirt: Dataframe of the transition piece skirt data from each turbine.
+    :param substructure: Dataframe of the substructure data from each turbine.
+    :param all_turbines: Dataframe of the general geometry data from each turbine.
+    :param all_tubular_structures: Dataframe of the tubular structures data from each turbine.
+    :param all_distributed_mass: Dataframe of the distributed masses data from each turbine.
+    :param all_lumped_mass: Dataframe of the lumped masses data from each turbine.
+    """
 
     def __init__(
         self,
         turbines: List[str],
         owts: List[OWT],
     ) -> None:
+        """Create an instance of the OWTs class with the required parameters.
+
+        :param turbines: List of turbine titles.
+        :param owts: List of OWT objects.
+        :return:
+        """
         self.owts = {k: v for k, v in zip(turbines, owts)}
         self.api = self.owts[turbines[0]].api
         self.materials = self.owts[turbines[0]].materials
@@ -531,10 +619,8 @@ class OWTs(object):
                 k: getattr(owt, attr) for k, owt in zip(turbines, self.owts.values())
             }
             setattr(self, attr, dict_)
-        for attr in ["tower_sub_assemblies", "tp_sub_assemblies", "mp_sub_assemblies"]:
-            df = pd.concat(
-                [getattr(owt, attr) for owt in self.owts.values()]
-            )
+        for attr in ["tw_sub_assemblies", "tp_sub_assemblies", "mp_sub_assemblies"]:
+            df = pd.concat([getattr(owt, attr) for owt in self.owts.values()])
             setattr(self, attr, df)
         for attr in ATTR_PROC:
             setattr(self, attr, [])
@@ -544,16 +630,20 @@ class OWTs(object):
             setattr(self, attr, [])
         self._init = False
 
-    def _concat_list(self, attr_list) -> None:
+    def _concat_list(self, attr_list: List[str]) -> None:
         """Internal method to concatenate lists of dataframes for attributes.
 
         :param attr_list: List of attributes to concatenate.
+        :return: None
         """
         for attr in attr_list:
             setattr(self, attr, pd.concat(getattr(self, attr)))
 
     def assembly_turbine(self) -> None:
-        """Method to assemble general geometry data of all specified turbines."""
+        """Method to assemble general geometry data of all specified turbines.
+
+        :return: None
+        """
         cols = [
             "Turbine name",
             "Water depth [m]",
@@ -601,7 +691,10 @@ class OWTs(object):
         self.all_turbines = df.round(2)
 
     def process_structures(self) -> None:
-        """Set dataframes containing the required properties to model the tower geometry, including the RNA system."""
+        """Set dataframes containing the required properties to model the tower geometry, including the RNA system.
+
+        :return: None
+        """
         attr_list = ATTR_PROC + ATTR_SPEC + ATTR_FULL
         attr_list.remove("all_turbines")
         if self._init:
@@ -626,7 +719,14 @@ class OWTs(object):
                         ]
                     )
                 elif attr == "all_lumped_mass":
-                    cols = ["X [m]", "Y [m]", "Z [mLAT]", "Mass [t]", "Description", "Subassembly"]
+                    cols = [
+                        "X [m]",
+                        "Y [m]",
+                        "Z [mLAT]",
+                        "Mass [t]",
+                        "Description",
+                        "Subassembly",
+                    ]
                     self.all_lumped_mass.extend(
                         [
                             owt.rna[cols],
@@ -667,9 +767,11 @@ class OWTs(object):
             return deepcompare(self.__dict__, other)
         else:
             return False
-    
+
     def __getattribute__(self, name):
         if name in ATTR_PROC + ATTR_SPEC + ATTR_FULL and not self._init:
-            warnings.warn(f"Attribute '{name}' accessed before processing. \
-                    Run process_structures() first if you want to process values.")       
+            warnings.warn(
+                f"Attribute '{name}' accessed before processing. \
+                    Run process_structures() first if you want to process values."
+            )
         return object.__getattribute__(self, name)

@@ -31,6 +31,16 @@ class LocationsAPI(API):
         password: Union[str, None] = None,
         **kwargs,
     ) -> None:
+        """Create an instance of the LocationsAPI class with the required parameters.
+
+        :param api_root: Optional: root URL of the API endpoint, the default working database url is provided.
+        :param api_subdir: Optional: subdirectory of the API endpooint url for specific type of data.
+        :param token: Optional: token to access the API.
+        :param uname: Optional: username to access the API.
+        :param password: Optional: password to access the API.
+        :param kwargs: Additional parameters to pass to the API.
+        :return: None
+        """
         super().__init__(api_root, token, uname, password, **kwargs)
         self.api_root = self.api_root + api_subdir
 
@@ -39,7 +49,7 @@ class LocationsAPI(API):
     ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
         """Get all available projects.
 
-        :param:
+        :param: kwargs: Additional parameters to pass to the API.
         :return:  Dictionary with the following keys:
 
             - "data": Pandas dataframe with the location data for each project
@@ -58,6 +68,7 @@ class LocationsAPI(API):
         """Get details for a specific projectsite.
 
         :param projectsite: Title of the projectsite.
+        :param kwargs: Additional parameters to pass to the API.
         :return:  Dictionary with the following keys:
 
             - "id": id of the selected project site.
@@ -78,6 +89,7 @@ class LocationsAPI(API):
 
         :param projectsite: String with the projectsite title (e.g. "Nobelwind").
         :param assetlocation: String with the asset location title (e.g. "NW2A04").
+        :param kwargs: Additional parameters to pass to the API.
         :return: Dictionary with the following keys:
 
             - "data": Pandas dataframe with the location data for each location in the projectsite.
@@ -114,6 +126,7 @@ class LocationsAPI(API):
 
         :param projectsite: Name of the projectsite (e.g. "Nobelwind").
         :param assetlocation: Title of the asset location (e.g. "BBK05").
+        :param kwargs: Additional parameters to pass to the API.
         :return: Dictionary with the following keys:
 
             - "id": id of the selected projectsite site.

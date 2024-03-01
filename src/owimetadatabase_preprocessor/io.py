@@ -21,6 +21,15 @@ class API(object):
         password: Union[str, None] = None,
         **kwargs,
     ) -> None:
+        """Create an instance of the API class with the required parameters.
+
+        :param api_root: Optional: root URL of the API endpoint, the default working database url is provided.
+        :param token: Optional: token to access the API.
+        :param uname: Optional: username to access the API.
+        :param password: Optional: password to access the API.
+        :param kwargs: Additional parameters to pass to the API.
+        :return: None
+        """
         self.api_root = api_root
         self.uname = uname
         self.password = password
@@ -98,7 +107,7 @@ class API(object):
         """Check status code of the response to request and provide detials if unexpected.
 
         :param resp: Instance of the Response object.
-        :return:
+        :return: None
         """
         if resp.status_code != 200:
             e = "Error " + str(resp.status_code) + ".\n" + resp.reason
