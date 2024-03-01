@@ -200,13 +200,15 @@ class OWT(object):
         ]
         self.rna = rna[cols]
 
-    def set_df_appurtenances(self, idx: str) -> pd.DataFrame:
+    def set_df_appurtenances(self, idx: str, add_descr: bool = False) -> pd.DataFrame:
         """Set dataframe containing the required properties to model concentrated masses from database subassemblies.
 
         :param idx: Index to identify corresponding subassembly with possible values: 'TW', 'TP', 'MP'.
         :return: Data frame containing lumped masses data from database with Z coordinates in mLAT system.
         """
         cols = ["mass", "x", "y", "z"]
+        if add_descr:
+            cols += ["description"]
         if idx == "TW":
             df_index = self.tower_sub_assemblies.index.str.contains(idx)
             df = deepcopy(self.tower_sub_assemblies.loc[df_index, cols])
@@ -231,18 +233,20 @@ class OWT(object):
             raise ValueError("Unknown index.")
         return df
 
-    def process_lumped_masses(self, idx: str) -> pd.DataFrame:
+    def process_lumped_masses(self, idx: str, add_descr: bool = False) -> pd.DataFrame:
         """Create dataframe containing the required properties to model lumped mass appurtenances. Note that
         if the preprocessor package does not find any appurtenances it'll return an empty dataframe.
 
         :param idx:  Index to identify corresponding subassembly with possible values: 'TW', 'TP', 'MP'.
         :return: Dataframe.
         """
-        df = self.set_df_appurtenances(idx)
+        df = self.set_df_appurtenances(idx, add_descr=add_descr)
         df["Mass [t]"] = df.mass * 1e-3
         df["X [m]"] = df.x * 1e-3
         df["Y [m]"] = df.y * 1e-3
         cols = ["X [m]", "Y [m]", "Z [mLAT]", "Mass [t]"]
+        if add_descr:
+            cols.append("Description")
         return df[cols]
 
     def set_df_distributed_appurtenances(self, idx: str) -> pd.DataFrame:
@@ -433,6 +437,22 @@ class OWT(object):
                 raise TypeError("Tower needs to be processed before!")
         else:
             raise TypeError("Substructure needs to be processed before!")
+    
+    def extend_dfs(self):
+        for sa in ["TW", "TP", "MP"]:
+            self.process_lumped_masses(sa, add_descr=True)
+        self.tower["Subassembly"] = "TW"
+        self.transition_piece["Subassembly"] = "TP"
+        self.monopile["Subassembly"] = "MP"
+        self.tw_lumped_mass["Subassembly"] = "TW"
+        self.tp_lumped_mass["Subassembly"] = "TP"
+        self.mp_lumped_mass["Subassembly"] = "MP"
+        self.tp_distributed_mass["Subassembly"] = "TP"
+        self.mp_distributed_mass["Subassembly"] = "MP"
+        self.grout["Subassembly"] = "TP"
+        self.rna["Subassembly"] = "TW"
+        self.assembly_tp_mp()
+        self.assembly_full_structure()
 
     def transform_monopile_geometry(
         self,
@@ -591,8 +611,7 @@ class OWTs(object):
         self._init = True
         for owt in self.owts.values():
             owt.process_structure()
-            owt.assembly_tp_mp()
-            owt.assembly_full_structure()
+            owt.extend_dfs()
             for attr in attr_list:
                 if attr == "pile_toe":
                     self.pile_toe.append(getattr(owt, attr))
