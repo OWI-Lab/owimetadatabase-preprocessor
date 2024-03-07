@@ -5,12 +5,22 @@ import math
 import numpy as np
 import pandas as pd
 
+from typing import Any, Dict, List, Tuple
+
 
 def custom_formatwarning(message, category, filename, lineno, line=None):
+    """Custom format for warnings."""
     return f"{category.__name__}: {message}\n"
 
 
-def dict_generator(dict_, keys_=None, method_="exclude"):
+def dict_generator(dict_: Dict[str, Any], keys_: List[str] = None, method_: str = "exclude") -> Dict[str, Any]:
+    """Generate a dictionary with the specified keys.
+
+    :param dict_: Dictionary to be filtered.
+    :param keys_: List of keys to be included or excluded.
+    :param method_: Method to be used for filtering. Options are "exclude" and "include".
+    :return: Filtered dictionary.
+    """
     if method_ == "exclude":
         return {k: dict_[k] for k in dict_.keys() if k not in keys_}
     elif method_ == "include":
@@ -19,7 +29,14 @@ def dict_generator(dict_, keys_=None, method_="exclude"):
         raise ValueError("Method not recognized!")
 
 
-def compare_if_simple_close(a, b, tol=1e-9):
+def compare_if_simple_close(a: Any, b: Any, tol: float = 1e-9) -> Tuple[bool, str]:
+    """Compare two values and return a boolean and a message.
+
+    :param a: First value to be compared.
+    :param b: Second value to be compared.
+    :param tol: Tolerance for the comparison.
+    :return: Tuple with a result of comparison and a message if different.
+    """
     if isinstance(a, (float, np.floating)) and isinstance(b, (float, np.floating)):
         if np.isnan(a) and np.isnan(b):
             return True, None
@@ -37,7 +54,14 @@ def compare_if_simple_close(a, b, tol=1e-9):
     return assertion, messsage
 
 
-def check_df_eq(df1, df2, tol=1e-9):
+def check_df_eq(df1: pd.DataFrame, df2: pd.DataFrame, tol: float = 1e-9) -> bool:
+    """Check if two dataframes are equal.
+
+    :param df1: First dataframe to be compared.
+    :param df2: Second dataframe to be compared.
+    :param tol: Tolerance for the comparison.
+    :return: Boolean indicating if the dataframes are equal.
+    """
     if df1.empty and df2.empty:
         return True
     elif (df1.empty and not df2.empty) or (not df1.empty and df2.empty):
@@ -57,7 +81,14 @@ def check_df_eq(df1, df2, tol=1e-9):
     return num_cols_eq and str_cols_eq
 
 
-def deepcompare(a, b, tol=1e-5):
+def deepcompare(a: Any, b: Any, tol: float = 1e-5) -> Tuple[bool, str]:
+    """Compare two complicated (potentailly nested) objects recursively and return a result and a message.
+
+    :param a: First object to be compared.
+    :param b: Second object to be compared.
+    :param tol: Tolerance for the comparison.
+    :return: Tuple with a result of comparison and a message if different.
+    """
     if type(a) != type(b):  # noqa: E721
         if hasattr(a, "__dict__") and isinstance(b, dict):
             return deepcompare(a.__dict__, b, tol)
@@ -115,7 +146,12 @@ def deepcompare(a, b, tol=1e-5):
         return compare_if_simple_close(a, b, tol)
 
 
-def fix_nan(obj):
+def fix_nan(obj: Any) -> Any:
+    """Replace "nan" strings with None.
+
+    :param obj: Object to be fixed.
+    :return: Fixed object.
+    """
     if isinstance(obj, dict):
         for k, v in obj.items():
             obj[k] = fix_nan(v)
@@ -128,7 +164,12 @@ def fix_nan(obj):
     return obj
 
 
-def fix_outline(data):
+def fix_outline(data: Any) -> Any:
+    """Fix the outline attribute in the data.
+
+    :param data: Data to be fixed.
+    :return: Fixed data.
+    """
     if isinstance(data, list):
         for i in range(len(data)):
             if "outline" in data[i].keys() and data[i]["outline"] is not None:
