@@ -38,6 +38,12 @@ def compare_if_simple_close(a, b, tol=1e-9):
 
 
 def check_df_eq(df1, df2, tol=1e-9):
+    if df1.empty and df2.empty:
+        return True
+    elif (df1.empty and not df2.empty) or (not df1.empty and df2.empty):
+        return False
+    if df1.shape != df2.shape:
+        return False
     num_cols_eq = np.allclose(
         df1.select_dtypes(include=np.number),
         df2.select_dtypes(include=np.number),

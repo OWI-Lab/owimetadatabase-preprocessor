@@ -68,6 +68,12 @@ dev = ["pytest", "pytest-mock", "pytest-xdist", "pytest-clarity", "pytest-cov", 
     "bump2version"]
 
 
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::UserWarning"
+]
+
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

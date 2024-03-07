@@ -30,22 +30,25 @@ class TestBaseStructure:
 
 
 class TestMaterial:
-    def test_init(self, materials) -> None:
-        for i in range(len(materials)):
-            mat = Material(materials[i])
-            assert mat == materials[i]
+    def test_init(self, materials_dicts_init) -> None:
+        for i in range(len(materials_dicts_init)):
+            mat = Material(materials_dicts_init[i])
+            assertion, message = deepcompare(mat, materials_dicts_init[i])
+            assert assertion, message
 
-    def test_as_dict(self, materials, materials_dict) -> None:
-        for i in range(len(materials)):
-            mat = Material(materials[i])
+    def test_as_dict(self, materials_dicts_init, materials_dicts_asdict) -> None:
+        for i in range(len(materials_dicts_init)):
+            mat = Material(materials_dicts_init[i])
             mat_dict = mat.as_dict()
-            assert mat_dict == materials_dict[i]
+            assertion, message = deepcompare(mat_dict, materials_dicts_asdict[i])
+            assert assertion, message
 
 
 class TestPosition:
     def test_init(self, position_1) -> None:
         pos = Position(**position_1)
-        assert pos == position_1
+        assertion, message = deepcompare(pos, position_1)
+        assert assertion, message
 
 
 class TestBuildingBlock:

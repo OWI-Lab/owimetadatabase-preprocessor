@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Any, Dict, Union
 from unittest import mock
 
 import pandas as pd
@@ -6,6 +6,8 @@ import pandas.testing as pd_testing
 import pytest
 
 from owimetadatabase_preprocessor.geometry.io import GeometryAPI
+from owimetadatabase_preprocessor.geometry.processing import OWTs
+from owimetadatabase_preprocessor.utils import deepcompare
 
 
 @pytest.mark.parametrize(
@@ -143,7 +145,7 @@ def test_get_buildingblocks(
 
 
 def test_get_materials(
-    api_root: str, header: Dict[str, str], mock_requests_get_materials: mock.Mock
+    api_root: str, header: Dict[str, str], mock_requests_get_advanced: mock.Mock
 ) -> None:
     api_test = GeometryAPI(api_root, header=header)
     data = api_test.get_materials()
@@ -152,28 +154,12 @@ def test_get_materials(
     assert data["exists"]
 
 
-# def test_get_owt_geometry_processor(
-#     api_root: str,
-#     header: Dict[str, str],
-#     mat: pd.DataFrame,
-#     sa: pd.DataFrame,
-#     OWT_mock: mock.Mock,
-#     mock_requests_get_materials: mock.Mock,
-#     mock_requests_get_subassemblies: mock.Mock,
-# ) -> None:
-#     with mock.patch(
-#         "owimetadatabase_preprocessor.geometry.io.OWT", return_value=OWT_mock
-#     ):
-#         api_test = GeometryAPI(api_root, header=header)
-#         processor = api_test.get_owt_geometry_processor(
-#             turbines="BBK01", tower_base=10.0, monopile_head=5.0
-#         )
-#         assert isinstance(processor, type(OWT_mock))
-#         assert isinstance(processor.api, GeometryAPI)
-#         assert isinstance(processor.materials, pd.DataFrame)
-#         assert isinstance(processor.sub_assemblies, pd.DataFrame)
-#         assert isinstance(processor.tower_base, float)
-#         assert isinstance(processor.monopile_head, float)
-#         #  assert isinstance(processor.sub_assemblies, Dict[str, List[SubAssembly]])
-#         pd_testing.assert_frame_equal(processor.materials, mat)
-#         pd_testing.assert_frame_equal(processor.sub_assemblies, sa)
+def test_get_owt_geometry_processor(
+    api_test: Any, owts_init: OWTs, mock_requests_for_proc: mock.Mock
+) -> None:
+    processor = api_test.get_owt_geometry_processor(turbines=["AAA01", "AAB02"])
+    assertion, message = deepcompare(
+        processor.sub_assemblies["AAA01"]["TP"].bb[0].json,
+        owts_init["sub_assemblies"]["AAA01"]["TP"].bb[0].json,
+    )
+    assert assertion, message

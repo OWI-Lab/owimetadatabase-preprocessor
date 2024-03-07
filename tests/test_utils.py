@@ -11,13 +11,16 @@ from owimetadatabase_preprocessor.utils import (
 )
 
 
-def test_dict_generator(dict_in, dict_out):
-    assert dict_generator(dict_in, **dict_out["method_keys"]) == dict_out["data_out"]
+def test_dict_generator(dict_gen_dict_in, dict_gen_dict_out):
+    assert (
+        dict_generator(dict_gen_dict_in, **dict_gen_dict_out["method_keys"])
+        == dict_gen_dict_out["data_out"]
+    )
 
 
-def test_dict_generator_error(dict_in):
+def test_dict_generator_error(dict_gen_dict_in):
     with pytest.raises(ValueError):
-        dict_generator(dict_in, method_="wrong_method", keys_=[])
+        dict_generator(dict_gen_dict_in, method_="wrong_method", keys_=[])
 
 
 @pytest.mark.parametrize(

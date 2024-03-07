@@ -1,0 +1,42 @@
+{
+    "can_adjust": [
+        {
+            "Height [m]": 0.2,
+            "Volume [m3]": 0.151582,
+            "Mass [t]": 1.1672,
+            "rho [t/m]": 5.836
+        }
+    ],
+    "can_mod_bot": [
+        {    
+            "title": ["aaa01_tp_01", "aaa01_tp_10"],
+            "Depth from [mLAT]": [16.0, 15.8],
+            "Depth to [mLAT]": [15.8, 7.5],
+            "Height [m]": [0.2, 8.3],
+            "Diameter from [m]": [4.5, 5.25],
+            "Diameter to [m]": [5.25, 5.25],
+            "Volume [m3]": [0.151582, 6.779557],
+            "Wall thickness [mm]": [50.0, 50.0],
+            "Youngs modulus [GPa]": [210, 210],
+            "Poissons ratio [-]" : [0.3, 0.3],
+            "Mass [t]": [1.1672, 52.202586],
+            "rho [t/m]": [5.836, 6.289468]
+        }
+    ],
+    "can_mod_top": [
+        {
+            "title": ["aaa01_tp_10"],
+            "Depth from [mLAT]": [7.5],
+            "Depth to [mLAT]": [-3.0],
+            "Height [m]": [10.5],
+            "Diameter from [m]": [5.25],
+            "Diameter to [m]": [5.25],
+            "Volume [m3]": [8.576548],
+            "Wall thickness [mm]": [50.0],
+            "Youngs modulus [GPa]": [210],
+            "Poissons ratio [-]" : [0.3],
+            "Mass [t]": [66.039415],
+            "rho [t/m]": [6.289468]
+        }
+    ]
+}

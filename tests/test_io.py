@@ -8,13 +8,6 @@ import requests
 from owimetadatabase_preprocessor.io import API
 
 
-@pytest.fixture
-def mock_requests_get(mocker: mock.Mock) -> mock.Mock:
-    mock = mocker.patch("requests.get")
-    mock.return_value = requests.Response()
-    return mock
-
-
 class TestAPIAuth:
     """Tests of authentication setup."""
 
@@ -160,23 +153,6 @@ def test_postprocess_data(
     else:
         result = API.postprocess_data(df, output_type)
         assert result == expected_result
-
-
-@pytest.fixture
-def mock_requests_get_advanced(mocker: mock.Mock) -> mock.Mock:
-    mock = mocker.patch("requests.get")
-
-    def response() -> requests.Response:
-        resp = requests.Response()
-        resp.status_code = 200
-        resp._content = (
-            b'[{"col_1": 11, "col_2": 12, "col_3": 13}, '
-            b'{"col_1": 21, "col_2": 22, "col_3": 23}]'
-        )
-        return resp
-
-    mock.return_value = response()
-    return mock
 
 
 def test_process_data(mock_requests_get_advanced: mock.Mock, api_root: str) -> None:

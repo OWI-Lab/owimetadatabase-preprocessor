@@ -8,10 +8,12 @@ import numpy as np
 import pandas as pd
 
 from owimetadatabase_preprocessor.geometry.structures import SubAssembly
-from owimetadatabase_preprocessor.utils import custom_formatwarning, deepcompare
+from owimetadatabase_preprocessor.utils import (
+    deepcompare,
+)  # custom_formatwarning, deepcompare
 
-warnings.simplefilter("always")
-warnings.formatwarning = custom_formatwarning
+# warnings.simplefilter("always")
+# warnings.formatwarning = custom_formatwarning
 
 
 ATTR_PROC = [
@@ -639,7 +641,7 @@ class OWTs(object):
         for attr in attr_list:
             setattr(self, attr, pd.concat(getattr(self, attr)))
 
-    def assembly_turbine(self) -> None:
+    def _assembly_turbine(self) -> None:
         """Method to assemble general geometry data of all specified turbines.
 
         :return: None
@@ -742,7 +744,7 @@ class OWTs(object):
         attr_list.remove("pile_toe")
         self.pile_toe = {k: v for k, v in zip(self.owts.keys(), self.pile_toe)}
         self._concat_list(attr_list)
-        self.assembly_turbine()
+        self._assembly_turbine()
 
     def select_owt(self, turbine: Union[str, int]) -> OWT:
         """Select OWT object from the OWTs object.

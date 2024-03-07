@@ -13,7 +13,7 @@ from owimetadatabase_preprocessor.utils import dict_generator
 
 
 @pytest.fixture(scope="function")
-def materials(data):
+def materials_dicts_init(data):
     materials_ = []
     for mat in data["mat"]:
         materials_.append(dict_generator(mat, keys_=["slug"], method_="exclude"))
@@ -21,7 +21,7 @@ def materials(data):
 
 
 @pytest.fixture(scope="function")
-def materials_dict(data):
+def materials_dicts_asdict(data):
     materials_ = []
     for mat in data["mat"]:
         materials_.append(
@@ -168,11 +168,11 @@ def bb_in(data):
 
 
 @pytest.fixture(scope="function")
-def bb_out(bb_in, position_5, materials):
+def bb_out(bb_in, position_5, materials_dicts_init):
     data_ = deepcopy(bb_in)
     data_["position"] = position_5
     data_["json"] = bb_in
-    data_["material"] = materials[0]
+    data_["material"] = materials_dicts_init[0]
     data_["description"] = ""
     return dict_generator(
         data_,
@@ -190,11 +190,11 @@ def bb_out(bb_in, position_5, materials):
 
 
 @pytest.fixture(scope="function")
-def sa_mock(materials) -> mock.Mock:
+def sa_mock(materials_dicts_init) -> mock.Mock:
     def SA_mock_init(self, *args, **kwargs):
         self.materials = args[0]
 
-    mat = [Material(material) for material in materials]
+    mat = [Material(material) for material in materials_dicts_init]
     mocked_SA = mock.Mock()
     SA_mock_init(mocked_SA, mat)
     return mocked_SA
@@ -203,6 +203,18 @@ def sa_mock(materials) -> mock.Mock:
 @pytest.fixture(scope="module")
 def api_test(api_root, header):
     return GeometryAPI(api_root=api_root, header=header)
+
+
+@pytest.fixture(scope="function")
+def materials_df(materials_dicts_init):
+    return pd.DataFrame(materials_dicts_init)
+
+
+@pytest.fixture(scope="function")
+def sa_in(data):
+    return dict_generator(
+        data["sa"][0], keys_=["slug", "model_definition"], method_="exclude"
+    )
 
 
 @pytest.fixture(scope="function")
@@ -229,18 +241,11 @@ def position_sa_1(data):
 
 
 @pytest.fixture(scope="function")
-def sa_in(data):
-    return dict_generator(
-        data["sa"][0], keys_=["slug", "model_definition"], method_="exclude"
-    )
-
-
-@pytest.fixture(scope="function")
-def sa_out(sa_in, position_sa_1, materials, api_root, header):
+def sa_out(sa_in, position_sa_1, materials_dicts_init, api_root, header):
     data_ = deepcopy(sa_in)
     data_["position"] = position_sa_1
     data_["bb"] = None
-    data_["materials"] = materials
+    data_["materials"] = materials_dicts_init
     data_["api"] = {
         "api_root": api_root + "/geometry/userroutes/",
         "header": header,
@@ -260,11 +265,6 @@ def sa_out(sa_in, position_sa_1, materials, api_root, header):
         ],
         method_="exclude",
     )
-
-
-@pytest.fixture(scope="function")
-def materials_df(materials):
-    return pd.DataFrame(materials)
 
 
 @pytest.fixture(scope="function")
@@ -304,7 +304,7 @@ def bb_in_list(data):
 
 
 @pytest.fixture(scope="function")
-def bb_out_list(bb_in_list, materials):
+def bb_out_list(bb_in_list, materials_dicts_init):
     bb_list = deepcopy(bb_in_list)
     for i in range(len(bb_list)):
         bb_list[i]["json"] = bb_list[i].copy()
@@ -318,7 +318,9 @@ def bb_out_list(bb_in_list, materials):
             bb_list[i]["vertical_position_reference_system"],
         )
         if bb_list[i]["material"] is not None and not np.isnan(bb_list[i]["material"]):
-            bb_list[i]["material"] = materials[np.int64(bb_list[i]["material"]) - 1]
+            bb_list[i]["material"] = materials_dicts_init[
+                np.int64(bb_list[i]["material"]) - 1
+            ]
         else:
             bb_list[i]["material"] = None
         if bb_in_list[i]["description"] is None:
