@@ -13,6 +13,7 @@ from owimetadatabase_preprocessor.utils import deepcompare
 
 
 class TestBaseStructure:
+
     def test_eq_2_obj(self) -> None:
         obj_1 = BaseStructure()
         obj_2 = BaseStructure()
@@ -26,46 +27,41 @@ class TestBaseStructure:
     def test_eq_obj_any(self) -> None:
         obj_1 = BaseStructure()
         obj_2 = "test"
-        assert not obj_1 == obj_2
+        with pytest.raises(AssertionError):
+            obj_1 == obj_2
 
 
 class TestMaterial:
     def test_init(self, materials_dicts_init) -> None:
         for i in range(len(materials_dicts_init)):
             mat = Material(materials_dicts_init[i])
-            assertion, message = deepcompare(mat, materials_dicts_init[i])
-            assert assertion, message
+            assert mat == materials_dicts_init[i]
 
     def test_as_dict(self, materials_dicts_init, materials_dicts_asdict) -> None:
         for i in range(len(materials_dicts_init)):
             mat = Material(materials_dicts_init[i])
             mat_dict = mat.as_dict()
-            assertion, message = deepcompare(mat_dict, materials_dicts_asdict[i])
-            assert assertion, message
+            assert mat_dict == materials_dicts_asdict[i]
 
 
 class TestPosition:
     def test_init(self, position_1) -> None:
         pos = Position(**position_1)
-        assertion, message = deepcompare(pos, position_1)
-        assert assertion, message
+        assert pos == position_1
 
 
 class TestBuildingBlock:
     def test_init_no_sa(self, bb_in_no_mat, bb_out_no_mat) -> None:
         bb = BuildingBlock(json=bb_in_no_mat)
-        assertion, message = deepcompare(bb, bb_out_no_mat)
-        assert assertion, message
+        assert bb == bb_out_no_mat
 
     def test_init_sa(self, bb_in_no_mat, bb_out_no_mat, sa_mock) -> None:
         bb = BuildingBlock(json=bb_in_no_mat, subassembly=sa_mock)
-        assertion, message = deepcompare(bb, bb_out_no_mat)
-        assert assertion, message
+        assert bb == bb_out_no_mat
 
     def test_init_sa_mat(self, bb_in, bb_out, sa_mock) -> None:
         bb = BuildingBlock(json=bb_in, subassembly=sa_mock)
-        assertion, message = deepcompare(bb, bb_out)
-        assert assertion, message
+        assert bb == bb_out
 
     @pytest.mark.parametrize(
         "property",
@@ -107,8 +103,7 @@ class TestBuildingBlock:
 class TestSubAssembly:
     def test_init(self, api_test, materials_df, sa_in, sa_out):
         sa = SubAssembly(materials_df, sa_in, api_test)
-        assertion, message = deepcompare(sa, sa_out)
-        assert assertion, message
+        assert sa == sa_out
 
     def test_subassemblies_bb(
         self, data, bb_out_list, api_test, materials_df, mock_requests_sa_get_bb_bb
@@ -116,8 +111,7 @@ class TestSubAssembly:
         for i in range(len(data["sa_prop"])):
             sa = SubAssembly(materials_df, data["sa"][i], api_test)
             sa.building_blocks
-            assertion, message = deepcompare(sa.bb, bb_out_list[i])
-            assert assertion, message
+            assert sa.bb == bb_out_list[i]
 
     @pytest.mark.parametrize(
         "property",
@@ -144,12 +138,11 @@ class TestSubAssembly:
                         "height": data["sa_prop"][i]["height"],
                     },
                 )
-                assert assertion, message
             else:
                 assertion, message = deepcompare(
                     getattr(sa, property), data["sa_prop"][i][property]
                 )
-                assert assertion, message
+            assert assertion, message
 
     def test_subassemblies_as_df(
         self, data, api_test, materials_df, mock_requests_sa_get_bb

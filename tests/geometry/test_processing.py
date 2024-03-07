@@ -3,13 +3,11 @@ import pandas.testing as pd_testing
 import pytest
 
 from owimetadatabase_preprocessor.geometry.processing import OWT
-from owimetadatabase_preprocessor.utils import deepcompare
 
 
 class TestOWT:
     def test_init(self, owt, owt_init, mock_requests_sa_get_bb):
-        assertion, message = deepcompare(owt, owt_init)
-        assert assertion, message
+        assert owt == owt_init
 
     @pytest.mark.parametrize(
         "idx, df_set_tube_true",
@@ -177,8 +175,7 @@ class TestOWT:
 
 class TestOWTs:
     def test_init(self, owts, owts_init):
-        assertion, message = deepcompare(owts, owts_init)
-        assert assertion, message
+        assert owts == owts_init
 
     def test__concat_list(self, data, owts):
         dict_ = data["geo"]["process_tube"][2]
@@ -195,8 +192,7 @@ class TestOWTs:
         owts.process_structures()
         owts_true["_init"] = True
         assert owts._init
-        assertion, message = deepcompare(owts, owts_true)
-        assert assertion, message
+        assert owts == owts_true
 
     def test_select_owt(self, owts, owt):
         turb_1 = owts.select_owt(0)

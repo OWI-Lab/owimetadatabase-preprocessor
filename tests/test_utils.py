@@ -224,7 +224,8 @@ def test_deepcompare(a, b, expected):
 )
 def test_fix_nan(obj, expected):
     result = fix_nan(obj)
-    assert deepcompare(result, expected)
+    comp = deepcompare(result, expected)
+    assert comp[0], comp[1]
 
 
 @pytest.mark.parametrize(
@@ -258,16 +259,17 @@ def test_fix_nan(obj, expected):
             ],
             [
                 {"key_1": 1, "outline": ([1, 2], 3)},
-                {"key_1": (1, 2, 3), "key_2": "value_2"},
+                {"key_1": [1, 2, 3], "key_2": "value_2"},
             ],
         ),
         ({"key_1": 1, "key_2": "value_2"}, {"key_1": 1, "key_2": "value_2"}),
-        ({"key_1": 1, "key_2": [[1, 2], 3]}, {"key_1": 1, "key_2": ([1, 2], 3)}),
+        ({"key_1": 1, "key_2": [[1, 2], 3]}, {"key_1": 1, "key_2": [[1, 2], 3]}),
     ],
 )
 def test_fix_outline(data, expected):
     result = fix_outline(data)
-    assert deepcompare(result, expected)
+    comp = deepcompare(result, expected)
+    assert comp[0], comp[1]
 
 
 def test_fix_outline_exception():

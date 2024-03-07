@@ -1,13 +1,14 @@
 "Module containing the processing functions for the geometry data."
 
+import typing
 import warnings
 from copy import deepcopy
-from typing import Any, List, Union
+from typing import Any, Dict, List, Union, cast
 
 import numpy as np
 import pandas as pd
 
-from owimetadatabase_preprocessor.geometry.structures import SubAssembly
+from owimetadatabase_preprocessor.geometry.structures import DataSA, SubAssembly
 from owimetadatabase_preprocessor.utils import (
     deepcompare,
 )  # custom_formatwarning, deepcompare
@@ -66,14 +67,41 @@ class OWT(object):
     :param substructure: Pandas dataframe with the substructure data.
     """
 
+    _init_proc: bool
+    _init_spec_part: bool
+    _init_spec_full: bool
+    api: Any
+    materials: pd.DataFrame
+    sub_assemblies: Dict[str, SubAssembly]
+    tw_sub_assemblies: Union[pd.DataFrame, None]
+    tp_sub_assemblies: Union[pd.DataFrame, None]
+    mp_sub_assemblies: Union[pd.DataFrame, None]
+    tower_base: Union[np.float64, None]
+    pile_head: Union[np.float64, None]
+    water_depth: np.float64
+    pile_toe: Union[np.float64, None]
+    rna: Union[pd.DataFrame, None]
+    tower: Union[pd.DataFrame, None]
+    transition_piece: Union[pd.DataFrame, None]
+    monopile: Union[pd.DataFrame, None]
+    tw_lumped_mass: Union[pd.DataFrame, None]
+    tp_lumped_mass: Union[pd.DataFrame, None]
+    mp_lumped_mass: Union[pd.DataFrame, None]
+    tp_distributed_mass: Union[pd.DataFrame, None]
+    mp_distributed_mass: Union[pd.DataFrame, None]
+    grout: Union[pd.DataFrame, None]
+    full_structure: Union[pd.DataFrame, None]
+    tp_skirt: Union[pd.DataFrame, None]
+    substructure: Union[pd.DataFrame, None]
+
     def __init__(
         self,
         api: Any,
-        materials: pd.DataFrame,
-        subassemblies: pd.DataFrame,
-        location: pd.DataFrame,
-        tower_base: Union[float, None] = None,
-        pile_head: Union[float, None] = None,
+        materials: Union[pd.DataFrame, bool, np.int64, None],
+        subassemblies: Union[pd.DataFrame, bool, np.int64, None],
+        location: Union[pd.DataFrame, bool, np.int64, None],
+        tower_base: Union[np.float64, None] = None,
+        pile_head: Union[np.float64, None] = None,
     ) -> None:
         """Create an instance of the OWT class with the required parameters.
 
@@ -117,7 +145,7 @@ class OWT(object):
             sa["subassembly_type"] for _, sa in subassemblies.iterrows()
         ]
         subassemblies_list = [
-            SubAssembly(self.materials, sa.to_dict(), api_object=self.api)
+            SubAssembly(self.materials, cast(DataSA, sa.to_dict()), api_object=self.api)
             for _, sa in subassemblies.iterrows()
         ]
         self.sub_assemblies = {
@@ -146,11 +174,15 @@ class OWT(object):
         """
         cols = ["OD", "height", "mass", "volume", "wall_thickness", "x", "y", "z"]
         if idx == "tw":
+            if self.tw_sub_assemblies is None:
+                raise ValueError("Tower subassembly data not found.")
             df_index = self.tw_sub_assemblies.index.str.contains(idx)
             df = deepcopy(self.tw_sub_assemblies.loc[df_index, cols])
             depth_to = self.tower_base + df.z * 1e-3
             depth_from = depth_to + df.height * 1e-3
         elif idx == "tp":
+            if self.tp_sub_assemblies is None:
+                raise ValueError("Transition piece subassembly data not found.")
             # We don't take into account the grout, this element will be modelled as a distributed lumped mass.
             df_index = (self.tp_sub_assemblies.index.str.contains(idx)) & (
                 ~self.tp_sub_assemblies.index.str.contains("grout")
@@ -160,6 +192,8 @@ class OWT(object):
             depth_to = bottom_tp + df.z * 1e-3
             depth_from = depth_to + df.height * 1e-3
         elif idx == "mp":
+            if self.mp_sub_assemblies is None:
+                raise ValueError("Monopile subassembly data not found.")
             df_index = self.mp_sub_assemblies.index.str.contains(idx)
             df = deepcopy(self.mp_sub_assemblies.loc[df_index, cols])
             toe = self.pile_head - df["height"].sum() * 1e-3
@@ -217,6 +251,8 @@ class OWT(object):
 
         :return: None
         """
+        if self.tw_sub_assemblies is None:
+            raise ValueError("Tower subassembly data not found.")
         rna_index = self.tw_sub_assemblies.index.str.contains("RNA")
         rna = deepcopy(
             self.tw_sub_assemblies.loc[
@@ -257,10 +293,14 @@ class OWT(object):
         """
         cols = ["mass", "x", "y", "z", "description"]
         if idx == "TW":
+            if self.tw_sub_assemblies is None:
+                raise ValueError("Tower subassembly data not found.")
             df_index = self.tw_sub_assemblies.index.str.contains(idx)
             df = deepcopy(self.tw_sub_assemblies.loc[df_index, cols])
             df["Z [mLAT]"] = self.tower_base + df["z"] * 1e-3
         elif idx == "TP":
+            if self.tp_sub_assemblies is None:
+                raise ValueError("Transition piece subassembly data not found.")
             df_index = self.tp_sub_assemblies.index.str.contains(idx)
             df = deepcopy(self.tp_sub_assemblies.loc[df_index, cols + ["height"]])
             # Lumped masses have 'None' height whereas distributed masses present not 'None' values
@@ -269,6 +309,8 @@ class OWT(object):
             bottom = self.tower_base - self.tp_sub_assemblies.iloc[0]["z"] * 1e-3
             df["Z [mLAT]"] = bottom + df["z"] * 1e-3
         elif idx == "MP":
+            if self.mp_sub_assemblies is None:
+                raise ValueError("Monopile subassembly data not found.")
             df_index = self.mp_sub_assemblies.index.str.contains(idx)
             df = deepcopy(self.mp_sub_assemblies.loc[df_index, cols + ["height"]])
             # Lumped masses have 'None' height whereas distributed masses present not 'None' values
@@ -303,6 +345,8 @@ class OWT(object):
         """
         cols = ["mass", "x", "y", "z", "height", "volume", "description"]
         if idx == "TP":
+            if self.tp_sub_assemblies is None:
+                raise ValueError("Transition piece subassembly data not found.")
             df_index = self.tp_sub_assemblies.index.str.contains(idx)
             df = deepcopy(self.tp_sub_assemblies.loc[df_index, cols])
             # Lumped masses have 'None' height whereas distributed masses present not 'None' values
@@ -311,6 +355,8 @@ class OWT(object):
             bottom_tp = self.tower_base - self.tp_sub_assemblies.iloc[0]["z"] * 1e-3
             df["Z [mLAT]"] = bottom_tp + df["z"] * 1e-3
         elif idx == "MP":
+            if self.mp_sub_assemblies is None:
+                raise ValueError("Monopile subassembly data not found.")
             df_index = self.mp_sub_assemblies.index.str.contains(idx)
             df = deepcopy(self.mp_sub_assemblies.loc[df_index, cols])
             # Lumped masses have 'None' height whereas distributed masses present not 'None' values
@@ -319,6 +365,8 @@ class OWT(object):
             bottom = self.pile_toe
             df["Z [mLAT]"] = bottom + df["z"] * 1e-3
         elif idx == "grout":
+            if self.tp_sub_assemblies is None:
+                raise ValueError("Transition piece subassembly data not found.")
             df_index = self.tp_sub_assemblies.index.str.contains(idx)
             df = deepcopy(self.tp_sub_assemblies.loc[df_index, cols])
             # Lumped masses have 'None' height whereas distributed masses present not 'None' values
@@ -421,7 +469,10 @@ class OWT(object):
         return can_properties
 
     def can_modification(
-        self, df: pd.DataFrame, altitude: np.float64, position: str = "bottom"
+        self,
+        df: pd.DataFrame,
+        altitude: Union[np.float64, None],
+        position: str = "bottom",
     ) -> pd.DataFrame:
         """Change can properties based on the altitude.
 
@@ -436,11 +487,11 @@ class OWT(object):
         else:
             ind = 0
             _col = " from "
-        df.loc[df.index[ind], "Depth" + _col + "[mLAT]"] = altitude
+        df.loc[df.index[ind], "Depth" + _col + "[mLAT]"] = altitude  # type: ignore
         elevation = [df.iloc[ind]["Depth from [mLAT]"], df.iloc[ind]["Depth to [mLAT]"]]
         diameters = [df.iloc[ind]["Diameter from [m]"], df.iloc[ind]["Diameter to [m]"]]
         df.loc[df.index[ind], "Diameter" + _col + "[m]"] = np.interp(
-            [altitude], elevation, diameters
+            [altitude], elevation, diameters  # type: ignore
         )[0]
         cols = ["Height [m]", "Volume [m3]", "Mass [t]", "rho [t/m]"]
         df.loc[df.index[ind], cols] = self.can_adjust_properties(df.iloc[ind])
@@ -488,22 +539,25 @@ class OWT(object):
 
         :return: None
         """
-        self.tower["Subassembly"] = "TW"
-        self.transition_piece["Subassembly"] = "TP"
-        self.monopile["Subassembly"] = "MP"
-        self.tw_lumped_mass["Subassembly"] = "TW"
-        self.tp_lumped_mass["Subassembly"] = "TP"
-        self.mp_lumped_mass["Subassembly"] = "MP"
-        self.tp_distributed_mass["Subassembly"] = "TP"
-        self.mp_distributed_mass["Subassembly"] = "MP"
-        self.grout["Subassembly"] = "TP"
-        self.rna["Subassembly"] = "TW"
+        for attr in ATTR_PROC:
+            df = getattr(self, attr)
+            if df is not None:
+                if "tower" in attr or "tw_" in attr or "rna" in attr:
+                    df["Subassembly"] = "TW"
+                    setattr(self, attr, df)
+                elif "tp_" in attr or "transition" in attr or "grout" in attr:
+                    df["Subassembly"] = "TP"
+                    setattr(self, attr, df)
+                elif "mp_" in attr or "monopile" in attr:
+                    df["Subassembly"] = "MP"
+                    setattr(self, attr, df)
         self.assembly_tp_mp()
         self.assembly_full_structure()
 
+    @typing.no_type_check
     def transform_monopile_geometry(
         self,
-        cutoff_point: np.float64 = np.nan,
+        cutoff_point: np.floating = np.nan,
     ) -> pd.DataFrame:
         """Returns a dataframe with the monopile geometry with the mudline as reference
 
@@ -513,7 +567,10 @@ class OWT(object):
         toe_depth_lat = self.sub_assemblies["MP"].position.z
         penetration = -((1e-3 * toe_depth_lat) - self.water_depth)
         pile = pd.DataFrame()
-        df = self.mp_sub_assemblies.copy()
+        if self.mp_sub_assemblies is not None:
+            df = self.mp_sub_assemblies.copy()
+        else:
+            raise ValueError("Monopile subassembly data not found.")
         df.reset_index(inplace=True)
         for i, row in df.iterrows():
             if i != 0:
@@ -544,11 +601,14 @@ class OWT(object):
 
     def __eq__(self, other) -> bool:
         if isinstance(other, type(self)):
-            return deepcompare(self, other)
+            comp = deepcompare(self, other)
+            assert comp[0], comp[1]
         elif isinstance(other, dict):
-            return deepcompare(self.__dict__, other)
+            comp = deepcompare(self.__dict__, other)
+            assert comp[0], comp[1]
         else:
-            return False
+            assert False, "Comparison is not possible due to incompatible types!"
+        return comp[0]
 
     def __getattribute__(self, name: str) -> object:
         if name in ATTR_PROC and not self._init_proc:
@@ -660,12 +720,16 @@ class OWTs(object):
             "Tower mass [t]",
         ]
         df_list = []
+        for attr in ATTR_PROC:
+            df = getattr(self, attr)
+            if df is None:
+                raise ValueError(f"Attribute '{attr}' is None.")
         for turb in self.owts.keys():
             df_list.append(
                 [
                     turb,
                     self.water_depth[turb],
-                    self.pile_toe[turb],
+                    self.pile_toe[turb],  # type: ignore
                     self.pile_head[turb],
                     self.tower_base[turb],
                     self.owts[turb].monopile["Height [m]"].sum(),
@@ -742,7 +806,7 @@ class OWTs(object):
                     owt_attr_val = getattr(owt, attr)
                     attr_val.append(owt_attr_val)
         attr_list.remove("pile_toe")
-        self.pile_toe = {k: v for k, v in zip(self.owts.keys(), self.pile_toe)}
+        self.pile_toe = {k: v for k, v in zip(self.owts.keys(), self.pile_toe)}  # type: ignore
         self._concat_list(attr_list)
         self._assembly_turbine()
 
@@ -764,11 +828,14 @@ class OWTs(object):
 
     def __eq__(self, other) -> bool:
         if isinstance(other, type(self)):
-            return deepcompare(self, other)
+            comp = deepcompare(self, other)
+            assert comp[0], comp[1]
         elif isinstance(other, dict):
-            return deepcompare(self.__dict__, other)
+            comp = deepcompare(self.__dict__, other)
+            assert comp[0], comp[1]
         else:
-            return False
+            assert False, "Comparison is not possible due to incompatible types!"
+        return comp[0]
 
     def __getattribute__(self, name):
         if name in ATTR_PROC + ATTR_SPEC + ATTR_FULL and not self._init:

@@ -84,11 +84,14 @@ class BaseStructure(object):
 
     def __eq__(self, other) -> bool:
         if isinstance(other, type(self)):
-            return deepcompare(self, other)
+            comp = deepcompare(self, other)
+            assert comp[0], comp[1]
         elif isinstance(other, dict):
-            return deepcompare(self.__dict__, other)
+            comp = deepcompare(self.__dict__, other)
+            assert comp[0], comp[1]
         else:
-            return False
+            assert False, "Comparison is not possible due to incompatible types!"
+        return comp[0]
 
 
 class Material(BaseStructure):
@@ -204,8 +207,8 @@ class BuildingBlock(BaseStructure):
         for k in cond.keys():
             if (
                 k in self.json
-                and self.json[k] is not None
-                and not np.isnan(self.json[k])
+                and self.json[k] is not None  # type: ignore
+                and not np.isnan(self.json[k])  # type: ignore
             ):
                 return cond[k]
         raise ValueError("Could not find supported building block type.")
@@ -448,7 +451,7 @@ class SubAssembly(BaseStructure):
 
     def __init__(
         self,
-        materials: pd.DataFrame,
+        materials: Union[pd.DataFrame, bool, np.int64, None],
         json: DataSA,
         api_object: Union[Any, None] = None,
     ) -> None:

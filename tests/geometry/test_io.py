@@ -7,7 +7,6 @@ import pytest
 
 from owimetadatabase_preprocessor.geometry.io import GeometryAPI
 from owimetadatabase_preprocessor.geometry.processing import OWTs
-from owimetadatabase_preprocessor.utils import deepcompare
 
 
 @pytest.mark.parametrize(
@@ -158,8 +157,4 @@ def test_get_owt_geometry_processor(
     api_test: Any, owts_init: OWTs, mock_requests_for_proc: mock.Mock
 ) -> None:
     processor = api_test.get_owt_geometry_processor(turbines=["AAA01", "AAB02"])
-    assertion, message = deepcompare(
-        processor.sub_assemblies["AAA01"]["TP"].bb[0].json,
-        owts_init["sub_assemblies"]["AAA01"]["TP"].bb[0].json,
-    )
-    assert assertion, message
+    assert processor == owts_init

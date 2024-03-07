@@ -1,11 +1,10 @@
 """Utility functions for the owimetadatabase_preprocessor package."""
 
 import math
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 import pandas as pd
-
-from typing import Any, Dict, List, Tuple
 
 
 def custom_formatwarning(message, category, filename, lineno, line=None):
@@ -13,7 +12,9 @@ def custom_formatwarning(message, category, filename, lineno, line=None):
     return f"{category.__name__}: {message}\n"
 
 
-def dict_generator(dict_: Dict[str, Any], keys_: List[str] = None, method_: str = "exclude") -> Dict[str, Any]:
+def dict_generator(
+    dict_: Dict[str, Any], keys_: List[str] = [], method_: str = "exclude"
+) -> Dict[str, Any]:
     """Generate a dictionary with the specified keys.
 
     :param dict_: Dictionary to be filtered.
@@ -29,7 +30,9 @@ def dict_generator(dict_: Dict[str, Any], keys_: List[str] = None, method_: str 
         raise ValueError("Method not recognized!")
 
 
-def compare_if_simple_close(a: Any, b: Any, tol: float = 1e-9) -> Tuple[bool, str]:
+def compare_if_simple_close(
+    a: Any, b: Any, tol: float = 1e-9
+) -> Tuple[bool, Union[None, str]]:
     """Compare two values and return a boolean and a message.
 
     :param a: First value to be compared.
@@ -69,19 +72,19 @@ def check_df_eq(df1: pd.DataFrame, df2: pd.DataFrame, tol: float = 1e-9) -> bool
     if df1.shape != df2.shape:
         return False
     num_cols_eq = np.allclose(
-        df1.select_dtypes(include=np.number),
-        df2.select_dtypes(include=np.number),
+        df1.select_dtypes(include=np.number),  # type: ignore
+        df2.select_dtypes(include=np.number),  # type: ignore
         rtol=tol,
         atol=tol,
         equal_nan=True,
     )
-    str_cols_eq = df1.select_dtypes(include=object).equals(
-        df2.select_dtypes(include=object)
+    str_cols_eq = df1.select_dtypes(include=object).equals(  # type: ignore
+        df2.select_dtypes(include=object)  # type: ignore
     )
     return num_cols_eq and str_cols_eq
 
 
-def deepcompare(a: Any, b: Any, tol: float = 1e-5) -> Tuple[bool, str]:
+def deepcompare(a: Any, b: Any, tol: float = 1e-5) -> Tuple[bool, Union[None, str]]:
     """Compare two complicated (potentailly nested) objects recursively and return a result and a message.
 
     :param a: First object to be compared.

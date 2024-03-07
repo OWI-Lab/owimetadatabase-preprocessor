@@ -132,8 +132,8 @@ class GeometryAPI(API):
         owts = []
         turbines = [turbines] if isinstance(turbines, str) else turbines
         if not isinstance(tower_base, List) and not isinstance(monopile_head, List):
-            tower_base = [tower_base] * len(turbines)
-            monopile_head = [monopile_head] * len(turbines)
+            tower_base = [tower_base] * len(turbines)  # type: ignore
+            monopile_head = [monopile_head] * len(turbines)  # type: ignore
         for i in range(len(turbines)):
             subassemblies_data = self.get_subassemblies(assetlocation=turbines[i])
             location_data = LocationsAPI(header=self.header).get_assetlocation_detail(
@@ -158,8 +158,12 @@ class GeometryAPI(API):
                     materials,
                     subassemblies,
                     location,
-                    tower_base[i],
-                    monopile_head[i],
+                    tower_base[i] if isinstance(tower_base, List) else tower_base,
+                    (
+                        monopile_head[i]
+                        if isinstance(monopile_head, List)
+                        else monopile_head
+                    ),
                 )
             )
         return OWTs(turbines, owts)
@@ -175,7 +179,9 @@ class GeometryAPI(API):
 
         :param turbines: Title(s) of the turbines.
         :param figures_per_line: Number of figures per line.
-        :return: None
+        :param return_fig: Optional: whether to return the figure.
+        :param show_fig: Optional: whether to show the figure.
+        :return: Plotly figure object with selected turbines front profiles (if requested) or nothing.
         """
         materials_data = self.get_materials()
         if materials_data["exists"]:

@@ -120,7 +120,7 @@ class LocationsAPI(API):
         return {"data": df, "exists": df_add["existance"]}
 
     def get_assetlocation_detail(
-        self, assetlocation: str, projectsite: str = None, **kwargs
+        self, assetlocation: str, projectsite: Union[None, str] = None, **kwargs
     ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
         """Get a selected turbine.
 
@@ -148,10 +148,10 @@ class LocationsAPI(API):
     ) -> Union[None, plt.graph_objects.Figure]:
         """Retrieve asset locations and generates a Plotly plot to show them.
 
-        :param return_fig: Boolean indicating whether the Plotly figure object needs to be returned
-          (default is False which simply shows the plot)
+        :param return_fig: Boolean indicating whether the Plotly figure object needs to be returned.
+        :param show_fig: Boolean indicating whether the figure needs to be shown.
         :param kwargs: Keyword arguments for the search (see ``get_assetlocations``).
-        :return: Plotly figure object with selected asset locations plotted on OpenStreetMap tiles (if requested).
+        :return: Plotly figure object with selected asset locations plotted on OpenStreetMap tiles (if requested) or nothing.
         """
         assetlocations_data = self.get_assetlocations(**kwargs)
         if assetlocations_data["exists"]:
@@ -179,3 +179,4 @@ class LocationsAPI(API):
             fig.show()
         elif return_fig:
             return fig
+        return None
