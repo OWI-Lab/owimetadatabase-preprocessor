@@ -144,7 +144,7 @@ class LocationsAPI(API):
         return {"id": df_add["id"], "data": df, "exists": df_add["existance"]}
 
     def plot_assetlocations(
-        self, return_fig: bool = False, **kwargs
+        self, return_fig: bool = True, show_fig: bool = True, **kwargs
     ) -> Union[None, plt.graph_objects.Figure]:
         """Retrieve asset locations and generates a Plotly plot to show them.
 
@@ -172,8 +172,10 @@ class LocationsAPI(API):
         )
         fig.update_layout(mapbox_style="open-street-map")
         fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
-        if return_fig:
-            return fig
-        else:
+        if return_fig and show_fig:
             fig.show()
-        return None
+            return fig
+        elif show_fig:
+            fig.show()
+        elif return_fig:
+            return fig

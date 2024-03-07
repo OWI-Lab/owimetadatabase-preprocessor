@@ -165,7 +165,11 @@ class GeometryAPI(API):
         return OWTs(turbines, owts)
 
     def plot_turbines(
-        self, turbines: Union[List[str], str], figures_per_line: int = 5
+        self,
+        turbines: Union[List[str], str],
+        figures_per_line: int = 5,
+        return_fig: bool = True,
+        show_fig: bool = True,
     ) -> None:
         """Plot turbines' frontal geometry.
 
@@ -212,4 +216,10 @@ class GeometryAPI(API):
                 plotly_layout.pop("yaxis")
                 plotly_layout["yaxis" + str(i + 1)].pop("title")
             fig.update_layout(plotly_layout, autosize=autosize)
-        fig.show()
+        if return_fig and show_fig:
+            fig.show()
+            return fig
+        elif show_fig:
+            fig.show()
+        elif return_fig:
+            return fig
