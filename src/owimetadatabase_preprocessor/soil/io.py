@@ -743,7 +743,7 @@ class SoilAPI(API):
         }
         if cpt:
             cpt_ = self._process_cpt(df_sum, df_raw, **kwargs)
-            if cpt_:
+            if cpt_ is not None:
                 dict_["cpt"] = cpt_
             return dict_
         return dict_
@@ -956,7 +956,7 @@ class SoilAPI(API):
             dsp = self._convert_to_profile(
                 df_sum, df_detail, profile_title, drop_info_cols
             )
-            if dsp:
+            if dsp is not None:
                 dict_["soilprofile"] = dsp
             return dict_
         return dict_
@@ -989,7 +989,7 @@ class SoilAPI(API):
             if req_key not in soil_profile.columns:
                 raise ValueError(f"Column key {req_key} not in dataframe")
         pisa_profile = deepcopy(soil_profile[required_keys])
-        if sbl:
+        if sbl is not None:
             pisa_profile["Depth from [mLAT]"] = sbl - pisa_profile["Depth from [m]"]
             pisa_profile["Depth to [mLAT]"] = sbl - pisa_profile["Depth to [m]"]
         else:
