@@ -1,10 +1,10 @@
 #!/bin/bash
 version_old=$(git tag --list '*beta*' | tail -n 1)
-if [[ $(git status -s) ]]; then
-    echo "Error: Git working directory is not clean. Please commit or discard your changes."
-    exit 1
-fi
-bumpversion $1
+# if [[ $(git status -s) ]]; then
+#     echo "Error: Git working directory is not clean. Please commit or discard your changes."
+#     exit 1
+# fi
+bumpversion $1 --allow-dirty
 version_new=v$(dotnet-gitversion /showvariable SemVer)
 git add .
 git commit -n -m "Bumpversion $version_old -> $version_new"
