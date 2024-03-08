@@ -1,4 +1,3 @@
-import json
 import warnings
 from copy import deepcopy
 from typing import Any, Callable, Dict, List, Tuple, Union
@@ -6,11 +5,14 @@ from typing import Any, Callable, Dict, List, Tuple, Union
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import requests
-from groundhog.general.soilprofile import profile_from_dataframe, plot_fence_diagram
-from groundhog.siteinvestigation.insitutests.pcpt_processing import \
-    PCPTProcessing, plot_longitudinal_profile, plot_combined_longitudinal_profile
-from groundhog.general.parameter_mapping import offsets
+from groundhog.general.soilprofile import plot_fence_diagram, profile_from_dataframe
+from groundhog.siteinvestigation.insitutests.pcpt_processing import (
+    PCPTProcessing,
+    plot_combined_longitudinal_profile,
+    plot_longitudinal_profile,
+)
 from pyproj import Transformer
 
 from owimetadatabase_preprocessor.io import API
@@ -180,7 +182,8 @@ class SoilAPI(API):
         :param api_url: End-point for the API
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
-        :param initialradius: Initial search radius around the central point in km, the search radius is increased until locations are found
+        :param initialradius: Initial search radius around the central point in km, the search radius is increased
+            until locations are found
         :param target_srid: SRID for the offset calculation in meters
         :param **kwargs: Optional keyword arguments e.g. ``campaign__projectsite__title__icontains='HKN'``
         :return:  Dictionary with the following keys:
@@ -219,9 +222,11 @@ class SoilAPI(API):
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
         :param depth of the central point in meters below seabed
-        :param initialradius: Initial search radius around the central point in km, the search radius is increased until locations are found
+        :param initialradius: Initial search radius around the central point in km, the search radius is increased
+            until locations are found
         :param target_srid: SRID for the offset calculation in meters
-        :param sampletest: Boolean indicating whether a sample or sample test needs to be retrieved (default is True to search for sample tests)
+        :param sampletest: Boolean indicating whether a sample or sample test needs to be retrieved
+            (default is True to search for sample tests)
         :param **kwargs: Optional keyword arguments e.g. ``campaign__projectsite__title__icontains='HKN'``
         :return: Dictionary with the following keys:
 
@@ -446,7 +451,8 @@ class SoilAPI(API):
     def plot_testlocations(self, return_fig: bool = False, **kwargs) -> None:
         """Retrieves soil test locations and generates a Plotly plot to show them.
 
-        :param return_fig: Boolean indicating whether the Plotly figure object needs to be returned (default is False which simply shows the plot)
+        :param return_fig: Boolean indicating whether the Plotly figure object needs to be returned
+            (default is False which simply shows the plot)
         :param kwargs: Keyword arguments for the search (see ``get_testlocations``)
         :return: Plotly figure object with selected asset locations plotted on OpenStreetMap tiles (if requested)
         """
@@ -557,7 +563,8 @@ class SoilAPI(API):
 
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
-        :param initialradius: Initial search radius around the central point in km, the search radius is increased until locations are found
+        :param initialradius: Initial search radius around the central point in km, the search radius is increased
+            until locations are found
         :param target_srid: SRID for the offset calculation in meters
         :param **kwargs: Optional keyword arguments e.g. ``campaign__projectsite__title__icontains='HKN'``
         :return: Dictionary with the following keys:
@@ -580,10 +587,8 @@ class SoilAPI(API):
         dfs = {k: None for k in cols}
         for col in cols:
             try:
-                df_ = pd.DataFrame(df[col].iloc[0]).reset_index(
-                    drop=True
-                )
-            except:
+                df_ = pd.DataFrame(df[col].iloc[0]).reset_index(drop=True)
+            except Exception:
                 df_ = pd.DataFrame()
             dfs[col] = df_
         for k, df_ in dfs.items():
@@ -592,15 +597,19 @@ class SoilAPI(API):
             except Exception as err:
                 warnings.warn(str(err))
         return dfs
-    
+
     def _combine_dfs(self, dfs):
         try:
-            df = pd.merge(dfs["rawdata"], dfs["processeddata"], on="z [m]", how="inner", suffixes=("", "_processed"))
+            df = pd.merge(
+                dfs["rawdata"],
+                dfs["processeddata"],
+                on="z [m]",
+                how="inner",
+                suffixes=("", "_processed"),
+            )
             return df
         except Exception as err:
-            warnings.warn(
-                f"ERROR: Combining raw and processed data failed - {err}"
-            )
+            warnings.warn(f"ERROR: Combining raw and processed data failed - {err}")
             return dfs["rawdata"]
 
     def _process_cpt(self, df_sum, df_raw, **kwargs):
@@ -610,16 +619,12 @@ class SoilAPI(API):
                 push_key = "Push"
             else:
                 push_key = None
-            cpt.load_pandas(
-                df_raw, push_key=push_key, **kwargs
-            )
+            cpt.load_pandas(df_raw, push_key=push_key, **kwargs)
             return cpt
         except Exception as err:
-            warnings.warn(
-                f"ERROR: PCPTProcessing object not created - {err}"
-            )
+            warnings.warn(f"ERROR: PCPTProcessing object not created - {err}")
             return None
- 
+
     def get_insitutest_detail(
         self,
         projectsite: Union[str, None] = None,
@@ -627,7 +632,7 @@ class SoilAPI(API):
         testtype: Union[str, None] = None,
         insitutest: Union[str, None] = None,
         combine: bool = False,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, bool, requests.Response, None]]:
         """Get the detailed information (measurement data) for an in-situ test of give type.
 
@@ -635,7 +640,8 @@ class SoilAPI(API):
         :param location: Name of the test location (e.g. "CPT-7C")
         :param testtype: Name of the test type (e.g. "PCPT")
         :param insitutest: Name of the in-situ test
-        :param combine: Boolean indicating whether raw and processed data needs to be combined (default=False). If true, processed data columns are appended to the rawdata dataframe
+        :param combine: Boolean indicating whether raw and processed data needs to be combined (default=False).
+            If true, processed data columns are appended to the rawdata dataframe
         :param kwargs: Optional keyword arguments for further queryset filtering based on model attributes.
         :return: Dictionary with the following keys:
 
@@ -651,14 +657,16 @@ class SoilAPI(API):
             "projectsite": projectsite,
             "location": location,
             "testtype": testtype,
-            "insitutest": insitutest
+            "insitutest": insitutest,
         }
         url_params = {**url_params, **kwargs}
         url_data_type = "insitutestsummary"
         output_type = "single"
         df_sum, df_add_sum = self.process_data(url_data_type, url_params, output_type)
         url_data_type = "insitutestdetail"
-        df_detail, df_add_detail = self.process_data(url_data_type, url_params, output_type)
+        df_detail, df_add_detail = self.process_data(
+            url_data_type, url_params, output_type
+        )
         cols = ["rawdata", "processeddata", "conditions"]
         dfs = self._process_insitutest_dfs(df_detail, cols)
         if combine:
@@ -681,7 +689,7 @@ class SoilAPI(API):
         insitutest: Union[str, None] = None,
         combine: bool = False,
         cpt: bool = True,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, bool, requests.Response, None]]:
         """Get the detailed information (measurement data) for an in-situ test of CPT type (seabed or downhole CPT)
 
@@ -689,9 +697,13 @@ class SoilAPI(API):
         :param location: Name of the test location (e.g. "CPT-7C")
         :param testtype: Name of the test type (e.g. "PCPT")
         :param insitutest: Name of the in-situ test
-        :param combine: Boolean indicating whether raw and processed data needs to be combined (default=False). If true, processed data columns are appended to the rawdata dataframe
-        :param cpt: Boolean determining whether the in-situ test is a CPT or not. If True (default), a PCPTProcessing object is returned.
-        :param kwargs: Optional keyword arguments for the cpt data loading. Note that further queryset filtering based on model attributes is not possible with this method. The in-situ test needs to be fully defined by the required arguments.
+        :param combine: Boolean indicating whether raw and processed data needs to be combined (default=False).
+            If true, processed data columns are appended to the rawdata dataframe
+        :param cpt: Boolean determining whether the in-situ test is a CPT or not.
+            If True (default), a PCPTProcessing object is returned.
+        :param kwargs: Optional keyword arguments for the cpt data loading.
+            Note that further queryset filtering based on model attributes is not possible with this method.
+            The in-situ test needs to be fully defined by the required arguments.
         :return: Dictionary with the following keys:
 
             - 'id': id of the selected test
@@ -707,13 +719,15 @@ class SoilAPI(API):
             "projectsite": projectsite,
             "location": location,
             "testtype": testtype,
-            "insitutest": insitutest
+            "insitutest": insitutest,
         }
         url_data_type = "insitutestsummary"
         output_type = "single"
         df_sum, df_add_sum = self.process_data(url_data_type, url_params, output_type)
         url_data_type = "insitutestdetail"
-        df_detail, df_add_detail = self.process_data(url_data_type, url_params, output_type)
+        df_detail, df_add_detail = self.process_data(
+            url_data_type, url_params, output_type
+        )
         cols = ["rawdata", "processeddata", "conditions"]
         dfs = self._process_insitutest_dfs(df_detail, cols)
         if combine:
@@ -754,7 +768,7 @@ class SoilAPI(API):
             "projectsite": projectsite,
             "location": location,
             "testtype": testtype,
-            "insitutest": insitutest
+            "insitutest": insitutest,
         }
         url_params = {**url_params, **kwargs}
         url_data_type = "insitutestdetail"
@@ -782,7 +796,7 @@ class SoilAPI(API):
         url_params = {
             "projectsite": projectsite,
             "location": location,
-            "soilprofile": soilprofile
+            "soilprofile": soilprofile,
         }
         url_params = {**url_params, **kwargs}
         url_data_type = "soilprofilesummary"
@@ -791,14 +805,10 @@ class SoilAPI(API):
         return {"data": df, "exists": df_add["existance"]}
 
     def get_proximity_soilprofiles(
-        self,
-        latitude: float,
-        longitude: float,
-        radius: float,
-        **kwargs
+        self, latitude: float, longitude: float, radius: float, **kwargs
     ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
         """Get all soil profiles in a certain radius surrounding a point with given lat/lon.
-        
+
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
         :param radius: Radius around the central point in km
@@ -812,22 +822,23 @@ class SoilAPI(API):
             latitude=latitude,
             longitude=longitude,
             radius=radius,
-            **kwargs
+            **kwargs,
         )
-    
+
     def get_closest_soilprofile(
         self,
         latitude: float,
         longitude: float,
         initialradius: float = 1.0,
         target_srid: str = "25831",
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, str, float, None]]:
         """Get the soil profile closest to a certain point with additional conditions as optional keyword arguments.
 
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
-        :param initialradius: Initial search radius around the central point in km, the search radius is increased until locations are found
+        :param initialradius: Initial search radius around the central point in km, the search radius is increased
+            until locations are found
         :param target_srid: SRID for the offset calculation in meters
         :param **kwargs: Optional keyword arguments e.g. ``location__title__icontains='HKN'``
         :return: Dictionary with the following keys:
@@ -843,7 +854,7 @@ class SoilAPI(API):
             longitude=longitude,
             initialradius=initialradius,
             target_srid=target_srid,
-            **kwargs
+            **kwargs,
         )
 
     def _convert_to_profile(self, df_sum, df_detail, profile_title, drop_info_cols):
@@ -866,10 +877,12 @@ class SoilAPI(API):
                 try:
                     for key, value in row["soilparameters"].items():
                         soilprofile_df.loc[i, key] = value
-                except:
+                except Exception:
                     pass
             if profile_title is None:
-                profile_title = f"{df_sum["location_name"].iloc[0]} - {df_sum["title"].iloc[0]}"            
+                profile_title = (
+                    f"{df_sum['location_name'].iloc[0]} - {df_sum['title'].iloc[0]}"
+                )
             if drop_info_cols:
                 soilprofile_df.drop(
                     [
@@ -888,7 +901,7 @@ class SoilAPI(API):
             return dsp
         except Exception as err:
             warnings.warn(
-                f"Error during loading of soil layers and parameters for {df_sum["title"].iloc[0]} - {err}"
+                f"Error during loading of soil layers and parameters for {df_sum['title'].iloc[0]} - {err}"
             )
             return None
 
@@ -900,15 +913,17 @@ class SoilAPI(API):
         convert_to_profile: bool = True,
         profile_title: Union[str, None] = None,
         drop_info_cols: bool = True,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, str, bool, requests.Response, None]]:
         """Retrieves a soil profile from the owimetadatabase and converts it to a groundhog SoilProfile object.
 
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
         :param location: Name of the test location (e.g. "CPT-7C")
         :param soilprofile: Title of the soil profile (e.g. "Borehole log")
-        :param convert_to_profile: Boolean determining whether the soil profile needs to be converted to a groundhog SoilProfile object
-        :param drop_info_cols: Boolean determining whether or not to drop the columns with additional info (e.g. soil description, ...)
+        :param convert_to_profile: Boolean determining whether the soil profile needs to be converted to a groundhog
+            SoilProfile object
+        :param drop_info_cols: Boolean determining whether or not to drop the columns with additional info
+            (e.g. soil description, ...)
         :return: Dictionary with the following keys:
 
             - 'id': id for the selected soil profile
@@ -921,32 +936,34 @@ class SoilAPI(API):
         url_params = {
             "projectsite": projectsite,
             "location": location,
-            "soilprofile": soilprofile
+            "soilprofile": soilprofile,
         }
         url_params = {**url_params, **kwargs}
         url_data_type = "soilprofilesummary"
         output_type = "single"
         df_sum, df_add_sum = self.process_data(url_data_type, url_params, output_type)
         url_data_type = "soilprofiledetail"
-        df_detail, df_add_detail = self.process_data(url_data_type, url_params, output_type)
-        dict_ =  {
+        df_detail, df_add_detail = self.process_data(
+            url_data_type, url_params, output_type
+        )
+        dict_ = {
             "id": df_add_detail["id"],
             "soilprofilesummary": df_sum,
             "response": df_add_detail["response"],
             "exists": df_add_sum["existance"],
         }
         if convert_to_profile:
-            dsp = self._convert_to_profile(df_sum, df_detail, profile_title, drop_info_cols)
+            dsp = self._convert_to_profile(
+                df_sum, df_detail, profile_title, drop_info_cols
+            )
             if dsp:
                 dict_["soilprofile"] = dsp
             return dict_
         return dict_
-    
+
     @staticmethod
     def soilprofile_pisa(
-        soil_profile: pd.DataFrame,
-        pw: float = 1.025,
-        sbl: Union[float, None] = None
+        soil_profile: pd.DataFrame, pw: float = 1.025, sbl: Union[float, None] = None
     ) -> pd.DataFrame:
         """Converts dataframes with soil profile data to a format suitable for PISA analysis.
 
@@ -1002,7 +1019,7 @@ class SoilAPI(API):
         projectsite: Union[str, None] = None,
         location: Union[str, None] = None,
         soilprofile: Union[str, None] = None,
-        **kwargs
+        **kwargs,
     ) -> Union[int, bool]:
         """Checks if the in-situ test answering to the search criteria exists.
 
@@ -1021,11 +1038,9 @@ class SoilAPI(API):
         output_type = "single"
         _, df_add = self.process_data(url_data_type, url_params, output_type)
         return df_add["id"] if df_add["existance"] else False
-    
+
     def soiltype_exists(
-        self,
-        soiltype: Union[str, None] = None,
-        **kwargs
+        self, soiltype: Union[str, None] = None, **kwargs
     ) -> Union[int, bool]:
         """Checks if a soiltype with a given name exists.
 
@@ -1038,13 +1053,13 @@ class SoilAPI(API):
         output_type = "single"
         _, df_add = self.process_data(url_data_type, url_params, output_type)
         return df_add["id"] if df_add["existance"] else False
-    
+
     def soilunit_exists(
         self,
         projectsite: Union[str, None] = None,
         soiltype: Union[str, None] = None,
         soilunit: Union[str, None] = None,
-        **kwargs
+        **kwargs,
     ) -> Union[int, bool]:
         """Checks if a certain soil unit exists.
 
@@ -1063,13 +1078,13 @@ class SoilAPI(API):
         output_type = "single"
         _, df_add = self.process_data(url_data_type, url_params, output_type)
         return df_add["id"] if df_add["existance"] else False
-    
+
     def get_soilunits(
         self,
         projectsite: Union[str, None] = None,
         soiltype: Union[str, None] = None,
         soilunit: Union[str, None] = None,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
         """Finds all soil units corresponding to the search parameters.
 
@@ -1091,8 +1106,10 @@ class SoilAPI(API):
         output_type = "list"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
-    
-    def get_batchlabtest_types(self, **kwargs) -> Dict[str, Union[pd.DataFrame, bool, None]]:
+
+    def get_batchlabtest_types(
+        self, **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
         """Retrieves the types of batch lab tests available in the database.
 
         :param kwargs: Keywords arguments for the GET request
@@ -1102,23 +1119,6 @@ class SoilAPI(API):
         output_type = "list"
         df, df_add = self.process_data(url_data_type, kwargs, output_type)
         return {"data": df, "exists": df_add["existance"]}
-    
-    def batchlabtesttype_exists(
-        self,
-        testtype: Union[str, None] = None,
-        **kwargs
-    ) -> Union[int, bool]:
-        """Checks if the in-situ test type answering to the search criteria exists and returns the id.
-
-        :param testtype: Title of the in-situ test type (e.g. "Downhole PCPT")
-        :return: Returns the id if the in-situ test type exists, False otherwise
-        """
-        url_params = {"testtype": testtype}
-        url_params = {**url_params, **kwargs}
-        url_data_type = "batchlabtesttype"
-        output_type = "single"
-        _, df_add = self.process_data(url_data_type, url_params, output_type)
-        return df_add["id"] if df_add["existance"] else False
 
     def get_batchlabtests(
         self,
@@ -1127,7 +1127,7 @@ class SoilAPI(API):
         location: Union[str, None] = None,
         testtype: Union[str, None] = None,
         batchlabtest: Union[str, None] = None,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
         """Retrieves a summary of batch lab tests corresponding to the specified search criteria.
 
@@ -1155,9 +1155,7 @@ class SoilAPI(API):
         return {"data": df, "exists": df_add["existance"]}
 
     def batchlabtesttype_exists(
-        self,
-        batchlabtesttype: Union[str, None] = None,
-        **kwargs
+        self, batchlabtesttype: Union[str, None] = None, **kwargs
     ) -> Union[int, bool]:
         """Checks if the geotechnical sample type answering to the search criteria exists.
 
@@ -1172,11 +1170,7 @@ class SoilAPI(API):
         return df_add["id"] if df_add["existance"] else False
 
     def get_proximity_batchlabtests(
-        self,
-        latitude: float,
-        longitude: float,
-        radius: float,
-        **kwargs
+        self, latitude: float, longitude: float, radius: float, **kwargs
     ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
         """Gets all batch lab tests in a certain radius surrounding a point with given lat/lon.
 
@@ -1185,7 +1179,8 @@ class SoilAPI(API):
         :param radius: Radius around the central point in km
         :return: Dictionary with the following keys:
 
-            - 'data': Pandas dataframe with the batch lab test summary data for each batch lab test in the specified search area
+            - 'data': Pandas dataframe with the batch lab test summary data for each batch lab test
+                in the specified search area
             - 'exists': Boolean indicating whether matching records are found
         """
         return self.get_proximity_entities_2d(
@@ -1193,22 +1188,23 @@ class SoilAPI(API):
             latitude=latitude,
             longitude=longitude,
             radius=radius,
-            **kwargs
+            **kwargs,
         )
-    
+
     def get_closest_batchlabtest(
         self,
         latitude: float,
         longitude: float,
         initialradius: float = 1.0,
         target_srid: str = "25831",
-        **kwargs
+        **kwargs,
     ):
         """Gets the batch lab test closest to a certain point with the name containing a certain string.
 
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
-        :param initialradius: Initial search radius around the central point in km, the search radius is increased until locations are found
+        :param initialradius: Initial search radius around the central point in km, the search radius is increased
+            until locations are found
         :param target_srid: SRID for the offset calculation in meters
         :param **kwargs: Optional keyword arguments e.g. ``location__title__icontains='BH'``
         :return: Dictionary with the following keys:
@@ -1224,7 +1220,7 @@ class SoilAPI(API):
             longitude=longitude,
             initialradius=initialradius,
             target_srid=target_srid,
-            **kwargs
+            **kwargs,
         )
 
     def get_batchlabtest_detail(
@@ -1234,7 +1230,7 @@ class SoilAPI(API):
         testtype: Union[str, None] = None,
         campaign: Union[str, None] = None,
         batchlabtest: Union[str, None] = None,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, bool, requests.Response, None]]:
         """Retrieves detailed data for a specific batch lab test.
 
@@ -1265,7 +1261,9 @@ class SoilAPI(API):
         output_type = "single"
         df_sum, df_add_sum = self.process_data(url_data_type, url_params, output_type)
         url_data_type = "batchlabtestdetail"
-        df_detail, df_add_detail = self.process_data(url_data_type, url_params, output_type)
+        df_detail, df_add_detail = self.process_data(
+            url_data_type, url_params, output_type
+        )
         cols = ["rawdata", "processeddata", "conditions"]
         dfs = self._process_insitutest_dfs(df_detail, cols)
         return {
@@ -1285,7 +1283,7 @@ class SoilAPI(API):
         testtype: Union[str, None] = None,
         campaign: Union[str, None] = None,
         batchlabtest: Union[str, None] = None,
-        **kwargs
+        **kwargs,
     ) -> Union[int, bool]:
         """Checks if the batch lab test answering to the search criteria exists.
 
@@ -1308,11 +1306,9 @@ class SoilAPI(API):
         output_type = "single"
         _, df_add = self.process_data(url_data_type, url_params, output_type)
         return df_add["id"] if df_add["existance"] else False
-    
+
     def geotechnicalsampletype_exists(
-        self,
-        sampletype: Union[str, None] = None,
-        **kwargs
+        self, sampletype: Union[str, None] = None, **kwargs
     ) -> Union[int, bool]:
         """Checks if the geotechnical sample type answering to the search criteria exists.
 
@@ -1325,7 +1321,7 @@ class SoilAPI(API):
         output_type = "single"
         _, df_add = self.process_data(url_data_type, url_params, output_type)
         return df_add["id"] if df_add["existance"] else False
-    
+
     def get_geotechnicalsamples(
         self,
         projectsite: Union[str, None] = None,
@@ -1333,7 +1329,7 @@ class SoilAPI(API):
         location: Union[str, None] = None,
         sampletype: Union[str, None] = None,
         sample: Union[str, None] = None,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
         """Retrieves geotechnical samples corresponding to the specified search criteria.
 
@@ -1361,11 +1357,7 @@ class SoilAPI(API):
         return {"data": df, "exists": df_add["existance"]}
 
     def get_proximity_geotechnicalsamples(
-        self,
-        latitude: float,
-        longitude: float,
-        radius: float,
-        **kwargs
+        self, latitude: float, longitude: float, radius: float, **kwargs
     ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
         """Gets all geotechnical samples in a certain radius surrounding a point with given lat/lon.
 
@@ -1374,7 +1366,8 @@ class SoilAPI(API):
         :param radius: Radius around the central point in km
         :return: Dictionary with the following keys:
 
-            - 'data': Pandas dataframe with the geotechnical sample data for each geotechnical sample in the specified search area
+            - 'data': Pandas dataframe with the geotechnical sample data for each geotechnical sample
+                in the specified search area
             - 'exists': Boolean indicating whether matching records are found
         """
         return self.get_proximity_entities_2d(
@@ -1382,7 +1375,7 @@ class SoilAPI(API):
             latitude=latitude,
             longitude=longitude,
             radius=radius,
-            **kwargs
+            **kwargs,
         )
 
     def get_closest_geotechnicalsample(
@@ -1392,19 +1385,21 @@ class SoilAPI(API):
         depth: float,
         initialradius: float = 1.0,
         target_srid: str = "25831",
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, str, float, None]]:
         """Gets the geotechnical sample closest to a certain point with the name containing a certain string.
 
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
         :param depth: Depth of the central point in meters below seabed
-        :param initialradius: Initial search radius around the central point in km, the search radius is increased until locations are found
+        :param initialradius: Initial search radius around the central point in km, the search radius is increased
+            until locations are found
         :param target_srid: SRID for the offset calculation in meters
         :param **kwargs: Optional keyword arguments e.g. ``location__title__icontains='BH'``
         :return: Dictionary with the following keys:
 
-            - 'data': Pandas dataframe with the geotechnical sample data for each geotechnical sample in the specified search area
+            - 'data': Pandas dataframe with the geotechnical sample data for each geotechnical sample
+                in the specified search area
             - 'id': ID of the closest batch lab test
             - 'title': Title of the closest batch lab test
             - 'offset [m]': Offset in meters from the specified point
@@ -1417,7 +1412,7 @@ class SoilAPI(API):
             initialradius=initialradius,
             target_srid=target_srid,
             sampletest=False,
-            **kwargs
+            **kwargs,
         )
 
     def get_geotechnicalsample_detail(
@@ -1427,7 +1422,7 @@ class SoilAPI(API):
         sampletype: Union[str, None] = None,
         campaign: Union[str, None] = None,
         sample: Union[str, None] = None,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, bool, requests.Response, None]]:
         """Retrieves detailed data for a specific sample.
 
@@ -1458,7 +1453,7 @@ class SoilAPI(API):
             "id": df_add["id"],
             "data": df,
             "response": df_add["response"],
-            "exists": df_add["existance"]
+            "exists": df_add["existance"],
         }
 
     def geotechnicalsample_exists(
@@ -1468,7 +1463,7 @@ class SoilAPI(API):
         sampletype: Union[str, None] = None,
         campaign: Union[str, None] = None,
         sample: Union[str, None] = None,
-        **kwargs
+        **kwargs,
     ) -> Union[int, bool]:
         """Checks if the geotechnical sample answering to the search criteria exists.
 
@@ -1500,7 +1495,7 @@ class SoilAPI(API):
         sample: Union[str, None] = None,
         testtype: Union[str, None] = None,
         sampletest: Union[str, None] = None,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
         """Retrieves a summary of geotechnical sample lab tests corresponding to the specified search criteria.
 
@@ -1528,13 +1523,9 @@ class SoilAPI(API):
         output_type = "list"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
-    
+
     def get_proximity_sampletests(
-        self,
-        latitude: float,
-        longitude: float,
-        radius: float,
-        **kwargs
+        self, latitude: float, longitude: float, radius: float, **kwargs
     ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
         """Gets all sample tests in a certain radius surrounding a point with given lat/lon.
 
@@ -1551,7 +1542,7 @@ class SoilAPI(API):
             latitude=latitude,
             longitude=longitude,
             radius=radius,
-            **kwargs
+            **kwargs,
         )
 
     def get_closest_sampletest(
@@ -1561,14 +1552,15 @@ class SoilAPI(API):
         depth: float,
         initialradius: float = 1.0,
         target_srid: str = "25831",
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, str, float, None]]:
         """Gets the sample test closest to a certain point.
 
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
         :param Depth: Depth of the central point in meters below seabed
-        :param initialradius: Initial search radius around the central point in km, the search radius is increased until locations are found
+        :param initialradius: Initial search radius around the central point in km, the search radius is increased
+            until locations are found
         :param target_srid: SRID for the offset calculation in meters
         :param **kwargs: Optional keyword arguments e.g. ``sample__location__title__icontains='BH'``
         :return: Dictionary with the following keys:
@@ -1585,13 +1577,11 @@ class SoilAPI(API):
             depth=depth,
             initialradius=initialradius,
             target_srid=target_srid,
-            **kwargs
+            **kwargs,
         )
 
     def sampletesttype_exists(
-        self,
-        sampletesttype: Union[str, None] = None,
-        **kwargs
+        self, sampletesttype: Union[str, None] = None, **kwargs
     ) -> Union[int, bool]:
         """Checks if the sample test type answering to the search criteria exists.
 
@@ -1605,7 +1595,9 @@ class SoilAPI(API):
         _, df_add = self.process_data(url_data_type, url_params, output_type)
         return df_add["id"] if df_add["existance"] else False
 
-    def get_sampletesttypes(self, **kwargs) -> Dict[str, Union[pd.DataFrame, bool, None]]:
+    def get_sampletesttypes(
+        self, **kwargs
+    ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
         """Retrieves all sample tests types available in owimetadatabase.
 
         :return: Dictionary with the following keys
@@ -1626,7 +1618,7 @@ class SoilAPI(API):
         sample: Union[str, None] = None,
         campaign: Union[str, None] = None,
         sampletest: Union[str, None] = None,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, bool, requests.Response, None]]:
         """Retrieves detailed information on a specific sample test based on the specified search criteria.
 
@@ -1659,7 +1651,9 @@ class SoilAPI(API):
         output_type = "single"
         df_sum, df_add_sum = self.process_data(url_data_type, url_params, output_type)
         url_data_type = "sampletestdetail"
-        df_detail, df_add_detail = self.process_data(url_data_type, url_params, output_type)
+        df_detail, df_add_detail = self.process_data(
+            url_data_type, url_params, output_type
+        )
         cols = ["rawdata", "processeddata", "conditions"]
         dfs = self._process_insitutest_dfs(df_detail, cols)
         return {
@@ -1671,7 +1665,7 @@ class SoilAPI(API):
             "response": df_add_detail["response"],
             "exists": df_add_sum["existance"],
         }
-    
+
     def sampletest_exists(
         self,
         projectsite: Union[str, None] = None,
@@ -1680,7 +1674,7 @@ class SoilAPI(API):
         sample: Union[str, None] = None,
         campaign: Union[str, None] = None,
         sampletest: Union[str, None] = None,
-        **kwargs
+        **kwargs,
     ) -> Union[int, bool]:
         """Checks if the batch lab test answering to the search criteria exists.
 
@@ -1705,13 +1699,13 @@ class SoilAPI(API):
         output_type = "single"
         _, df_add = self.process_data(url_data_type, url_params, output_type)
         return df_add["id"] if df_add["existance"] else False
-    
+
     def get_soilunit_depthranges(
         self,
         soilunit: str,
         projectsite: Union[str, None] = None,
         location: Union[str, None] = None,
-        **kwargs
+        **kwargs,
     ) -> pd.DataFrame:
         """Retrieves the depth ranges for where the soil unit occurs.
 
@@ -1731,10 +1725,10 @@ class SoilAPI(API):
         df, _ = self.process_data(url_data_type, url_params, output_type)
         return df
 
-    def _fulldata_processing(self, unitdata, row, selected_depths, func_get_details, depthcol, **kwargs):
-        _fulldata = func_get_details(
-            location=row["location_name"], **kwargs
-        )["rawdata"]
+    def _fulldata_processing(
+        self, unitdata, row, selected_depths, func_get_details, depthcol, **kwargs
+    ):
+        _fulldata = func_get_details(location=row["location_name"], **kwargs)["rawdata"]
         _depthranges = selected_depths[
             selected_depths["location_name"] == row["location_name"]
         ]
@@ -1749,8 +1743,8 @@ class SoilAPI(API):
         unitdata.loc[:, "projectsite_name"] = row["projectsite_name"]
         unitdata.loc[:, "test_type_name"] = row["test_type_name"]
         return unitdata
-    
-    def _partialdata_processing(self, unitdata, row, selected_depths, selected_tests):    
+
+    def _partialdata_processing(self, unitdata, row, selected_depths, selected_tests):
         _depthranges = selected_depths[
             selected_depths["location_name"] == row["location_name"]
         ]
@@ -1772,7 +1766,7 @@ class SoilAPI(API):
         func_get_details: Union[Callable, None] = None,
         depthcol: Union[str, None] = None,
         full: bool = True,
-        **kwargs
+        **kwargs,
     ) -> pd.DataFrame:
         selected_depths = self.get_soilunit_depthranges(soilunit=soilunit)
         selected_tests = func_get(**kwargs)["data"]
@@ -1781,22 +1775,28 @@ class SoilAPI(API):
             unitdata = pd.DataFrame()
             if row["location_name"] in selected_depths["location_name"].unique():
                 if full:
-                    unitdata = self._fulldata_processing(unitdata, row, selected_depths, func_get_details, depthcol, **kwargs)
+                    unitdata = self._fulldata_processing(
+                        unitdata,
+                        row,
+                        selected_depths,
+                        func_get_details,
+                        depthcol,
+                        **kwargs,
+                    )
                 else:
-                    unitdata = self._partialdata_processing(unitdata, row, selected_depths, selected_tests)
+                    unitdata = self._partialdata_processing(
+                        unitdata, row, selected_depths, selected_tests
+                    )
             else:
-                print(f"Soil unit not found for {row["location_name"]}")
+                print(f"Soil unit not found for {row['location_name']}")
             all_unit_data = pd.concat([all_unit_data, unitdata])
         all_unit_data.reset_index(drop=True, inplace=True)
         return all_unit_data
 
     def get_unit_insitutestdata(
-        self,
-        soilunit: str,
-        depthcol: Union[str, None] = "z [m]",
-        **kwargs
+        self, soilunit: str, depthcol: Union[str, None] = "z [m]", **kwargs
     ) -> pd.DataFrame:
-        """Retrieves proportions of in-situ test data located inside a soil unit. 
+        """Retrieves proportions of in-situ test data located inside a soil unit.
         The data in the ``rawdata`` field is filtered based on the depth column.
 
         :param soilunit: Name of the soil unit
@@ -1804,15 +1804,18 @@ class SoilAPI(API):
         :param kwargs: Optional keyword arguments for retrieval of in-situ tests (e.g. ``projectsite`` and ``testtype``)
         :return: Dataframe with in-situ test data in the selected soil unit.
         """
-        return self._process_data_units(soilunit, self.get_insitutests, self.get_insitutest_detail, depthcol=depthcol, **kwargs)
-    
+        return self._process_data_units(
+            soilunit,
+            self.get_insitutests,
+            self.get_insitutest_detail,
+            depthcol=depthcol,
+            **kwargs,
+        )
+
     def get_unit_batchlabtestdata(
-        self,
-        soilunit: str,
-        depthcol: Union[str, None] = "z [m]",
-        **kwargs
+        self, soilunit: str, depthcol: Union[str, None] = "z [m]", **kwargs
     ) -> pd.DataFrame:
-        """Retrieves proportions of batch lab test data located inside a soil unit.        
+        """Retrieves proportions of batch lab test data located inside a soil unit.
         The data in the ``rawdata`` field is filtered based on the depth column.
 
         :param soilunit: Name of the soil unit
@@ -1820,13 +1823,16 @@ class SoilAPI(API):
         :param kwargs: Optional keyword arguments for retrieval of in-situ tests (e.g. ``projectsite`` and ``testtype``)
         :return: Dataframe with batch lab test data in the selected soil unit.
         """
-        return self._process_data_units(soilunit, depthcol, self.get_batchlabtests, self.get_batchlabtest_detail, depthcol=depthcol, **kwargs)
+        return self._process_data_units(
+            soilunit,
+            depthcol,
+            self.get_batchlabtests,
+            self.get_batchlabtest_detail,
+            depthcol=depthcol,
+            **kwargs,
+        )
 
-    def get_unit_sampletests(
-        self,
-        soilunit: str,
-        **kwargs
-    ) -> pd.DataFrame:
+    def get_unit_sampletests(self, soilunit: str, **kwargs) -> pd.DataFrame:
         """Retrieves the sample tests data located inside a soil unit.
         The metadata of the samples is filtered based on the depth column.
         Further retrieval of the test data can follow after this method.
@@ -1836,42 +1842,43 @@ class SoilAPI(API):
         :return: Dataframe with sample test metadata in the selected soil unit.
         """
         return self._process_data_units(soilunit, self.get_sampletests, **kwargs)
-    
+
     def _objects_to_list(self, selected_obj, func_get_detail, data_type):
         obj = []
         for _, row in selected_obj.iterrows():
             try:
                 if data_type == "soilprofile":
                     params = {
-                        "projectsite": row['projectsite_name'],
-                        "location": row['location_name'],
-                        "soilprofile": row['title'],
+                        "projectsite": row["projectsite_name"],
+                        "location": row["location_name"],
+                        "soilprofile": row["title"],
                         "drop_info_cols": False,
-                        "profile_title": row['location_name']
+                        "profile_title": row["location_name"],
                     }
                 elif data_type == "cpt":
                     params = {
-                        "projectsite": row['projectsite_name'],
-                        "location": row['location_name'],
-                        "insitutest": row['title'],
-                        "testtype": row['test_type_name']
+                        "projectsite": row["projectsite_name"],
+                        "location": row["location_name"],
+                        "insitutest": row["title"],
+                        "testtype": row["test_type_name"],
                     }
                 else:
                     raise ValueError(f"Data type {data_type} not supported.")
                 _obj = func_get_detail(**params)[data_type]
-                _obj.set_position(easting=row['easting'], northing=row['northing'], elevation=row['elevation'])
+                _obj.set_position(
+                    easting=row["easting"],
+                    northing=row["northing"],
+                    elevation=row["elevation"],
+                )
                 obj.append(_obj)
-            except:
-                warnings.warn(f"Error loading {row['projectsite_name']}-{row['location_name']}-{row['title']}")
+            except Exception:
+                warnings.warn(
+                    f"Error loading {row['projectsite_name']}-{row['location_name']}-{row['title']}"
+                )
         return obj
 
     def get_soilprofile_profile(
-        self,
-        lat1: float,
-        lon1: float,
-        lat2: float,
-        lon2: float,
-        band: float = 1000
+        self, lat1: float, lon1: float, lat2: float, lon2: float, band: float = 1000
     ) -> pd.DataFrame:
         """Retrieves soil profiles along a profile line.
 
@@ -1900,12 +1907,16 @@ class SoilAPI(API):
         start: str,
         end: str,
         plotmap: bool = False,
-        fillcolordict: Dict[str, str] = {'SAND': 'yellow', 'CLAY': 'brown', 'SAND/CLAY': 'orange'},
+        fillcolordict: Dict[str, str] = {
+            "SAND": "yellow",
+            "CLAY": "brown",
+            "SAND/CLAY": "orange",
+        },
         logwidth: float = 100.0,
         show_annotations: bool = True,
         general_layout: Dict[Any, Any] = dict(),
-        **kwargs
-    ) -> Dict[str, Union[List[SoilProfile], go.Figure]]:
+        **kwargs,
+    ) -> Dict[str, Union[List[pd.DataFrame], go.Figure]]:
         """Creates a fence diagram for soil profiles.
 
         :param soilprofiles_df: Dataframe with summary data for the selected soil profiles
@@ -1923,7 +1934,9 @@ class SoilAPI(API):
             - 'diagram': Plotly figure with the fence diagram
         """
         selected_profiles = soilprofiles_df
-        soilprofiles = self._objects_to_list(selected_profiles, self.get_soilprofile_detail, 'soilprofile')
+        soilprofiles = self._objects_to_list(
+            selected_profiles, self.get_soilprofile_detail, "soilprofile"
+        )
         fence_diagram_1 = plot_fence_diagram(
             profiles=soilprofiles,
             start=start,
@@ -1934,20 +1947,12 @@ class SoilAPI(API):
             logwidth=logwidth,
             show_annotations=show_annotations,
             general_layout=general_layout,
-            **kwargs
+            **kwargs,
         )
-        return {
-            'profiles': soilprofiles,
-            'diagram': fence_diagram_1
-        }
+        return {"profiles": soilprofiles, "diagram": fence_diagram_1}
 
     def get_insitutests_profile(
-        self,
-        lat1: float,
-        lon1: float,
-        lat2: float,
-        lon2: float,
-        band: float = 1000
+        self, lat1: float, lon1: float, lat2: float, lon2: float, band: float = 1000
     ) -> pd.DataFrame:
         """Retrieves in-situ tests along a profile line.
 
@@ -1969,7 +1974,7 @@ class SoilAPI(API):
         output_type = "list"
         df, _ = self.process_data(url_data_type, url_params, output_type)
         return df
-    
+
     def plot_cpt_fence(
         self,
         cpt_df: pd.DataFrame,
@@ -1982,8 +1987,8 @@ class SoilAPI(API):
         show_annotations: bool = True,
         general_layout: Dict[Any, Any] = dict(),
         uniformcolor: Union[str, None] = None,
-        **kwargs
-    ) -> Dict[str, Union[List[CPT], go.Figure]]:
+        **kwargs,
+    ) -> Dict[str, Union[List[pd.DataFrame], go.Figure]]:
         """Creates a fence diagram for CPTs.
 
         :param cpt_df: Dataframe with the summary data of the selected CPTs
@@ -2003,7 +2008,7 @@ class SoilAPI(API):
             - 'diagram': Plotly figure with the fence diagram
         """
         selected_cpts = cpt_df
-        cpts = self._objects_to_list(selected_cpts, self.get_cpttest_detail, 'cpt')
+        cpts = self._objects_to_list(selected_cpts, self.get_cpttest_detail, "cpt")
         cpt_fence_fig_1 = plot_longitudinal_profile(
             cpts=cpts,
             latlon=True,
@@ -2016,13 +2021,10 @@ class SoilAPI(API):
             show_annotations=show_annotations,
             general_layout=general_layout,
             uniformcolor=uniformcolor,
-            **kwargs
+            **kwargs,
         )
-        return {
-            'cpts': cpts,
-            'diagram': cpt_fence_fig_1
-        }
-    
+        return {"cpts": cpts, "diagram": cpt_fence_fig_1}
+
     def plot_combined_fence(
         self,
         profiles: List[pd.DataFrame],
@@ -2034,11 +2036,15 @@ class SoilAPI(API):
         extend_profile: bool = True,
         show_annotations: bool = True,
         general_layout: Dict[Any, Any] = dict(),
-        fillcolordict: Dict[str, str] = {'SAND': 'yellow', 'CLAY': 'brown', 'SAND/CLAY': 'orange'},
+        fillcolordict: Dict[str, str] = {
+            "SAND": "yellow",
+            "CLAY": "brown",
+            "SAND/CLAY": "orange",
+        },
         logwidth: float = 100.0,
         opacity: float = 0.5,
         uniformcolor: Union[str, None] = None,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, go.Figure]:
         """Creates a combined fence diagram with soil profile and CPT data.
 
@@ -2074,8 +2080,6 @@ class SoilAPI(API):
             uniformcolor=uniformcolor,
             fillcolordict=fillcolordict,
             general_layout=general_layout,
-            **kwargs
+            **kwargs,
         )
-        return {
-            'diagram': combined_fence_fig_1
-        }
+        return {"diagram": combined_fence_fig_1}
