@@ -100,16 +100,16 @@
     "marker": {
       "x": 0.0,
       "y": 0.0,
-      "z": 0.0,
+      "z": 19000.0,
       "radius": 150.0,
-      "hovertext": "AAA01_TP_FLANGE<br>Mass: 1500.0 kg<br>x: 0.0<br>y: 0.0<br>z: 0.0"
+      "hovertext": "AAA01_TP_FLANGE<br>Mass: 1500.0 kg<br>x: 0.0<br>y: 0.0<br>z: 19000.0"
     },
     "line": null,
     "dict_": {
       "title": "AAA01_TP_FLANGE",
       "x": 0.0,
       "y": 0.0,
-      "z": 0.0,
+      "z": 19000.0,
       "OD": "",
       "wall_thickness": null,
       "height": "nan",

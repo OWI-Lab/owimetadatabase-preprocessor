@@ -11,13 +11,16 @@ from owimetadatabase_preprocessor.utils import (
 )
 
 
-def test_dict_generator(dict_in, dict_out):
-    assert dict_generator(dict_in, **dict_out["method_keys"]) == dict_out["data_out"]
+def test_dict_generator(dict_gen_dict_in, dict_gen_dict_out):
+    assert (
+        dict_generator(dict_gen_dict_in, **dict_gen_dict_out["method_keys"])
+        == dict_gen_dict_out["data_out"]
+    )
 
 
-def test_dict_generator_error(dict_in):
+def test_dict_generator_error(dict_gen_dict_in):
     with pytest.raises(ValueError):
-        dict_generator(dict_in, method_="wrong_method", keys_=[])
+        dict_generator(dict_gen_dict_in, method_="wrong_method", keys_=[])
 
 
 @pytest.mark.parametrize(
@@ -221,7 +224,8 @@ def test_deepcompare(a, b, expected):
 )
 def test_fix_nan(obj, expected):
     result = fix_nan(obj)
-    assert deepcompare(result, expected)
+    comp = deepcompare(result, expected)
+    assert comp[0], comp[1]
 
 
 @pytest.mark.parametrize(
@@ -255,16 +259,17 @@ def test_fix_nan(obj, expected):
             ],
             [
                 {"key_1": 1, "outline": ([1, 2], 3)},
-                {"key_1": (1, 2, 3), "key_2": "value_2"},
+                {"key_1": [1, 2, 3], "key_2": "value_2"},
             ],
         ),
         ({"key_1": 1, "key_2": "value_2"}, {"key_1": 1, "key_2": "value_2"}),
-        ({"key_1": 1, "key_2": [[1, 2], 3]}, {"key_1": 1, "key_2": ([1, 2], 3)}),
+        ({"key_1": 1, "key_2": [[1, 2], 3]}, {"key_1": 1, "key_2": [[1, 2], 3]}),
     ],
 )
 def test_fix_outline(data, expected):
     result = fix_outline(data)
-    assert deepcompare(result, expected)
+    comp = deepcompare(result, expected)
+    assert comp[0], comp[1]
 
 
 def test_fix_outline_exception():

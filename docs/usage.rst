@@ -1,7 +1,7 @@
 Getting started
 ===============
 
-To use this library, you need to acquire authorization token and know the database API endpoint URL. \
+To use this library, you need to acquire authorization token. \
 Please contact responsible person from OWI-lab team to get them.
 
 Once you have this information and you installed the package according to the instructions \
@@ -22,13 +22,22 @@ Now, for convenience, you can store your authorization token in a variable:
 
 .. code-block:: python
 
-  head = {'Authorization': 'Token xxx'}  #  where xxx is the authorization token
+  # Not recommended as it increases risks of leaks!!!
+  TOKEN = <your-token-string>
+
+  # One of the recommended ways, using environment variables
+  # E.g. with dotenv package:
+  # pip install python-dotenv==1.0.0
+  # Afterwards, define your OWIMETADB_TOKEN env variable (preffered in .env file, no source control!!!)
+  from dotenv import load_dotenv
+  load_dotenv()
+  TOKEN = os.getenv('OWIMETADB_TOKEN')
 
 , and create an instance of the API class with this information to later establish connection to the database:
 
 .. code-block:: python
 
-  locations_api = LocationsAPI(header=head)
+  locations_api = LocationsAPI(token=TOKEN)
 
 Please note, that you can specify the API endpoint URL as well, if it is different from the default one. \
 

@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Any, Dict, Union
 from unittest import mock
 
 import pandas as pd
@@ -6,6 +6,7 @@ import pandas.testing as pd_testing
 import pytest
 
 from owimetadatabase_preprocessor.geometry.io import GeometryAPI
+from owimetadatabase_preprocessor.geometry.processing import OWTs
 
 
 @pytest.mark.parametrize(
@@ -45,7 +46,7 @@ def test_get_subassemblies(
     params: Union[Dict[str, Union[str, int]], None],
     data_subassemblies: Union[Dict[str, str], None],
 ) -> None:
-    api_test = GeometryAPI(api_root, header)
+    api_test = GeometryAPI(api_root, header=header)
     data_ = api_test.get_subassemblies(**params)  # type: ignore
     expected_data = pd.DataFrame(data_subassemblies)
     assert isinstance(data_["data"], pd.DataFrame)
@@ -133,7 +134,7 @@ def test_get_buildingblocks(
     params: Union[Dict[str, Union[str, int]], None],
     data_buildingblocks: Union[Dict[str, str], None],
 ) -> None:
-    api_test = GeometryAPI(api_root, header)
+    api_test = GeometryAPI(api_root, header=header)
     data_ = api_test.get_buildingblocks(**params)  # type: ignore
     expected_data = pd.DataFrame(data_buildingblocks)
     assert isinstance(data_["data"], pd.DataFrame)
@@ -143,37 +144,17 @@ def test_get_buildingblocks(
 
 
 def test_get_materials(
-    api_root: str, header: Dict[str, str], mock_requests_get_materials: mock.Mock
+    api_root: str, header: Dict[str, str], mock_requests_get_advanced: mock.Mock
 ) -> None:
-    api_test = GeometryAPI(api_root, header)
+    api_test = GeometryAPI(api_root, header=header)
     data = api_test.get_materials()
     assert isinstance(data["data"], pd.DataFrame)
     assert isinstance(data["exists"], bool)
     assert data["exists"]
 
 
-# def test_get_owt_geometry_processor(
-#     api_root: str,
-#     header: Dict[str, str],
-#     mat: pd.DataFrame,
-#     sa: pd.DataFrame,
-#     OWT_mock: mock.Mock,
-#     mock_requests_get_materials: mock.Mock,
-#     mock_requests_get_subassemblies: mock.Mock,
-# ) -> None:
-#     with mock.patch(
-#         "owimetadatabase_preprocessor.geometry.io.OWT", return_value=OWT_mock
-#     ):
-#         api_test = GeometryAPI(api_root, header)
-#         processor = api_test.get_owt_geometry_processor(
-#             turbines="BBK01", tower_base=10.0, monopile_head=5.0
-#         )
-#         assert isinstance(processor, type(OWT_mock))
-#         assert isinstance(processor.api, GeometryAPI)
-#         assert isinstance(processor.materials, pd.DataFrame)
-#         assert isinstance(processor.sub_assemblies, pd.DataFrame)
-#         assert isinstance(processor.tower_base, float)
-#         assert isinstance(processor.monopile_head, float)
-#         #  assert isinstance(processor.sub_assemblies, Dict[str, List[SubAssembly]])
-#         pd_testing.assert_frame_equal(processor.materials, mat)
-#         pd_testing.assert_frame_equal(processor.sub_assemblies, sa)
+def test_get_owt_geometry_processor(
+    api_test: Any, owts_init: OWTs, mock_requests_for_proc: mock.Mock
+) -> None:
+    processor = api_test.get_owt_geometry_processor(turbines=["AAA01", "AAB02"])
+    assert processor == owts_init

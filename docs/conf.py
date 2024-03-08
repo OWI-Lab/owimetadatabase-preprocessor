@@ -15,7 +15,7 @@ sys.path.insert(0, module_path)
 project = "Owimetadatabase preprocessor"
 copyright = "2023, OWI-Lab"
 author = "OWI-Lab"
-version = "0.5.6"
+version = "0.6.1"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -32,6 +32,9 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 html_theme = "sphinx_rtd_theme"  # "alabaster"
 html_static_path = ["_static"]
+autodoc_default_options = {
+    'private-members': False
+}
 # html_theme_options = {
 #    'body_max_width': '100%',
 # }

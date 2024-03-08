@@ -22,12 +22,34 @@ class LocationsAPI(API):
     (see ``owimetadatabase`` code).
     """
 
+    def __init__(
+        self,
+        api_root: str = "https://owimetadatabase.owilab.be/api/v1",
+        api_subdir: str = "/locations/",
+        token: Union[str, None] = None,
+        uname: Union[str, None] = None,
+        password: Union[str, None] = None,
+        **kwargs,
+    ) -> None:
+        """Create an instance of the LocationsAPI class with the required parameters.
+
+        :param api_root: Optional: root URL of the API endpoint, the default working database url is provided.
+        :param api_subdir: Optional: subdirectory of the API endpooint url for specific type of data.
+        :param token: Optional: token to access the API.
+        :param uname: Optional: username to access the API.
+        :param password: Optional: password to access the API.
+        :param kwargs: Additional parameters to pass to the API.
+        :return: None
+        """
+        super().__init__(api_root, token, uname, password, **kwargs)
+        self.api_root = self.api_root + api_subdir
+
     def get_projectsites(
         self, **kwargs
     ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
         """Get all available projects.
 
-        :param:
+        :param: kwargs: Additional parameters to pass to the API.
         :return:  Dictionary with the following keys:
 
             - "data": Pandas dataframe with the location data for each project
@@ -35,7 +57,7 @@ class LocationsAPI(API):
         """
         url_params = {}  # type: Dict[str, str]
         url_params = {**url_params, **kwargs}
-        url_data_type = "/locations/projectsites/"
+        url_data_type = "projectsites"
         output_type = "list"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
@@ -46,6 +68,7 @@ class LocationsAPI(API):
         """Get details for a specific projectsite.
 
         :param projectsite: Title of the projectsite.
+        :param kwargs: Additional parameters to pass to the API.
         :return:  Dictionary with the following keys:
 
             - "id": id of the selected project site.
@@ -54,7 +77,7 @@ class LocationsAPI(API):
         """
         url_params = {"projectsite": projectsite}
         url_params = {**url_params, **kwargs}
-        url_data_type = "/locations/projectsites/"
+        url_data_type = "projectsites"
         output_type = "single"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"id": df_add["id"], "data": df, "exists": df_add["existance"]}
@@ -66,6 +89,7 @@ class LocationsAPI(API):
 
         :param projectsite: String with the projectsite title (e.g. "Nobelwind").
         :param assetlocation: String with the asset location title (e.g. "NW2A04").
+        :param kwargs: Additional parameters to pass to the API.
         :return: Dictionary with the following keys:
 
             - "data": Pandas dataframe with the location data for each location in the projectsite.
@@ -75,7 +99,7 @@ class LocationsAPI(API):
         url_params = {**url_params, **kwargs}
         if projectsite:
             url_params["projectsite__title"] = projectsite
-        url_data_type = "/locations/assetlocations/"
+        url_data_type = "assetlocations"
         if "assetlocations" in url_params.keys() and isinstance(
             url_params["assetlocations"], list
         ):
@@ -96,12 +120,13 @@ class LocationsAPI(API):
         return {"data": df, "exists": df_add["existance"]}
 
     def get_assetlocation_detail(
-        self, assetlocation: str, projectsite: str = None, **kwargs
+        self, assetlocation: str, projectsite: Union[None, str] = None, **kwargs
     ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
         """Get a selected turbine.
 
         :param projectsite: Name of the projectsite (e.g. "Nobelwind").
         :param assetlocation: Title of the asset location (e.g. "BBK05").
+        :param kwargs: Additional parameters to pass to the API.
         :return: Dictionary with the following keys:
 
             - "id": id of the selected projectsite site.
@@ -113,22 +138,29 @@ class LocationsAPI(API):
         else:
             url_params = {"projectsite": projectsite, "assetlocation": assetlocation}
         url_params = {**url_params, **kwargs}
-        url_data_type = "/locations/assetlocations/"
+        url_data_type = "assetlocations"
         output_type = "single"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"id": df_add["id"], "data": df, "exists": df_add["existance"]}
 
     def plot_assetlocations(
-        self, return_fig: bool = False, **kwargs
+        self, return_fig: bool = True, show_fig: bool = True, **kwargs
     ) -> Union[None, plt.graph_objects.Figure]:
         """Retrieve asset locations and generates a Plotly plot to show them.
 
-        :param return_fig: Boolean indicating whether the Plotly figure object needs to be returned
-          (default is False which simply shows the plot)
+        :param return_fig: Boolean indicating whether the Plotly figure object needs to be returned.
+        :param show_fig: Boolean indicating whether the figure needs to be shown.
         :param kwargs: Keyword arguments for the search (see ``get_assetlocations``).
-        :return: Plotly figure object with selected asset locations plotted on OpenStreetMap tiles (if requested).
+        :return: Plotly figure object with selected asset locations plotted on OpenStreetMap tiles (if requested) or nothing.
         """
-        assetlocations = self.get_assetlocations(**kwargs)["data"]
+        assetlocations_data = self.get_assetlocations(**kwargs)
+        if assetlocations_data["exists"]:
+            assetlocations = assetlocations_data["data"]
+        else:
+            raise ValueError(
+                f"No asset locations found for the given parameters: {kwargs}. \
+                Please check for typos or if it is expected to exists."
+            )
         fig = px.scatter_mapbox(
             assetlocations,
             lat="northing",
@@ -140,8 +172,11 @@ class LocationsAPI(API):
         )
         fig.update_layout(mapbox_style="open-street-map")
         fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
-        if return_fig:
-            return fig
-        else:
+        if return_fig and show_fig:
             fig.show()
+            return fig
+        elif show_fig:
+            fig.show()
+        elif return_fig:
+            return fig
         return None

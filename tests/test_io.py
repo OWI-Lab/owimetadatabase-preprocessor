@@ -8,22 +8,25 @@ import requests
 from owimetadatabase_preprocessor.io import API
 
 
-@pytest.fixture
-def mock_requests_get(mocker: mock.Mock) -> mock.Mock:
-    mock = mocker.patch("requests.get")
-    mock.return_value = requests.Response()
-    return mock
-
-
 class TestAPIAuth:
     """Tests of authentication setup."""
 
-    def test_API_header(self, api_root: str) -> None:
+    @pytest.mark.parametrize(
+        "header",
+        [
+            ({"Authorization": "Token 12345"}),
+            ({"Authorization": "token 12345"}),
+            ({"Authorization": "token12345"}),
+            ({"Authorization": "Token12345"}),
+            ({"Authorization": "12345"}),
+        ],
+    )
+    def test_API_header(self, api_root: str, header) -> None:
         """Test parent API class with header that it initializes everything correctly."""
-        header = {"Authorization": "Token 12345"}
+        header_expected = {"Authorization": "Token 12345"}
         api_test = API(api_root, header=header)
         assert api_test.api_root == api_root
-        assert api_test.header == header
+        assert api_test.header == header_expected
         assert api_test.uname is None
         assert api_test.password is None
         assert api_test.auth is None
@@ -150,23 +153,6 @@ def test_postprocess_data(
     else:
         result = API.postprocess_data(df, output_type)
         assert result == expected_result
-
-
-@pytest.fixture
-def mock_requests_get_advanced(mocker: mock.Mock) -> mock.Mock:
-    mock = mocker.patch("requests.get")
-
-    def response() -> requests.Response:
-        resp = requests.Response()
-        resp.status_code = 200
-        resp._content = (
-            b'[{"col_1": 11, "col_2": 12, "col_3": 13}, '
-            b'{"col_1": 21, "col_2": 22, "col_3": 23}]'
-        )
-        return resp
-
-    mock.return_value = response()
-    return mock
 
 
 def test_process_data(mock_requests_get_advanced: mock.Mock, api_root: str) -> None:

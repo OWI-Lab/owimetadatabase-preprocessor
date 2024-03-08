@@ -2,12 +2,10 @@ import json
 from typing import Any, Callable, Dict, List
 from unittest import mock
 
-import pandas as pd
 import pytest
 import requests
 
-from owimetadatabase_preprocessor.geometry.io import GeometryAPI
-from owimetadatabase_preprocessor.geometry.processing import OWT
+from owimetadatabase_preprocessor.utils import dict_generator
 
 
 @pytest.fixture
@@ -180,23 +178,6 @@ def data_buildingblocks_call() -> Callable[[str], Any]:
 
 
 @pytest.fixture
-def mock_requests_get_materials(mocker: mock.Mock) -> mock.Mock:
-    mock = mocker.patch("requests.get")
-
-    def response() -> requests.Response:
-        resp = requests.Response()
-        resp.status_code = 200
-        resp._content = (
-            b'[{"col_1": 11, "col_2": 12, "col_3": 13}, '
-            b'{"col_1": 21, "col_2": 22, "col_3": 23}]'
-        )
-        return resp
-
-    mock.return_value = response()
-    return mock
-
-
-@pytest.fixture
 def mock_requests_get_subassemblies(
     mocker: mock.Mock, data_subassemblies_call: Callable[[str], Any]
 ) -> mock.Mock:
@@ -332,44 +313,88 @@ def mock_requests_get_buildingblocks(
     return mock
 
 
-@pytest.fixture
-def mat() -> pd.DataFrame:
-    return pd.DataFrame(
-        [
-            {"col_1": 11, "col_2": 12, "col_3": 13},
-            {"col_1": 21, "col_2": 22, "col_3": 23},
-        ]
-    )
+@pytest.fixture(scope="function")
+def sa_list(data):
+    return [
+        dict_generator(
+            data["sa"][i], keys_=["slug", "model_definition"], method_="exclude"
+        )
+        for i in range(3)
+    ]
 
 
-@pytest.fixture
-def sa() -> pd.DataFrame:
-    return pd.DataFrame(
-        [
-            {"id": 11, "project": "Nobelwind", "type": "TW", "turbine": "BBK01"},
-            {"id": 11, "project": "Nobelwind", "type": "TP", "turbine": "BBK01"},
-            {"id": 11, "project": "Nobelwind", "type": "MP", "turbine": "BBK01"},
-        ]
-    )
-
-
-@pytest.fixture
-def OWT_mock(
-    api_root: str,
-    header: Dict[str, str],
-    mat: pd.DataFrame,
-    sa: pd.DataFrame,
+@pytest.fixture(scope="function")
+def mock_requests_for_proc(
+    mocker: mock.Mock, materials_dicts_init, sa_list: List[Dict[str, Any]], data
 ) -> mock.Mock:
-    def OWT_mock_init(self, *args, **kwargs):
-        self.api = GeometryAPI(args[0], args[1])
-        self.materials = args[2]
-        self.sub_assemblies = args[3]
-        self.tower_base = 10.0
-        self.monopile_head = 5.0
+    def custom_side_effect(url, *args, **kwargs) -> requests.Response:
+        resp = requests.Response()
+        resp.status_code = 200
+        if url == "https://test.api/test/geometry/userroutes/subassemblies":
+            data_ = sa_list
+        elif url == "https://test.api/test/geometry/userroutes/materials":
+            data_ = materials_dicts_init
+        elif url == "https://owimetadatabase.owilab.be/api/v1/locations/assetlocations":
+            data_ = {"id": [1], "elevation": [30.0]}
+        elif url == "https://test.api/test/geometry/userroutes/buildingblocks":
+            if int(kwargs["params"]["sub_assembly__id"]) == 1:
+                data_ = [
+                    dict_generator(
+                        d,
+                        keys_=[
+                            "slug",
+                            "area_distribution",
+                            "c_d",
+                            "c_m",
+                            "material_name",
+                            "youngs_modulus",
+                            "density",
+                            "poissons_ratio",
+                        ],
+                        method_="exclude",
+                    )
+                    for d in data["bb"][:5]
+                ]
+            elif int(kwargs["params"]["sub_assembly__id"]) == 2:
+                data_ = [
+                    dict_generator(
+                        d,
+                        keys_=[
+                            "slug",
+                            "area_distribution",
+                            "c_d",
+                            "c_m",
+                            "material_name",
+                            "youngs_modulus",
+                            "density",
+                            "poissons_ratio",
+                        ],
+                        method_="exclude",
+                    )
+                    for d in data["bb"][5:8]
+                ]
+            elif int(kwargs["params"]["sub_assembly__id"]) == 3:
+                data_ = [
+                    dict_generator(
+                        d,
+                        keys_=[
+                            "slug",
+                            "area_distribution",
+                            "c_d",
+                            "c_m",
+                            "material_name",
+                            "youngs_modulus",
+                            "density",
+                            "poissons_ratio",
+                        ],
+                        method_="exclude",
+                    )
+                    for d in data["bb"][8:]
+                ]
+        else:
+            raise ValueError("Invalid request URL!")
+        resp._content = json.dumps(data_).encode("utf-8")
+        return resp
 
-    #  mocked_OWT = mock.create_autospec(OWT, instance=True)
-    mocked_OWT = mock.Mock(spec=OWT)
-    OWT_mock_init(mocked_OWT, api_root, header, mat, sa)
-    #  mocked_OWT.side_effect = lambda *args, **kwargs: OWT_mock_init(mocked_OWT, api_root, header, mat, sa)
-    #  mocked_OWT.__init__ = mock.Mock(return_value=None)
-    return mocked_OWT
+    mock = mocker.patch("requests.get", side_effect=custom_side_effect)
+    return mock

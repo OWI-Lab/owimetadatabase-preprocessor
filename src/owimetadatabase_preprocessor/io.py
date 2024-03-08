@@ -21,6 +21,15 @@ class API(object):
         password: Union[str, None] = None,
         **kwargs,
     ) -> None:
+        """Create an instance of the API class with the required parameters.
+
+        :param api_root: Optional: root URL of the API endpoint, the default working database url is provided.
+        :param token: Optional: token to access the API.
+        :param uname: Optional: username to access the API.
+        :param password: Optional: password to access the API.
+        :param kwargs: Additional parameters to pass to the API.
+        :return: None
+        """
         self.api_root = api_root
         self.uname = uname
         self.password = password
@@ -28,6 +37,27 @@ class API(object):
         self.header = None
         if "header" in kwargs.keys():
             self.header = kwargs["header"]
+            if "Authorization" in self.header:
+                if not self.header["Authorization"].startswith("Token "):
+                    if self.header["Authorization"].startswith("token "):
+                        self.header = {
+                            "Authorization": f"Token {self.header['Authorization'][6:]}"
+                        }
+                    elif self.header["Authorization"].startswith(
+                        "token"
+                    ) or self.header["Authorization"].startswith("Token"):
+                        self.header = {
+                            "Authorization": f"Token {self.header['Authorization'][5:]}"
+                        }
+                    else:
+                        self.header = {
+                            "Authorization": f"Token {self.header['Authorization']}"
+                        }
+            else:
+                raise ValueError(
+                    "If you provide a header directly, \
+                    the header must contain the 'Authorization' key with the value starting with 'Token'."
+                )
         elif token:
             self.header = {"Authorization": f"Token {token}"}
         elif self.uname and self.password:
@@ -39,11 +69,14 @@ class API(object):
 
     def __eq__(self, other) -> bool:
         if isinstance(other, type(self)):
-            return deepcompare(self, other)
+            comp = deepcompare(self, other)
+            assert comp[0], comp[1]
         elif isinstance(other, dict):
-            return deepcompare(self.__dict__, other)
+            comp = deepcompare(self.__dict__, other)
+            assert comp[0], comp[1]
         else:
-            return False
+            assert False, "Comparison is not possible due to incompatible types!"
+        return comp[0]
 
     def send_request(
         self, url_data_type: str, url_params: Dict[str, str]
@@ -77,7 +110,7 @@ class API(object):
         """Check status code of the response to request and provide detials if unexpected.
 
         :param resp: Instance of the Response object.
-        :return:
+        :return: None
         """
         if resp.status_code != 200:
             e = "Error " + str(resp.status_code) + ".\n" + resp.reason

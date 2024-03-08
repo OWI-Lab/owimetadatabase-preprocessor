@@ -84,17 +84,25 @@ class BaseStructure(object):
 
     def __eq__(self, other) -> bool:
         if isinstance(other, type(self)):
-            return deepcompare(self, other)
+            comp = deepcompare(self, other)
+            assert comp[0], comp[1]
         elif isinstance(other, dict):
-            return deepcompare(self.__dict__, other)
+            comp = deepcompare(self.__dict__, other)
+            assert comp[0], comp[1]
         else:
-            return False
+            assert False, "Comparison is not possible due to incompatible types!"
+        return comp[0]
 
 
 class Material(BaseStructure):
     """Material derived from the raw data."""
 
     def __init__(self, json: DataMat) -> None:
+        """Create an instance of the Material class with the required parameters.
+
+        :param json: json data containing the material information.
+        :return: None
+        """
         self.title = json["title"]
         self.description = json["description"]
         self.density = json["density"]
@@ -133,6 +141,17 @@ class Position(BaseStructure):
         gamma: np.float64 = np.float64(0.0),
         reference_system: str = "LAT",
     ) -> None:
+        """Create an instance of the Position class with the required parameters.
+
+        :param x: X coordinate of the component.
+        :param y: Y coordinate of the component.
+        :param z: Z coordinate of the component.
+        :param alpha: Rotation around the x-axis.
+        :param beta: Rotation around the y-axis.
+        :param gamma: Rotation around the z-axis.
+        :param reference_system: Reference system for the vertical position.
+        :return: None
+        """
         self.x = x
         self.y = y
         self.z = z
@@ -146,6 +165,12 @@ class BuildingBlock(BaseStructure):
     """Building blocks description."""
 
     def __init__(self, json: DataBB, subassembly: Union[Any, None] = None) -> None:
+        """Create an instance of the BuildingBlock class with the required parameters.
+
+        :param json: json data containing the building block information.
+        :param subassembly: Subassembly object containing the building block.
+        :return: None
+        """
         self.id = json["id"]
         self.title = json["title"]
         if json["description"]:
@@ -182,8 +207,8 @@ class BuildingBlock(BaseStructure):
         for k in cond.keys():
             if (
                 k in self.json
-                and self.json[k] is not None
-                and not np.isnan(self.json[k])
+                and self.json[k] is not None  # type: ignore
+                and not np.isnan(self.json[k])  # type: ignore
             ):
                 return cond[k]
         raise ValueError("Could not find supported building block type.")
@@ -256,10 +281,7 @@ class BuildingBlock(BaseStructure):
                     :return: Volume of the cone frustum, mm³.
                     """
                     volume = (
-                        pi
-                        * height
-                        / 3
-                        * (r_bottom**2 + r_bottom * r_top + r_top**2)
+                        pi * height / 3 * (r_bottom**2 + r_bottom * r_top + r_top**2)
                     )
                     return volume
 
@@ -429,10 +451,17 @@ class SubAssembly(BaseStructure):
 
     def __init__(
         self,
-        materials: pd.DataFrame,
+        materials: Union[pd.DataFrame, bool, np.int64, None],
         json: DataSA,
         api_object: Union[Any, None] = None,
     ) -> None:
+        """Create an instance of the SubAssembly class with the required parameters.
+
+        :param materials: Pandas dataframe containing the material information.
+        :param json: json data containing the subassembly information.
+        :param api_object: API object to access the building blocks.
+        :return: None
+        """
         self.api = api_object
         self.id = json["id"]
         self.title = json["title"]
@@ -581,7 +610,12 @@ class SubAssembly(BaseStructure):
         x_offset: np.float64 = np.float64(0.0),
         y_offset: np.float64 = np.float64(0.0),
     ):
-        """Plot the subassembly."""
+        """Plot the subassembly.
+
+        :param x_offset: Offset in the x direction.
+        :param y_offset: Offset in the y direction.
+        :return: Plotly data and layout.
+        """
         x0, z = self.outline
         data = [
             go.Scattergl(
@@ -622,7 +656,11 @@ class SubAssembly(BaseStructure):
         return data, layout
 
     def as_df(self, include_absolute_postion: bool = False) -> pd.DataFrame:
-        """Transform data into pandas dataframe."""
+        """Transform data into pandas dataframe.
+
+        :param include_absolute_postion: Include absolute position of the building blocks.
+        :return: Pandas dataframe with the building block information.
+        """
         out = []
         if self.building_blocks:
             for bb in self.building_blocks:

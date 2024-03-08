@@ -1,0 +1,184 @@
+{
+    "set_tube": [
+        {
+            "title": ["aaa01_tp_01", "aaa01_tp_10"],
+            "OD": ["5250/4500", "5250"],
+            "height": [200.0, 18800.0],
+            "mass": [1167.2, 118242.0],
+            "volume": [0.151581846, 15.35610489],
+            "wall_thickness": [50.0, 50.0],
+            "x": [0.0, 0.0],
+            "y": [0.0, 0.0],
+            "z": [18800.0, 0.0],
+            "Depth from [mLAT]": [16.0, 15.8],
+            "Depth to [mLAT]": [15.8, -3.0]
+        },
+        {
+            "title": ["aaa01_mp_01", "aaa01_mp_10", "aaa01_mp_20"],
+            "OD": ["5050", "5500/5050", "6000/5500"],
+            "height": [1000.0, 29000.0, 40000.0],
+            "mass": [6047.6, 363035.4, 812792.9],
+            "volume": [0.785398163, 47.14745175, 105.5575132],
+            "wall_thickness": [50.0, 100.0, 150.0],
+            "x": [0.0, 0.0, 0.0],
+            "y": [0.0, 0.0, 0.0],
+            "z": [69000.0, 40000.0, 0.0],
+            "Depth from [mLAT]": [7.5, 6.5, -22.5],
+            "Depth to [mLAT]": [6.5, -22.5, -62.5]
+        },
+        {
+            "title": ["aaa01_tw_01", "aaa01_tw_30"],
+            "OD": ["4500/3500", "4500"],
+            "height": [59000.0, 1000.0],
+            "mass": [281877.0, 8028.1],
+            "volume": [36.6074084, 1.042616062],
+            "wall_thickness": [50.0, 75.0],
+            "x": [0.0, 0.0],
+            "y": [0.0, 0.0],
+            "z": [1000.0, 0.0],
+            "Depth from [mLAT]": [76.0, 17.0],
+            "Depth to [mLAT]": [17.0, 16.0]
+        }
+    ],
+    "process_tube": [
+        {
+            "title": ["aaa01_tp_01", "aaa01_tp_10"],
+            "Depth from [mLAT]": [16.0, 15.8],
+            "Depth to [mLAT]": [15.8, -3.0],
+            "Height [m]": [0.2, 18.8],
+            "Diameter from [m]": [4.5, 5.25],
+            "Diameter to [m]": [5.25, 5.25],
+            "Volume [m3]": [0.151581846, 15.35610489],
+            "Wall thickness [mm]": [50.0, 50.0],
+            "Youngs modulus [GPa]": [210, 210],
+            "Poissons ratio [-]" : [0.3, 0.3],
+            "Mass [t]": [1.1672, 118.242],
+            "rho [t/m]": [5.836, 6.28946]
+        },
+        {
+            "title": ["aaa01_mp_01", "aaa01_mp_10", "aaa01_mp_20"],
+            "Depth from [mLAT]": [7.5, 6.5, -22.5],
+            "Depth to [mLAT]": [6.5, -22.5, -62.5],
+            "Height [m]": [1.0, 29.0, 40.0],
+            "Diameter from [m]": [5.05, 5.05, 5.5],
+            "Diameter to [m]": [5.05, 5.5, 6.0],
+            "Volume [m3]": [0.785398163, 47.14745175, 105.5575132],
+            "Wall thickness [mm]": [50.0, 100.0, 150.0],
+            "Youngs modulus [GPa]": [210, 210, 210],
+            "Poissons ratio [-]" : [0.3, 0.3, 0.3],
+            "Mass [t]": [6.0476, 363.0354, 812.7929],
+            "rho [t/m]": [6.0476, 12.51846, 20.31983]
+        },
+        {
+            "title": ["aaa01_tw_01", "aaa01_tw_30"],
+            "Depth from [mLAT]": [76.0, 17.0],
+            "Depth to [mLAT]": [17.0, 16.0],
+            "Height [m]": [59.0, 1.0],
+            "Diameter from [m]": [3.5, 4.5],
+            "Diameter to [m]": [4.5, 4.5],
+            "Volume [m3]": [36.6074084, 1.042616062],
+            "Wall thickness [mm]": [50.0, 75.0],
+            "Youngs modulus [GPa]": [210, 210],
+            "Poissons ratio [-]" : [0.3, 0.3],
+            "Mass [t]": [281.877, 8.0281],
+            "rho [t/m]": [4.77758, 8.0281]
+        }
+    ],
+    "process_rna":
+    {   
+        "title": ["AAA01_RNA_NACELLE"],
+        "X [m]": [-1.5],
+        "Y [m]": [0.0],
+        "Z [mLAT]": [77.0],
+        "Mass [t]": [130.0],
+        "Ixx [tm2]": [150.0],
+        "Iyy [tm2]": [525.0],
+        "Izz [tm2]": [450.0],
+        "Description": [""]
+    },
+    "set_appurtenances": [
+        {
+            "title": ["AAA01_TP_FLANGE"],
+            "mass": [1500.0],
+            "x": [0.0],
+            "y": [0.0],
+            "z": [19000.0],
+            "description": [""],
+            "height": ["nan"],
+            "Z [mLAT]": [16.0]
+        },
+        {
+            "title": ["AAA01_TW_FLANGE"],
+            "mass": [1600.0],
+            "x": [0.0],
+            "y": [0.0],
+            "z": [100.0],
+            "description": [""],
+            "Z [mLAT]": [16.1]
+        }
+    ],
+    "process_appurtenances": [
+        {
+            "title": ["AAA01_TP_FLANGE"],
+            "X [m]": [0.0],
+            "Y [m]": [0.0],
+            "Z [mLAT]": [16.0],
+            "Mass [t]": [1.5],
+            "Description": [""]
+        },
+        {
+            "title": ["AAA01_TW_FLANGE"],
+            "X [m]": [0.0],
+            "Y [m]": [0.0],
+            "Z [mLAT]": [16.1],
+            "Mass [t]": [1.6],
+            "Description": [""]
+        }
+    ],
+    "set_distr": [
+        {
+            "title": ["AAA01_TP_LADDER"],
+            "mass": [124.0],
+            "x": [500.0],
+            "y": [2770.0],
+            "z": [14500.0],
+            "height": [4500.0],
+            "volume": [0.0],
+            "description": ["Some ladder"],
+            "Z [mLAT]": [11.5]
+        },
+        {
+            "title": ["aaa01_tp_grout"],
+            "mass": [16823.2],
+            "x": [0.0],
+            "y": [0.0],
+            "z": [50.0],
+            "height": [7500.0],
+            "volume": [6.00829595],
+            "description": [""],
+            "Z [mLAT]": [-2.95]
+        }
+    ],
+    "process_distr": [
+        {
+            "title": ["AAA01_TP_LADDER"],
+            "X [m]": [0.5],
+            "Y [m]": [2.77],
+            "Z [mLAT]": [11.5],
+            "Height [m]": [4.5],
+            "Mass [t]": [0.124],
+            "Volume [m3]": [0.0],
+            "Description": ["Some ladder"]
+        },
+        {
+            "title": ["aaa01_tp_grout"],
+            "X [m]": [0.0],
+            "Y [m]": [0.0],
+            "Z [mLAT]": [-2.95],
+            "Height [m]": [7.5],
+            "Mass [t]": [16.8232],
+            "Volume [m3]": [6.00829595],
+            "Description": [""]
+        }
+    ]
+}

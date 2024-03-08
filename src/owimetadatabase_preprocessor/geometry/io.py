@@ -15,6 +15,28 @@ from owimetadatabase_preprocessor.locations.io import LocationsAPI
 class GeometryAPI(API):
     """Class to connect to the geometry data API with methods to retrieve data."""
 
+    def __init__(
+        self,
+        api_root: str = "https://owimetadatabase.owilab.be/api/v1",
+        api_subdir: str = "/geometry/userroutes/",
+        token: Union[str, None] = None,
+        uname: Union[str, None] = None,
+        password: Union[str, None] = None,
+        **kwargs,
+    ) -> None:
+        """Create an instance of the GeometryAPI class with the required parameters.
+
+        :param api_root: Optional: root URL of the API endpoint, the default working database url is provided.
+        :param api_subdir: Optional: subdirectory of the API endpooint url for specific type of data.
+        :param token: Optional: token to access the API.
+        :param uname: Optional: username to access the API.
+        :param password: Optional: password to access the API.
+        :param kwargs: Additional parameters to pass to the API.
+        :return: None
+        """
+        super().__init__(api_root, token, uname, password, **kwargs)
+        self.api_root = self.api_root + api_subdir
+
     def get_subassemblies(
         self,
         projectsite: Union[str, None] = None,
@@ -38,7 +60,7 @@ class GeometryAPI(API):
             url_params["asset__title"] = assetlocation
         if subassembly_type is not None:
             url_params["subassembly_type"] = subassembly_type
-        url_data_type = "/geometry/userroutes/subassemblies"
+        url_data_type = "subassemblies"
         output_type = "list"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
@@ -50,8 +72,7 @@ class GeometryAPI(API):
         subassembly_type: Union[str, None] = None,
         subassembly_id: Union[str, None] = None,
     ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
-        """
-        Get all building blocks for a given location.
+        """Get all building blocks for a given location.
 
         :param projectsite: Title of the projectsite.
         :param assetlocation: Title of the asset location.
@@ -71,14 +92,13 @@ class GeometryAPI(API):
             url_params["sub_assembly__subassembly_type"] = subassembly_type
         if subassembly_id is not None:
             url_params["sub_assembly__id"] = str(subassembly_id)
-        url_data_type = "/geometry/userroutes/buildingblocks"
+        url_data_type = "buildingblocks"
         output_type = "list"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
 
     def get_materials(self) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
-        """
-        Get all the materials of building blocks.
+        """Get all the materials of building blocks.
 
         :return: Dictionary with the following keys:
 
@@ -86,7 +106,7 @@ class GeometryAPI(API):
             - "exists": Boolean indicating whether matching records are found
         """
         url_params = {}  # type: Dict[str, str]
-        url_data_type = "/geometry/userroutes/materials"
+        url_data_type = "materials"
         output_type = "list"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
@@ -97,35 +117,77 @@ class GeometryAPI(API):
         tower_base: Union[float, List[float], None] = None,
         monopile_head: Union[float, List[float], None] = None,
     ) -> OWTs:
-        """Return the required processing class."""
-        materials = self.get_materials()["data"]
+        """Return the required processing class.
+
+        :param turbines: Title(s) of the turbines.
+        :param tower_base: Optional: height(s) of the tower base.
+        :param monopile_head: Optional: height(s) of the monopile head.
+        :return: OWTs object: containing information about all the requested turbines.
+        """
+        materials_data = self.get_materials()
+        if materials_data["exists"]:
+            materials = materials_data["data"]
+        else:
+            raise ValueError("No materials found in the database.")
         owts = []
         turbines = [turbines] if isinstance(turbines, str) else turbines
         if not isinstance(tower_base, List) and not isinstance(monopile_head, List):
-            tower_base = [tower_base] * len(turbines)
-            monopile_head = [monopile_head] * len(turbines)
+            tower_base = [tower_base] * len(turbines)  # type: ignore
+            monopile_head = [monopile_head] * len(turbines)  # type: ignore
         for i in range(len(turbines)):
-            subassemblies = self.get_subassemblies(assetlocation=turbines[i])["data"]
-            location = LocationsAPI(header=self.header).get_assetlocation_detail(
+            subassemblies_data = self.get_subassemblies(assetlocation=turbines[i])
+            location_data = LocationsAPI(header=self.header).get_assetlocation_detail(
                 assetlocation=turbines[i]
-            )["data"]
+            )
+            if subassemblies_data["exists"] and location_data["exists"]:
+                subassemblies = subassemblies_data["data"]
+                location = location_data["data"]
+            elif not subassemblies_data["exists"] and not location_data["exists"]:
+                raise ValueError(
+                    f"No subassemblies and location found for turbine {turbines[i]}."
+                )
+            elif not subassemblies_data["exists"]:
+                raise ValueError(f"No subassemblies found for turbine {turbines[i]}.")
+            elif not location_data["exists"]:
+                raise ValueError(f"No location found for turbine {turbines[i]}.")
+            else:
+                raise ValueError("Unexpected error.")
             owts.append(
                 OWT(
                     self,
                     materials,
                     subassemblies,
                     location,
-                    tower_base[i],
-                    monopile_head[i],
+                    tower_base[i] if isinstance(tower_base, List) else tower_base,
+                    (
+                        monopile_head[i]
+                        if isinstance(monopile_head, List)
+                        else monopile_head
+                    ),
                 )
             )
         return OWTs(turbines, owts)
 
     def plot_turbines(
-        self, turbines: Union[List[str], str], figures_per_line: int = 5
+        self,
+        turbines: Union[List[str], str],
+        figures_per_line: int = 5,
+        return_fig: bool = True,
+        show_fig: bool = True,
     ) -> None:
-        """Plot turbines' frontal geometry."""
-        materials = self.get_materials()["data"]
+        """Plot turbines' frontal geometry.
+
+        :param turbines: Title(s) of the turbines.
+        :param figures_per_line: Number of figures per line.
+        :param return_fig: Optional: whether to return the figure.
+        :param show_fig: Optional: whether to show the figure.
+        :return: Plotly figure object with selected turbines front profiles (if requested) or nothing.
+        """
+        materials_data = self.get_materials()
+        if materials_data["exists"]:
+            materials = materials_data["data"]
+        else:
+            raise ValueError("No materials found in the database.")
         turbines = [turbines] if isinstance(turbines, str) else turbines
         if len(turbines) > figures_per_line:
             n_rows = len(turbines) // figures_per_line + 1
@@ -140,12 +202,17 @@ class GeometryAPI(API):
         autosize = False if len(turbines) < 3 else True
         fig = make_subplots(n_rows, n_cols, subplot_titles=turbines)
         for i, turbine in enumerate(turbines):
-            subassemblies = self.get_subassemblies(assetlocation=turbine)["data"]
+            subassemblies_data = self.get_subassemblies(assetlocation=turbine)
+            if subassemblies_data["exists"]:
+                subassemblies = subassemblies_data["data"]
+            else:
+                raise ValueError(f"No subassemblies found for turbine {turbine}.")
             for j, sa in subassemblies.iterrows():
                 subassembly = SubAssembly(materials, sa.to_dict(), api_object=self)
                 subassembly.building_blocks
                 plotly_data = subassembly.plotly()
-                fig.add_trace(plotly_data[0], row=rows[i], col=cols[i])
+                for k in range(len(plotly_data[0])):
+                    fig.add_trace(plotly_data[0][k], row=rows[i], col=cols[i])
             plotly_layout = plotly_data[1]
             if i > 0:
                 plotly_layout["scene" + str(i + 1)] = plotly_layout["scene"]
@@ -153,6 +220,12 @@ class GeometryAPI(API):
                 plotly_layout["yaxis" + str(i + 1)]["scaleanchor"] = "x" + str(i + 1)
                 plotly_layout.pop("scene")
                 plotly_layout.pop("yaxis")
-                plotly_layout["yaxis" + str(j + 1)].pop("title")
+                plotly_layout["yaxis" + str(i + 1)].pop("title")
             fig.update_layout(plotly_layout, autosize=autosize)
-        fig.show()
+        if return_fig and show_fig:
+            fig.show()
+            return fig
+        elif show_fig:
+            fig.show()
+        elif return_fig:
+            return fig

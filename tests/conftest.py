@@ -1,6 +1,32 @@
 from typing import Dict
+from unittest import mock
 
 import pytest
+import requests
+
+
+@pytest.fixture
+def mock_requests_get(mocker: mock.Mock) -> mock.Mock:
+    mock = mocker.patch("requests.get")
+    mock.return_value = requests.Response()
+    return mock
+
+
+@pytest.fixture
+def mock_requests_get_advanced(mocker: mock.Mock) -> mock.Mock:
+    mock = mocker.patch("requests.get")
+
+    def response() -> requests.Response:
+        resp = requests.Response()
+        resp.status_code = 200
+        resp._content = (
+            b'[{"col_1": 11, "col_2": 12, "col_3": 13}, '
+            b'{"col_1": 21, "col_2": 22, "col_3": 23}]'
+        )
+        return resp
+
+    mock.return_value = response()
+    return mock
 
 
 @pytest.fixture(scope="module")
@@ -14,7 +40,7 @@ def header() -> Dict[str, str]:
 
 
 @pytest.fixture(scope="function")
-def dict_in() -> Dict[str, str]:
+def dict_gen_dict_in() -> Dict[str, str]:
     return {
         "key_1": "value_1",
         "key_2": "value_2",
@@ -25,7 +51,7 @@ def dict_in() -> Dict[str, str]:
 
 
 @pytest.fixture(scope="function", params=[1, 2, 3, 4, 5, 6, 7, 8])
-def dict_out(request) -> Dict[str, str]:
+def dict_gen_dict_out(request) -> Dict[str, str]:
     param = request.param
     if param == 1:
         method_keys = {"method_": "exclude", "keys_": ["key_1"]}

@@ -21,6 +21,10 @@ def data() -> Dict[str, List[Dict[str, Any]]]:
         "bb": "building_blocks",
         "bb_prop": "properties_bb",
         "sa_prop": "properties_sa",
+        "mp": "monopile",
+        "sub": "substructure",
+        "geo": "processed_geometries",
+        "turb": "turbine",
     }
     data = {}
     for d in data_type.keys():
