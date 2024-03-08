@@ -1,14 +1,14 @@
 name: Build and deploy documentation
 
-# on:
-#   workflow_call:
-
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_call:
 
-permissions: write-all 
+# on:
+#   push:
+#     tags:
+#       - 'v*'
+
+# permissions: write-all 
 
 # concurrency:
 #   group: "pages"

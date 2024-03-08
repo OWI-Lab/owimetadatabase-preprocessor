@@ -2,9 +2,16 @@ name: CI for Python package
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    tags:
+      - 'v*'
+
+permissions: write-all 
+
+#on:
+#   push:
+#     branches: [ "main", "release/*" ]
+#   pull_request:
+#     branches: [ "main", "release/*" ]
 
 # permissions:
 #   contents: read
@@ -60,3 +67,13 @@ jobs:
   #   needs: [build, build-deploy-docs]
   #   uses: ./.github/workflows/publish.yml
   #   secrets: inherit
+
+  publish:  
+    needs: [build]
+    uses: ./.github/workflows/publish.yml
+    secrets: inherit
+
+  tagged-release:  
+    needs: [build, publish]
+    uses: ./.github/workflows/release.yml
+    secrets: inherit

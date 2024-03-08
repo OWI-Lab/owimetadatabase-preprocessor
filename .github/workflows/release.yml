@@ -11,7 +11,7 @@ jobs:
       name: Build & test
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        prerelease: false
+        prerelease: true
         # files: |
         #   LICENSE.txt
         #   *.jar
