@@ -1,4 +1,4 @@
-next-version: 0.7.0-beta.1
+next-version: 0.7.0-beta.2
 mode: ContinuousDeployment
 branches:
   main:
