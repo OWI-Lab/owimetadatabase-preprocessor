@@ -16,6 +16,7 @@ from groundhog.siteinvestigation.insitutests.pcpt_processing import (
 from pyproj import Transformer
 
 from owimetadatabase_preprocessor.io import API
+from owimetadatabase_preprocessor.utils import deepcompare
 
 
 class SoilAPI(API):
@@ -30,7 +31,6 @@ class SoilAPI(API):
     Knowledge of the Django models is required for this (see ``owimetadatabase`` code).
 
     :param api_root: Root URL for the API
-    :param api_subdir: Subdirectory for the API
     :param token: Token for the API
     :param uname: Username for the API
     :param password: Password for the API
@@ -2083,3 +2083,14 @@ class SoilAPI(API):
             **kwargs,
         )
         return {"diagram": combined_fence_fig_1}
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, type(self)):
+            comp = deepcompare(self, other)
+            assert comp[0], comp[1]
+        elif isinstance(other, dict):
+            comp = deepcompare(self.__dict__, other)
+            assert comp[0], comp[1]
+        else:
+            assert False, "Comparison is not possible due to incompatible types!"
+        return comp[0]
