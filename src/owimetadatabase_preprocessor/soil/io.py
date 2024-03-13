@@ -90,9 +90,9 @@ class SoilAPI(API):
     def _search_any_entity(
         self,
         api_url: str,
-        radius_init: int,
+        radius_init: float,
         url_params: Dict[str, str],
-        radius_max: int = 500,
+        radius_max: float = 500.0,
     ) -> pd.DataFrame:
         """Search for any entity in a certain radius around a point in 2D (cylindrical search area).
 
@@ -142,6 +142,7 @@ class SoilAPI(API):
         return df, point_east, point_north
 
     def _gather_data_entity(
+        self,
         df: pd.DataFrame,
     ) -> Dict[str, Union[pd.DataFrame, int, str, float, None]]:
         """Gather the data for the closest entity to a certain point in 2D.
