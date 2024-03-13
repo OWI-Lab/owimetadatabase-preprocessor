@@ -115,7 +115,7 @@ class SoilAPI(API):
             warnings.warn(f"Expanding search radius to {radius: .1f}km")
             if radius > radius_max:
                 raise ValueError(
-                    "No locations found within 500km radius. Check your input information."
+                    f"No locations found within {radius_max}km radius. Check your input information."
                 )
         return df
 
