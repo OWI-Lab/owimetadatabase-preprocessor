@@ -134,7 +134,7 @@ class SoilAPI(API):
             - Easting of the central point in meters
             - Northing of the central point in meters
         """
-        transformer = Transformer.from_crs("epsg:4326", "epsg:" + target_srid)
+        transformer = Transformer.from_crs("epsg:4326", "epsg:" + target_srid, always_xy=True)
         df["easting [m]"], df["northing [m]"] = transformer.transform(
             df["easting"], df["northing"]
         )
