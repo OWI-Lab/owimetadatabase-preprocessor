@@ -16,6 +16,7 @@ from groundhog.siteinvestigation.insitutests.pcpt_processing import (
 from pyproj import Transformer
 
 from owimetadatabase_preprocessor.io import API
+from owimetadatabase_preprocessor.utils import deepcompare
 
 
 class SoilAPI(API):
@@ -30,7 +31,6 @@ class SoilAPI(API):
     Knowledge of the Django models is required for this (see ``owimetadatabase`` code).
 
     :param api_root: Root URL for the API
-    :param api_subdir: Subdirectory for the API
     :param token: Token for the API
     :param uname: Username for the API
     :param password: Password for the API
@@ -90,9 +90,9 @@ class SoilAPI(API):
     def _search_any_entity(
         self,
         api_url: str,
-        radius_init: int,
+        radius_init: float,
         url_params: Dict[str, str],
-        radius_max: int = 500,
+        radius_max: float = 500.0,
     ) -> pd.DataFrame:
         """Search for any entity in a certain radius around a point in 2D (cylindrical search area).
 
@@ -115,7 +115,7 @@ class SoilAPI(API):
             warnings.warn(f"Expanding search radius to {radius: .1f}km")
             if radius > radius_max:
                 raise ValueError(
-                    "No locations found within 500km radius. Check your input information."
+                    f"No locations found within {radius_max}km radius. Check your input information."
                 )
         return df
 
@@ -134,7 +134,9 @@ class SoilAPI(API):
             - Easting of the central point in meters
             - Northing of the central point in meters
         """
-        transformer = Transformer.from_crs("epsg:4326", "epsg:" + target_srid)
+        transformer = Transformer.from_crs(
+            "epsg:4326", "epsg:" + target_srid, always_xy=True
+        )
         df["easting [m]"], df["northing [m]"] = transformer.transform(
             df["easting"], df["northing"]
         )
@@ -142,6 +144,7 @@ class SoilAPI(API):
         return df, point_east, point_north
 
     def _gather_data_entity(
+        self,
         df: pd.DataFrame,
     ) -> Dict[str, Union[pd.DataFrame, int, str, float, None]]:
         """Gather the data for the closest entity to a certain point in 2D.
@@ -2083,3 +2086,14 @@ class SoilAPI(API):
             **kwargs,
         )
         return {"diagram": combined_fence_fig_1}
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, type(self)):
+            comp = deepcompare(self, other)
+            assert comp[0], comp[1]
+        elif isinstance(other, dict):
+            comp = deepcompare(self.__dict__, other)
+            assert comp[0], comp[1]
+        else:
+            assert False, "Comparison is not possible due to incompatible types!"
+        return comp[0]

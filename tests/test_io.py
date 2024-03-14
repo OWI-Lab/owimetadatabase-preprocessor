@@ -155,8 +155,10 @@ def test_postprocess_data(
         assert result == expected_result
 
 
-def test_process_data(mock_requests_get_advanced: mock.Mock, api_root: str) -> None:
-    header = {"Authorization": "Token 12345"}
+def test_process_data(
+    api_root: str, header: Dict[str, str], mock_requests_get_advanced: mock.Mock
+) -> None:
+    header = header
     url_data_type = "/test/"
     url_params = {"test": "test"}
     output_type = "list"
