@@ -1,5 +1,5 @@
 next-version: 0.7.0-beta.4
-mode: ContinuousDeployment
+mode: ContinuousDelivery
 branches:
   main:
     tag: ''
