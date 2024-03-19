@@ -272,8 +272,8 @@ class SoilAPI(API):
 
     def get_surveycampaign_detail(
         self,
-        projectsite: Union[str, None] = None,
-        campaign: Union[str, None] = None,
+        projectsite: str,
+        campaign: str,
         **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, bool, int, None]]:
         """Get details for a specific survey campaign.
@@ -346,14 +346,12 @@ class SoilAPI(API):
         self,
         projectsite: Union[str, None] = None,
         campaign: Union[str, None] = None,
-        location: Union[str, None] = None,
         **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
         """Get the geotechnical test locations corresponding to the given search criteria.
 
-        :param projectsite: Name of the projectsite under consideration (e.g. "Nobelwind")
+        :param projectsite: Name of the projectsite under consideration (e.g. "Nobelwind", optional, default is None)
         :param campaign: Name of the survey campaign (optional, default is None to return all locations in a projectsite)
-        :param location: Name of a specific location (optional, default is None to return all locations in a projectsite)
         :return: Dictionary with the following keys:
 
             - 'data': Pandas dataframe with the test location data for each location meeting the specified search criteria
@@ -362,7 +360,6 @@ class SoilAPI(API):
         url_params = {
             "projectsite": projectsite,
             "campaign": campaign,
-            "location": location,
         }
         url_params = {**url_params, **kwargs}
         url_data_type = "testlocation"
@@ -372,16 +369,16 @@ class SoilAPI(API):
 
     def get_testlocation_detail(
         self,
+        location: str,
         projectsite: Union[str, None] = None,
         campaign: Union[str, None] = None,
-        location: Union[str, None] = None,
         **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, bool, None]]:
         """Get the detailed information for a geotechnical test location.
-
-        :param projectsite: Name of the projectsite under consideration (e.g. "Nobelwind")
-        :param campaign: Name of the survey campaign (optional, default is None to return all locations in a projectsite)
-        :param location: Name of a specific location (optional, default is None to return all locations in a projectsite)
+        
+        :param location: Name of a specific location (e.g. "CPT-888")
+        :param projectsite: Optional, name of the projectsite under consideration (e.g. "Nobelwind")
+        :param campaign: Optional, name of the survey campaign (e.g. "Borehole campaign")
         :return: Dictionary with the following keys:
 
             - 'id': id of the selected test location
@@ -401,42 +398,16 @@ class SoilAPI(API):
 
     def testlocation_exists(
         self,
+        location: str,
         projectsite: Union[str, None] = None,
         campaign: Union[str, None] = None,
-        location: Union[str, None] = None,
         **kwargs,
     ) -> Union[int, bool]:
         """Checks if the test location answering to the search criteria exists.
-
-        :param projectsite: Name of the projectsite under consideration (e.g. "Nobelwind")
-        :param campaign: Name of the survey campaign (optional, default is None to return all locations in a projectsite)
-        :param location: Name of a specific location (optional, default is None to return all locations in a projectsite)
-        :return: Returns the id if test location exists, False otherwise
-        """
-        url_params = {
-            "projectsite": projectsite,
-            "campaign": campaign,
-            "location": location,
-        }
-        url_params = {**url_params, **kwargs}
-        url_data_type = "testlocation"
-        output_type = "single"
-        _, df_add = self.process_data(url_data_type, url_params, output_type)
-        return df_add["id"] if df_add["existance"] else False
-
-    def testlocation_location_exists(
-        self,
-        projectsite: Union[str, None] = None,
-        campaign: Union[str, None] = None,
-        location: Union[str, None] = None,
-        **kwargs,
-    ) -> Union[int, bool]:
-        """Checks if the location answering to the search criteria for the test location exists.
-        If the test location id is required, run the method ``testlocation_exists`` instead.
-
-        :param projectsite: Name of the projectsite under consideration (e.g. "Nobelwind")
-        :param campaign: Name of the survey campaign (optional, default is None to return all locations in a projectsite)
-        :param location: Name of a specific location (optional, default is None to return all locations in a projectsite)
+        
+        :param location: Name of a specific location (e.g. "CPT-888")
+        :param projectsite: Optional, name of the projectsite under consideration (e.g. "Nobelwind")
+        :param campaign: Optional, name of the survey campaign (e.g. "Borehole campaign")
         :return: Returns the id if test location exists, False otherwise
         """
         url_params = {
