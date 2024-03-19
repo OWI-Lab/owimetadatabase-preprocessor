@@ -110,7 +110,6 @@ class SoilAPI(API):
             df, df_add = self.process_data(url_data_type, url_params, output_type)
             if df_add["existance"]:
                 break
-            warnings.warn("Expanding search radius to")
             radius *= 2
             warnings.warn(f"Expanding search radius to {radius: .1f}km")
             if radius > radius_max:
@@ -319,7 +318,7 @@ class SoilAPI(API):
         self,
         latitude: float,
         longitude: float,
-        radius_init: float = 1,
+        radius: float = 1.0,
         target_srid: str = "25831",
         **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, str, float, None]]:
@@ -338,7 +337,7 @@ class SoilAPI(API):
             api_url="testlocationproximity",
             latitude=latitude,
             longitude=longitude,
-            initialradius=radius_init,
+            radius_init=radius,
             target_srid=target_srid,
             **kwargs,
         )
