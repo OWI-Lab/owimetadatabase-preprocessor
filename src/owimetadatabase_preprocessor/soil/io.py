@@ -474,10 +474,10 @@ class SoilAPI(API):
 
     def get_insitutests(
         self,
-        projectsite: str = None,
-        location: str = None,
-        testtype: str = None,
-        insitutest: str = None,
+        projectsite: Union[str, None] = None,
+        location: Union[str, None] = None,
+        testtype: Union[str, None] = None,
+        insitutest: Union[str, None] = None,
         **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
         """Get the detailed information (measurement data) for an in-situ test of given type.
@@ -528,7 +528,7 @@ class SoilAPI(API):
         self,
         latitude: float,
         longitude: float,
-        radius_init: float = 1,
+        radius: float = 1.0,
         target_srid: str = "25831",
         **kwargs,
     ):
@@ -551,7 +551,7 @@ class SoilAPI(API):
             api_url="insitutestproximity",
             latitude=latitude,
             longitude=longitude,
-            initialradius=radius_init,
+            radius_init=radius,
             target_srid=target_srid,
             **kwargs,
         )
@@ -600,19 +600,19 @@ class SoilAPI(API):
 
     def get_insitutest_detail(
         self,
+        insitutest: str,
         projectsite: Union[str, None] = None,
         location: Union[str, None] = None,
         testtype: Union[str, None] = None,
-        insitutest: Union[str, None] = None,
         combine: bool = False,
         **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, bool, requests.Response, None]]:
         """Get the detailed information (measurement data) for an in-situ test of give type.
 
+        :param insitutest: Name of the in-situ test
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
         :param location: Name of the test location (e.g. "CPT-7C")
         :param testtype: Name of the test type (e.g. "PCPT")
-        :param insitutest: Name of the in-situ test
         :param combine: Boolean indicating whether raw and processed data needs to be combined (default=False).
             If true, processed data columns are appended to the rawdata dataframe
         :param kwargs: Optional keyword arguments for further queryset filtering based on model attributes.
@@ -644,6 +644,8 @@ class SoilAPI(API):
         dfs = self._process_insitutest_dfs(df_detail, cols)
         if combine:
             df_raw = self._combine_dfs(dfs)
+        else:
+            df_raw = dfs["rawdata"]
         return {
             "id": df_add_detail["id"],
             "insitutestsummary": df_sum,
@@ -656,20 +658,20 @@ class SoilAPI(API):
 
     def get_cpttest_detail(
         self,
+        insitutest: str,
         projectsite: Union[str, None] = None,
         location: Union[str, None] = None,
         testtype: Union[str, None] = None,
-        insitutest: Union[str, None] = None,
         combine: bool = False,
         cpt: bool = True,
         **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, bool, requests.Response, None]]:
         """Get the detailed information (measurement data) for an in-situ test of CPT type (seabed or downhole CPT)
 
+        :param insitutest: Name of the in-situ test
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
         :param location: Name of the test location (e.g. "CPT-7C")
         :param testtype: Name of the test type (e.g. "PCPT")
-        :param insitutest: Name of the in-situ test
         :param combine: Boolean indicating whether raw and processed data needs to be combined (default=False).
             If true, processed data columns are appended to the rawdata dataframe
         :param cpt: Boolean determining whether the in-situ test is a CPT or not.
@@ -705,6 +707,8 @@ class SoilAPI(API):
         dfs = self._process_insitutest_dfs(df_detail, cols)
         if combine:
             df_raw = self._combine_dfs(dfs)
+        else:
+            df_raw = dfs["rawdata"]
         dict_ = {
             "id": df_add_detail["id"],
             "insitutestsummary": df_sum,
@@ -723,18 +727,18 @@ class SoilAPI(API):
 
     def insitutest_exists(
         self,
+        insitutest: str,
         projectsite: Union[str, None] = None,
         location: Union[str, None] = None,
         testtype: Union[str, None] = None,
-        insitutest: Union[str, None] = None,
         **kwargs,
     ) -> Union[int, bool]:
         """Checks if the in-situ test answering to the search criteria exists.
-
+        
+        :param insitutest: Name of the in-situ test
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
         :param location: Name of the test location (e.g. "CPT-7C")
         :param testtype: Name of the test type (e.g. "PCPT")
-        :param insitutest: Name of the in-situ test
         :return: Returns the id if the in-situ test exists, False otherwise
         """
         url_params = {
