@@ -184,7 +184,7 @@ class SoilAPI(API):
         :param api_url: End-point for the API
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
-        :param radius_init: Initial search radius around the central point in km, the search radius is increased 
+        :param radius_init: Initial search radius around the central point in km, the search radius is increased
             until locations are found
         :param target_srid: SRID for the offset calculation in meters
         :param kwargs: Optional keyword arguments e.g. ``campaign__projectsite__title__icontains='HKN'``
@@ -224,10 +224,10 @@ class SoilAPI(API):
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
         :param depth: of the central point in meters below seabed
-        :param radius_init: Initial search radius around the central point in km, the search radius is increased 
+        :param radius_init: Initial search radius around the central point in km, the search radius is increased
             until locations are found
         :param target_srid: SRID for the offset calculation in meters
-        :param sampletest: Boolean indicating whether a sample or sample test needs to be retrieved 
+        :param sampletest: Boolean indicating whether a sample or sample test needs to be retrieved
             (default is True to search for sample tests)
         :param kwargs: Optional keyword arguments e.g. ``campaign__projectsite__title__icontains='HKN'``
         :return: Dictionary with the following keys:
@@ -424,7 +424,7 @@ class SoilAPI(API):
     def plot_testlocations(self, return_fig: bool = False, **kwargs) -> None:
         """Retrieves soil test locations and generates a Plotly plot to show them.
 
-        :param return_fig: Boolean indicating whether the Plotly figure object needs to be returned 
+        :param return_fig: Boolean indicating whether the Plotly figure object needs to be returned
             (default is False which simply shows the plot)
         :param kwargs: Keyword arguments for the search (see ``get_testlocations``)
         :return: Plotly figure object with selected asset locations plotted on OpenStreetMap tiles (if requested)
@@ -534,7 +534,7 @@ class SoilAPI(API):
 
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
-        :param radius: Initial search radius around the central point in km, the search radius is increased 
+        :param radius: Initial search radius around the central point in km, the search radius is increased
             until locations are found
         :param target_srid: SRID for the offset calculation in meters
         :param kwargs: Optional keyword arguments e.g. ``campaign__projectsite__title__icontains='HKN'``
@@ -611,7 +611,7 @@ class SoilAPI(API):
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
         :param location: Name of the test location (e.g. "CPT-7C")
         :param testtype: Name of the test type (e.g. "PCPT")
-        :param combine: Boolean indicating whether raw and processed data needs to be combined (default=False). 
+        :param combine: Boolean indicating whether raw and processed data needs to be combined (default=False).
             If true, processed data columns are appended to the rawdata dataframe
         :param kwargs: Optional keyword arguments for further queryset filtering based on model attributes.
         :return: Dictionary with the following keys:
@@ -670,13 +670,13 @@ class SoilAPI(API):
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
         :param location: Name of the test location (e.g. "CPT-7C")
         :param testtype: Name of the test type (e.g. "PCPT")
-        :param combine: Boolean indicating whether raw and processed data needs to be combined (default=False). 
+        :param combine: Boolean indicating whether raw and processed data needs to be combined (default=False).
             If true, processed data columns are appended to the rawdata dataframe
-        :param cpt: Boolean determining whether the in-situ test is a CPT or not. 
+        :param cpt: Boolean determining whether the in-situ test is a CPT or not.
             If True (default), a PCPTProcessing object is returned.
-        :param kwargs: Optional keyword arguments for the cpt data loading. 
-            Note that further queryset filtering based on model attributes is not possible with this method. 
-            The in-situ test needs to be fully defined by the required arguments. 
+        :param kwargs: Optional keyword arguments for the cpt data loading.
+            Note that further queryset filtering based on model attributes is not possible with this method.
+            The in-situ test needs to be fully defined by the required arguments.
         :return: Dictionary with the following keys:
 
             - 'id': id of the selected test
@@ -812,7 +812,7 @@ class SoilAPI(API):
 
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
-        :param radius: Initial search radius around the central point in km, the search radius is increased 
+        :param radius: Initial search radius around the central point in km, the search radius is increased
             until locations are found
         :param target_srid: SRID for the offset calculation in meters
         :param kwargs: Optional keyword arguments e.g. ``location__title__icontains='HKN'``
@@ -895,9 +895,9 @@ class SoilAPI(API):
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
         :param location: Name of the test location (e.g. "CPT-7C")
         :param soilprofile: Title of the soil profile (e.g. "Borehole log")
-        :param convert_to_profile: Boolean determining whether the soil profile needs to be converted to a groundhog 
+        :param convert_to_profile: Boolean determining whether the soil profile needs to be converted to a groundhog
             SoilProfile object
-        :param drop_info_cols: Boolean determining whether or not to drop the columns with additional info 
+        :param drop_info_cols: Boolean determining whether or not to drop the columns with additional info
             (e.g. soil description, ...)
         :return: Dictionary with the following keys:
 
@@ -945,7 +945,7 @@ class SoilAPI(API):
         :param soil_profile: Groundhog SoilProfile object obtained through the get_soilprofile_detail method
         :param pw: Sea water density (default=1.025 t/m3)
         :param sbl: Sea bed level in mLAT coordinates
-        :return: Dataframe containing soil model to carry out FE analysis through ```owi_monopylat``` of monopile 
+        :return: Dataframe containing soil model to carry out FE analysis through ```owi_monopylat``` of monopile
             following PISA guidance.
         """
         required_keys = [
@@ -1176,7 +1176,7 @@ class SoilAPI(API):
 
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
-        :param radius: Initial search radius around the central point in km, the search radius is increased 
+        :param radius: Initial search radius around the central point in km, the search radius is increased
             until locations are found
         :param target_srid: SRID for the offset calculation in meters
         :param kwargs: Optional keyword arguments e.g. ``location__title__icontains='BH'``
@@ -1365,7 +1365,7 @@ class SoilAPI(API):
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
         :param depth: Depth of the central point in meters below seabed
-        :param radius: Initial search radius around the central point in km, the search radius is increased 
+        :param radius: Initial search radius around the central point in km, the search radius is increased
             until locations are found
         :param target_srid: SRID for the offset calculation in meters
         :param kwargs: Optional keyword arguments e.g. ``location__title__icontains='BH'``
@@ -1532,7 +1532,7 @@ class SoilAPI(API):
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
         :param Depth: Depth of the central point in meters below seabed
-        :param radius: Initial search radius around the central point in km, the search radius is increased 
+        :param radius: Initial search radius around the central point in km, the search radius is increased
             until locations are found
         :param target_srid: SRID for the offset calculation in meters
         :param kwargs: Optional keyword arguments e.g. ``sample__location__title__icontains='BH'``
