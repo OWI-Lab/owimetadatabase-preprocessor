@@ -123,3 +123,20 @@ def test_get_closest_entity_2d(
             assert dict_[key] == dict_true[key]
         else:
             pd_testing.assert_frame_equal(dict_[key], dict_true[key])
+
+
+# def test_get_closest_entity_3d(
+#     api_soil: SoilAPI,
+#     dict_gathered_final_true: Dict[str, Union[str, float]],
+#     mock_requests_search_any_entity: mock.Mock,
+# ) -> None:
+#     dict_ = api_soil.get_closest_entity_3d(
+#         api_url="test", latitude=50.0, longitude=2.0, depth=10.0
+#     )
+#     dict_true = dict_gathered_final_true
+#     print(dict_["data"], dict_true["data"])
+#     for key in dict_true:
+#         if key != "data":
+#             assert dict_[key] == dict_true[key]
+#         else:
+#             pd_testing.assert_frame_equal(dict_[key], dict_true[key])

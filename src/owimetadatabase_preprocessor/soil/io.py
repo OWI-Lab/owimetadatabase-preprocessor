@@ -184,10 +184,10 @@ class SoilAPI(API):
         :param api_url: End-point for the API
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
-        :param initialradius: Initial search radius around the central point in km, the search radius is increased
+        :param radius_init: Initial search radius around the central point in km, the search radius is increased 
             until locations are found
         :param target_srid: SRID for the offset calculation in meters
-        :param **kwargs: Optional keyword arguments e.g. ``campaign__projectsite__title__icontains='HKN'``
+        :param kwargs: Optional keyword arguments e.g. ``campaign__projectsite__title__icontains='HKN'``
         :return:  Dictionary with the following keys:
 
             - 'data': Pandas dataframe with the test location data for each location in the specified search area
@@ -213,7 +213,7 @@ class SoilAPI(API):
         latitude: float,
         longitude: float,
         depth: float,
-        radius_init: int = 1,
+        radius_init: float = 1.0,
         target_srid: str = "25831",
         sampletest: bool = True,
         **kwargs,
@@ -223,13 +223,13 @@ class SoilAPI(API):
         :param api_url: End-point for the API
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
-        :param depth of the central point in meters below seabed
-        :param initialradius: Initial search radius around the central point in km, the search radius is increased
+        :param depth: of the central point in meters below seabed
+        :param radius_init: Initial search radius around the central point in km, the search radius is increased 
             until locations are found
         :param target_srid: SRID for the offset calculation in meters
-        :param sampletest: Boolean indicating whether a sample or sample test needs to be retrieved
+        :param sampletest: Boolean indicating whether a sample or sample test needs to be retrieved 
             (default is True to search for sample tests)
-        :param **kwargs: Optional keyword arguments e.g. ``campaign__projectsite__title__icontains='HKN'``
+        :param kwargs: Optional keyword arguments e.g. ``campaign__projectsite__title__icontains='HKN'``
         :return: Dictionary with the following keys:
 
             - 'data': Pandas dataframe with the test location data for each location in the specified search area
@@ -375,7 +375,7 @@ class SoilAPI(API):
         **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, bool, None]]:
         """Get the detailed information for a geotechnical test location.
-        
+
         :param location: Name of a specific location (e.g. "CPT-888")
         :param projectsite: Optional, name of the projectsite under consideration (e.g. "Nobelwind")
         :param campaign: Optional, name of the survey campaign (e.g. "Borehole campaign")
@@ -404,7 +404,7 @@ class SoilAPI(API):
         **kwargs,
     ) -> Union[int, bool]:
         """Checks if the test location answering to the search criteria exists.
-        
+
         :param location: Name of a specific location (e.g. "CPT-888")
         :param projectsite: Optional, name of the projectsite under consideration (e.g. "Nobelwind")
         :param campaign: Optional, name of the survey campaign (e.g. "Borehole campaign")
@@ -424,7 +424,7 @@ class SoilAPI(API):
     def plot_testlocations(self, return_fig: bool = False, **kwargs) -> None:
         """Retrieves soil test locations and generates a Plotly plot to show them.
 
-        :param return_fig: Boolean indicating whether the Plotly figure object needs to be returned
+        :param return_fig: Boolean indicating whether the Plotly figure object needs to be returned 
             (default is False which simply shows the plot)
         :param kwargs: Keyword arguments for the search (see ``get_testlocations``)
         :return: Plotly figure object with selected asset locations plotted on OpenStreetMap tiles (if requested)
@@ -457,9 +457,7 @@ class SoilAPI(API):
         df, df_add = self.process_data(url_data_type, {}, output_type)
         return {"data": df, "exists": df_add["existance"]}
 
-    def insitutest_type_exists(
-        self, testtype: Union[str, None] = None, **kwargs
-    ) -> Union[int, bool]:
+    def insitutest_type_exists(self, testtype: str, **kwargs) -> Union[int, bool]:
         """Checks if the in-situ test type answering to the search criteria exists and returns the id.
 
         :param testtype: Title of the in-situ test type (e.g. "Downhole PCPT")
@@ -536,10 +534,10 @@ class SoilAPI(API):
 
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
-        :param initialradius: Initial search radius around the central point in km, the search radius is increased
+        :param radius: Initial search radius around the central point in km, the search radius is increased 
             until locations are found
         :param target_srid: SRID for the offset calculation in meters
-        :param **kwargs: Optional keyword arguments e.g. ``campaign__projectsite__title__icontains='HKN'``
+        :param kwargs: Optional keyword arguments e.g. ``campaign__projectsite__title__icontains='HKN'``
         :return: Dictionary with the following keys:
 
             - 'data': Pandas dataframe with the in-situ test data for each in-situ test in the specified search area
@@ -613,7 +611,7 @@ class SoilAPI(API):
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
         :param location: Name of the test location (e.g. "CPT-7C")
         :param testtype: Name of the test type (e.g. "PCPT")
-        :param combine: Boolean indicating whether raw and processed data needs to be combined (default=False).
+        :param combine: Boolean indicating whether raw and processed data needs to be combined (default=False). 
             If true, processed data columns are appended to the rawdata dataframe
         :param kwargs: Optional keyword arguments for further queryset filtering based on model attributes.
         :return: Dictionary with the following keys:
@@ -672,13 +670,13 @@ class SoilAPI(API):
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
         :param location: Name of the test location (e.g. "CPT-7C")
         :param testtype: Name of the test type (e.g. "PCPT")
-        :param combine: Boolean indicating whether raw and processed data needs to be combined (default=False).
+        :param combine: Boolean indicating whether raw and processed data needs to be combined (default=False). 
             If true, processed data columns are appended to the rawdata dataframe
-        :param cpt: Boolean determining whether the in-situ test is a CPT or not.
+        :param cpt: Boolean determining whether the in-situ test is a CPT or not. 
             If True (default), a PCPTProcessing object is returned.
-        :param kwargs: Optional keyword arguments for the cpt data loading.
-            Note that further queryset filtering based on model attributes is not possible with this method.
-            The in-situ test needs to be fully defined by the required arguments.
+        :param kwargs: Optional keyword arguments for the cpt data loading. 
+            Note that further queryset filtering based on model attributes is not possible with this method. 
+            The in-situ test needs to be fully defined by the required arguments. 
         :return: Dictionary with the following keys:
 
             - 'id': id of the selected test
@@ -734,7 +732,7 @@ class SoilAPI(API):
         **kwargs,
     ) -> Union[int, bool]:
         """Checks if the in-situ test answering to the search criteria exists.
-        
+
         :param insitutest: Name of the in-situ test
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
         :param location: Name of the test location (e.g. "CPT-7C")
@@ -806,7 +804,7 @@ class SoilAPI(API):
         self,
         latitude: float,
         longitude: float,
-        initialradius: float = 1.0,
+        radius: float = 1.0,
         target_srid: str = "25831",
         **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, str, float, None]]:
@@ -814,10 +812,10 @@ class SoilAPI(API):
 
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
-        :param initialradius: Initial search radius around the central point in km, the search radius is increased
+        :param radius: Initial search radius around the central point in km, the search radius is increased 
             until locations are found
         :param target_srid: SRID for the offset calculation in meters
-        :param **kwargs: Optional keyword arguments e.g. ``location__title__icontains='HKN'``
+        :param kwargs: Optional keyword arguments e.g. ``location__title__icontains='HKN'``
         :return: Dictionary with the following keys:
 
             - 'data': Pandas dataframe with the soil profile data for each soil profile in the specified search area
@@ -829,7 +827,7 @@ class SoilAPI(API):
             api_url="soilprofileproximity",
             latitude=latitude,
             longitude=longitude,
-            initialradius=initialradius,
+            radius_init=radius,
             target_srid=target_srid,
             **kwargs,
         )
@@ -897,9 +895,9 @@ class SoilAPI(API):
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
         :param location: Name of the test location (e.g. "CPT-7C")
         :param soilprofile: Title of the soil profile (e.g. "Borehole log")
-        :param convert_to_profile: Boolean determining whether the soil profile needs to be converted to a groundhog
+        :param convert_to_profile: Boolean determining whether the soil profile needs to be converted to a groundhog 
             SoilProfile object
-        :param drop_info_cols: Boolean determining whether or not to drop the columns with additional info
+        :param drop_info_cols: Boolean determining whether or not to drop the columns with additional info 
             (e.g. soil description, ...)
         :return: Dictionary with the following keys:
 
@@ -947,8 +945,8 @@ class SoilAPI(API):
         :param soil_profile: Groundhog SoilProfile object obtained through the get_soilprofile_detail method
         :param pw: Sea water density (default=1.025 t/m3)
         :param sbl: Sea bed level in mLAT coordinates
-        :return: Dataframe containing soil model to carry out FE analysis through ```owi_monopylat``` of monopile
-        following PISA guidance.
+        :return: Dataframe containing soil model to carry out FE analysis through ```owi_monopylat``` of monopile 
+            following PISA guidance.
         """
         required_keys = [
             "Depth from [m]",
@@ -993,16 +991,16 @@ class SoilAPI(API):
 
     def soilprofile_exists(
         self,
+        soilprofile: str,
         projectsite: Union[str, None] = None,
         location: Union[str, None] = None,
-        soilprofile: Union[str, None] = None,
         **kwargs,
     ) -> Union[int, bool]:
-        """Checks if the in-situ test answering to the search criteria exists.
+        """Checks if the specific soil profile  exists.
 
+        :param soilprofile: Title of the soil profile (e.g. "Borehole log")
         :param projectsite: Name of the projectsite (e.g. "Nobelwind")
         :param location: Name of the test location (e.g. "CPT-7C")
-        :param soilprofile: Title of the soil profile (e.g. "Borehole log")
         :return: Returns the id if soil profile exists, False otherwise
         """
         url_params = {
@@ -1016,9 +1014,7 @@ class SoilAPI(API):
         _, df_add = self.process_data(url_data_type, url_params, output_type)
         return df_add["id"] if df_add["existance"] else False
 
-    def soiltype_exists(
-        self, soiltype: Union[str, None] = None, **kwargs
-    ) -> Union[int, bool]:
+    def soiltype_exists(self, soiltype: str, **kwargs) -> Union[int, bool]:
         """Checks if a soiltype with a given name exists.
 
         :param soiltype: Name of the soil type
@@ -1033,9 +1029,9 @@ class SoilAPI(API):
 
     def soilunit_exists(
         self,
+        soilunit: str,
         projectsite: Union[str, None] = None,
         soiltype: Union[str, None] = None,
-        soilunit: Union[str, None] = None,
         **kwargs,
     ) -> Union[int, bool]:
         """Checks if a certain soil unit exists.
@@ -1132,7 +1128,7 @@ class SoilAPI(API):
         return {"data": df, "exists": df_add["existance"]}
 
     def batchlabtesttype_exists(
-        self, batchlabtesttype: Union[str, None] = None, **kwargs
+        self, batchlabtesttype: str, **kwargs
     ) -> Union[int, bool]:
         """Checks if the geotechnical sample type answering to the search criteria exists.
 
@@ -1172,7 +1168,7 @@ class SoilAPI(API):
         self,
         latitude: float,
         longitude: float,
-        initialradius: float = 1.0,
+        radius: float = 1.0,
         target_srid: str = "25831",
         **kwargs,
     ):
@@ -1180,10 +1176,10 @@ class SoilAPI(API):
 
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
-        :param initialradius: Initial search radius around the central point in km, the search radius is increased
+        :param radius: Initial search radius around the central point in km, the search radius is increased 
             until locations are found
         :param target_srid: SRID for the offset calculation in meters
-        :param **kwargs: Optional keyword arguments e.g. ``location__title__icontains='BH'``
+        :param kwargs: Optional keyword arguments e.g. ``location__title__icontains='BH'``
         :return: Dictionary with the following keys:
 
             - 'data': Pandas dataframe with the batch lab test data for each batch lab test in the specified search area
@@ -1195,18 +1191,18 @@ class SoilAPI(API):
             api_url="batchlabtestproximity",
             latitude=latitude,
             longitude=longitude,
-            initialradius=initialradius,
+            radius_init=radius,
             target_srid=target_srid,
             **kwargs,
         )
 
     def get_batchlabtest_detail(
         self,
+        batchlabtest: str,
         projectsite: Union[str, None] = None,
         location: Union[str, None] = None,
         testtype: Union[str, None] = None,
         campaign: Union[str, None] = None,
-        batchlabtest: Union[str, None] = None,
         **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, bool, requests.Response, None]]:
         """Retrieves detailed data for a specific batch lab test.
@@ -1255,20 +1251,20 @@ class SoilAPI(API):
 
     def batchlabtest_exists(
         self,
+        batchlabtest: str,
         projectsite: Union[str, None] = None,
         location: Union[str, None] = None,
         testtype: Union[str, None] = None,
         campaign: Union[str, None] = None,
-        batchlabtest: Union[str, None] = None,
         **kwargs,
     ) -> Union[int, bool]:
         """Checks if the batch lab test answering to the search criteria exists.
 
+        :param batchlabtest: Title of the batch lab test
         :param projectsite: Project site name (e.g. 'Nobelwind')
         :param campaign: Title of the survey campaign
         :param location: Title of the test location
         :param testtype: Title of the test type
-        :param batchlabtest: Title of the batch lab test
         :return: Returns the id if batch lab test exists, False otherwise
         """
         url_params = {
@@ -1285,7 +1281,7 @@ class SoilAPI(API):
         return df_add["id"] if df_add["existance"] else False
 
     def geotechnicalsampletype_exists(
-        self, sampletype: Union[str, None] = None, **kwargs
+        self, sampletype: str, **kwargs
     ) -> Union[int, bool]:
         """Checks if the geotechnical sample type answering to the search criteria exists.
 
@@ -1360,7 +1356,7 @@ class SoilAPI(API):
         latitude: float,
         longitude: float,
         depth: float,
-        initialradius: float = 1.0,
+        radius: float = 1.0,
         target_srid: str = "25831",
         **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, str, float, None]]:
@@ -1369,10 +1365,10 @@ class SoilAPI(API):
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
         :param depth: Depth of the central point in meters below seabed
-        :param initialradius: Initial search radius around the central point in km, the search radius is increased
+        :param radius: Initial search radius around the central point in km, the search radius is increased 
             until locations are found
         :param target_srid: SRID for the offset calculation in meters
-        :param **kwargs: Optional keyword arguments e.g. ``location__title__icontains='BH'``
+        :param kwargs: Optional keyword arguments e.g. ``location__title__icontains='BH'``
         :return: Dictionary with the following keys:
 
             - 'data': Pandas dataframe with the geotechnical sample data for each geotechnical sample
@@ -1386,7 +1382,7 @@ class SoilAPI(API):
             latitude=latitude,
             longitude=longitude,
             depth=depth,
-            initialradius=initialradius,
+            radius_init=radius,
             target_srid=target_srid,
             sampletest=False,
             **kwargs,
@@ -1394,20 +1390,20 @@ class SoilAPI(API):
 
     def get_geotechnicalsample_detail(
         self,
+        sample: str,
         projectsite: Union[str, None] = None,
         location: Union[str, None] = None,
         sampletype: Union[str, None] = None,
         campaign: Union[str, None] = None,
-        sample: Union[str, None] = None,
         **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, bool, requests.Response, None]]:
         """Retrieves detailed data for a specific sample.
 
+        :param sample: Title of the sample
         :param projectsite: Title of the project site
         :param campaign: Title of the survey campaign
         :param location: Title of the test location
         :param sampletype: Title of the sample type
-        :param sample: Title of the sample
         :return: Dictionary with the following keys:
 
             - 'id': id for the selected soil profile
@@ -1435,20 +1431,20 @@ class SoilAPI(API):
 
     def geotechnicalsample_exists(
         self,
+        sample: str,
         projectsite: Union[str, None] = None,
         location: Union[str, None] = None,
         sampletype: Union[str, None] = None,
         campaign: Union[str, None] = None,
-        sample: Union[str, None] = None,
         **kwargs,
     ) -> Union[int, bool]:
         """Checks if the geotechnical sample answering to the search criteria exists.
 
+        :param sample: Title of the sample
         :param projectsite: Project site name (e.g. 'Nobelwind')
         :param campaign: Title of the survey campaign
         :param location: Title of the test location
         :param sampletype: Title of the sample type
-        :param sample: Title of the sample
         :return: Returns the id if the geotechnical sample exists, False otherwise
         """
         url_params = {
@@ -1527,7 +1523,7 @@ class SoilAPI(API):
         latitude: float,
         longitude: float,
         depth: float,
-        initialradius: float = 1.0,
+        radius: float = 1.0,
         target_srid: str = "25831",
         **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, str, float, None]]:
@@ -1536,10 +1532,10 @@ class SoilAPI(API):
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
         :param Depth: Depth of the central point in meters below seabed
-        :param initialradius: Initial search radius around the central point in km, the search radius is increased
+        :param radius: Initial search radius around the central point in km, the search radius is increased 
             until locations are found
         :param target_srid: SRID for the offset calculation in meters
-        :param **kwargs: Optional keyword arguments e.g. ``sample__location__title__icontains='BH'``
+        :param kwargs: Optional keyword arguments e.g. ``sample__location__title__icontains='BH'``
         :return: Dictionary with the following keys:
 
             - 'data': Pandas dataframe with the sample test data for each sample test in the specified search area
@@ -1552,14 +1548,12 @@ class SoilAPI(API):
             latitude=latitude,
             longitude=longitude,
             depth=depth,
-            initialradius=initialradius,
+            radius_init=radius,
             target_srid=target_srid,
             **kwargs,
         )
 
-    def sampletesttype_exists(
-        self, sampletesttype: Union[str, None] = None, **kwargs
-    ) -> Union[int, bool]:
+    def sampletesttype_exists(self, sampletesttype: str, **kwargs) -> Union[int, bool]:
         """Checks if the sample test type answering to the search criteria exists.
 
         :param sampletesttype: Title of the sample test type
@@ -1589,22 +1583,22 @@ class SoilAPI(API):
 
     def get_sampletest_detail(
         self,
+        sampletest: str,
         projectsite: Union[str, None] = None,
         location: Union[str, None] = None,
         testtype: Union[str, None] = None,
         sample: Union[str, None] = None,
         campaign: Union[str, None] = None,
-        sampletest: Union[str, None] = None,
         **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, bool, requests.Response, None]]:
         """Retrieves detailed information on a specific sample test based on the specified search criteria.
 
+        :param sampletest: Title of the sample test
         :param projectsite: Title of the project site
         :param campaign: Title of the survey campaign
         :param location: Title of the test location
         :param sample: Title of the sample
         :param testtype: Title of the test type
-        :param sampletest: Title of the sample test
         :return: Dictionary with the following keys:
 
             - 'id': id for the selected soil profile
@@ -1645,22 +1639,22 @@ class SoilAPI(API):
 
     def sampletest_exists(
         self,
+        sampletest: str,
         projectsite: Union[str, None] = None,
         location: Union[str, None] = None,
         testtype: Union[str, None] = None,
         sample: Union[str, None] = None,
         campaign: Union[str, None] = None,
-        sampletest: Union[str, None] = None,
         **kwargs,
     ) -> Union[int, bool]:
         """Checks if the batch lab test answering to the search criteria exists.
 
+        :param sampletest: Title of the sample test
         :param projectsite: Title of the project site
         :param campaign: Title of the survey campaign
         :param location: Title of the test location
         :param sample: Title of the sample
         :param testtype: Title of the test type
-        :param sampletest: Title of the sample test
         :return: Returns the id if the sample test exists, False otherwise
         """
         url_params = {
