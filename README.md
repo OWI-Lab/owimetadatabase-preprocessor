@@ -16,6 +16,12 @@ In your desired virtual environment and directory with Python 3 and pip installe
 
 ``pip install <repo-local-name>``
 
+## Installation (beta)
+
+In case you want to try the latest beta-version (if it is more advanced than the latest stable one):
+
+``pip install owimetadatabase-preprocessor --pre``
+
 ## Contributing
 
 If you want to contribute to the development of the package, you can, in your desired virtual environment and directory with Python 3 and pip installed:

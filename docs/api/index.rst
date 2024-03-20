@@ -11,3 +11,4 @@ API reference.
    geometry/io
    geometry/structures
    geometry/processing
+   soil/io
