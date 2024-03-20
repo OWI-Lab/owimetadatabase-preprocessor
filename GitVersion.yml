@@ -1,5 +1,5 @@
 next-version: 0.6.2
-mode: ContinuousDeployment
+mode: ContinuousDelivery
 branches:
   main:
     tag: ''

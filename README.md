@@ -16,6 +16,12 @@ In your desired virtual environment and directory with Python 3 and pip installe
 
 ``pip install <repo-local-name>``
 
+## Installation (beta)
+
+In case you want to try the latest beta-version (if it is more advanced than the latest stable one):
+
+``pip install owimetadatabase-preprocessor --pre``
+
 ## Contributing
 
 If you want to contribute to the development of the package, you can, in your desired virtual environment and directory with Python 3 and pip installed:
@@ -38,4 +44,4 @@ This package was developed as part of the ETF Smartlife (FOD165) and WILLOW (EUA
 
 ## License
 
-The package is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+The package is licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html).

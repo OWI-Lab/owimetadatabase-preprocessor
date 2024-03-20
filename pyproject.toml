@@ -6,7 +6,7 @@ authors = ["arsmlnkv <melnikov.arsene@gmail.com>"]
 readme = "README.md"
 homepage = "https://owi-lab.github.io/owimetadatabase-preprocessor/"
 repository = "https://github.com/OWI-Lab/owimetadatabase-preprocessor"
-license = "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License"
+license = "GNU General Public License v3.0"
 keywords = ["owimetadatabase"]
 
 
@@ -20,6 +20,9 @@ requests = ">=2.30.0, <3.0.0"
 matplotlib = "^3.8.0"
 numpy = "^1.26.0"
 pandas = "^2.0.0"
+groundhog = ">=0.11.0"
+pyproj = ">=3.6.0, <4.0.0"
+scipy = "^1.12.0"
 python-dotenv = "^1.0.0"
 
 

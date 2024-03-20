@@ -1,10 +1,5 @@
 name: Publish Python package
 
-# on:
-#   push:
-#     tags:
-#       - 'v*'
-
 on:
   workflow_call:
 
