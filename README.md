@@ -44,4 +44,4 @@ This package was developed as part of the ETF Smartlife (FOD165) and WILLOW (EUA
 
 ## License
 
-The package is licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+The package is licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html).
