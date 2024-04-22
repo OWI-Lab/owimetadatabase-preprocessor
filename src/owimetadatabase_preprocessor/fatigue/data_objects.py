@@ -43,17 +43,20 @@ COLOR_LIST = [
 COLOR_LIST_LEN = len(COLOR_LIST)
 
 
-FATIGUE_DETAILS_COLORS = {
-    45: COLOR_LIST[9],
-    41: COLOR_LIST[1],
-    40: COLOR_LIST[10],
-    43: COLOR_LIST[3],
-    38: COLOR_LIST[11],
-    36: COLOR_LIST[5],
-    # 'EarthingPlate': COLOR_LIST[6],
-    # 'Hook': COLOR_LIST[7],
-    # 'Rail': COLOR_LIST[8],
-}
+FATIGUE_DETAILS_COLORS = {i: COLOR_LIST[np.random.randint(COLOR_LIST_LEN)] for i in range(100)}
+
+
+# FATIGUE_DETAILS_COLORS = {
+#     45: COLOR_LIST[9],
+#     41: COLOR_LIST[1],
+#     40: COLOR_LIST[10],
+#     43: COLOR_LIST[3],
+#     38: COLOR_LIST[11],
+#     36: COLOR_LIST[5],
+#     # 'EarthingPlate': COLOR_LIST[6],
+#     # 'Hook': COLOR_LIST[7],
+#     # 'Rail': COLOR_LIST[8],
+# }
 
 
 class SNCurve:
@@ -64,7 +67,7 @@ class SNCurve:
     def __init__(
         self,
         json_file: Dict[str, Union[None, str, np.int64, np.float64]],
-        api_object: 'FatigueAPI' = None,
+        api_object=None,
     ):
         self.api = api_object
         self.id = json_file["id"]
@@ -79,13 +82,13 @@ class SNCurve:
         m = self.json_file["m"]
         log_a = self.json_file["log_a"]
         self._m = (
-            np.array(m, dtype=np.float)
-            if m is not None and isinstance(m, (np.float, int, list))
+            np.array(m, dtype=np.float64)
+            if m is not None and isinstance(m, (np.float64, int, list))
             else m
         )
         self._log_a = (
-            np.array(log_a, dtype=np.float)
-            if log_a is not None and isinstance(log_a, (np.float, int, list))
+            np.array(log_a, dtype=np.float64)
+            if log_a is not None and isinstance(log_a, (np.float64, int, list))
             else log_a
         )
 
@@ -176,7 +179,7 @@ class SNCurve:
         if not self.bi_linear:
             n = _calc_n(sigma, self.m, self.log_a)
         else:
-            threshold = np.float(self.sigma(self.n_knee))
+            threshold = np.float64(self.sigma(self.n_knee))
             n = np.zeros(np.shape(sigma))
             n[sigma >= threshold] = _calc_n(
                 sigma[sigma >= threshold], self.m[0], self.log_a[0]
@@ -330,7 +333,7 @@ class FatigueDetail:
     def __init__(
         self,
         json_file: Dict[str, Union[None, str, np.int64, np.float64]],
-        api_object: 'FatigueAPI' = None,
+        api_object=None,
         subassembly: SubAssembly = None,
     ) -> None:
         """Constructor for the FatigueDetail class.
@@ -399,14 +402,14 @@ class FatigueDetail:
             if len(sns) > 0:
                 sns += [
                     self.api.send_request(
-                        url_data_type="/fatigue/userroutes/sncurve",
+                        url_data_type="sncurve",
                         url_params={"title": prmtr[p]},
                     ).json()[0]
                 ]
             else:
                 sns = [
                     self.api.send_request(
-                        url_data_type="/fatigue/userroutes/sncurve",
+                        url_data_type="sncurve",
                         url_params={"title": prmtr[p]},
                     ).json()[0]
                 ]
@@ -433,8 +436,8 @@ class FatigueDetail:
             return self._buildingblock
         if self.fd_type != "Rail":
             prmtr = self.json["tubularsection"]
-            bb = self.api.send_request(
-                url_data_type="/geometry/userroutes/buildingblocks",
+            bb = self.api.geo_api.send_request(
+                url_data_type="buildingblocks",
                 url_params={"id": prmtr},
             )
             self._buildingblock = BuildingBlock(bb.json()[0])
@@ -446,8 +449,8 @@ class FatigueDetail:
             return self._buildingblocktop
         if self.fd_type == 45:  # CW
             prmtrtop = self.json["tubularsection"] + 1
-            bbtop = self.api.send_request(
-                url_data_type="/geometry/userroutes/buildingblocks",
+            bbtop = self.api.geo_api.send_request(
+                url_data_type="buildingblocks",
                 url_params={"id": prmtrtop},
             )
             self._buildingblocktop = BuildingBlock(bbtop.json()[0])
@@ -662,7 +665,7 @@ class FatigueSubAssembly:
     def __init__(
         self,
         json: Dict[str, Union[None, str, np.int64, np.float64]],
-        api_object: 'FatigueAPI' = None,
+        api_object=None,
     ) -> None:
         """Constructor for the FatigueSubAssembly class.
 
@@ -689,8 +692,8 @@ class FatigueSubAssembly:
         self.fds = None
         self._subassembly = None
 
-        materials = self.api.send_request(
-            url_data_type="/geometry/userroutes/materials", url_params={}
+        materials = self.api.geo_api.send_request(
+            url_data_type="materials", url_params={}
         )
         self._materials = [Material(m) for m in materials.json()]
 
@@ -713,9 +716,9 @@ class FatigueSubAssembly:
 
     @property
     def subassembly(self):
-        self._subassembly = self.api.get_subassembly_objects(
-            assetlocation=self.asset,
-            subassembly_type=self.sa_type,
+        self._subassembly = self.api.geo_api.get_subassembly_objects(
+            turbine=self.asset,
+            subassembly=self.sa_type,
         )
         return list(self._subassembly.values())[0]
 
@@ -740,8 +743,8 @@ class FatigueSubAssembly:
         if self.api is None:
             raise ValueError("No API configured.")
         else:
-            fds = self.send_request(
-                url_data_type="/fatigue/userroutes/fatiguedetail",
+            fds = self.api.send_request(
+                url_data_type="fatiguedetail",
                 url_params={"title__icontains": self.title},
             )
             if fds.json():
@@ -826,8 +829,8 @@ class FatigueSubAssembly:
         fig_dict["data"].extend(lines)
 
         if showmudline and self.sa_type == "MP":
-            elevation_req = self.send_request(
-                url_data_type="/locations/assetlocations/",
+            elevation_req = self.api.loc_api.send_request(
+                url_data_type="assetlocations",
                 url_params={"title": self.asset},
             )
             elevation = elevation_req.json()[0]["elevation"]

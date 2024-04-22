@@ -111,6 +111,40 @@ class GeometryAPI(API):
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
 
+    def get_subassembly_objects(
+        self, turbine: str, subassembly: str = None
+    ) -> Dict[str, SubAssembly]:
+        """Get all subassemblies for a given turbine, divided by type.
+
+        :param turbine: Turbine title (e.g. 'BBC01')
+        :param subassembly: Sub-assembly type (e.g. 'MP', 'TW', 'TP')
+        :return: Dictionary with the following keys:
+
+            - "TW": SubAssembly object for the tower
+            - "TP": SubAssembly object for the transition piece
+            - "MP": SubAssembly object for the monopile
+        """
+        url_data_type = "subassemblies"
+        if subassembly is not None:
+            url_params = {"asset__title": turbine, "subassembly_type": subassembly}
+        else:
+            url_params = {"asset__title": turbine}
+        resp = self.send_request(url_data_type, url_params)
+        self.check_request_health(resp)
+        if not resp.json():
+            raise ValueError("No subassemblies found for " + str(turbine))
+
+        material_data = self.get_materials()
+        if material_data["exists"]:
+            materials = material_data["data"]
+        else:
+            raise ValueError("No materials found in the database.")
+
+        sas = [SubAssembly(materials, item, api_object=self) for item in resp.json()]
+        sas_types = [j["subassembly_type"] for j in resp.json()]
+        subassemblies = {k: v for (k, v) in zip(sas_types, sas)}
+        return subassemblies
+
     def get_owt_geometry_processor(
         self,
         turbines: Union[str, List[str]],

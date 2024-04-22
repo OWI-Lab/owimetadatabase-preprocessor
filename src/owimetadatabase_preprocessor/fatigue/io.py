@@ -12,6 +12,7 @@ from owimetadatabase_preprocessor.fatigue.data_objects import (  # TODO <- :clas
     FatigueSubAssembly,
     SNCurve,
 )
+from owimetadatabase_preprocessor.geometry.io import GeometryAPI, LocationsAPI
 from owimetadatabase_preprocessor.io import API
 
 
@@ -34,7 +35,7 @@ class FatigueAPI(API):
     def __init__(
         self,
         api_root: str = "https://owimetadatabase.owilab.be/api/v1",
-        api_subdir: str = "/fatigue/",
+        api_subdir: str = "/fatigue/userroutes/",
         token: Union[str, None] = None,
         uname: Union[str, None] = None,
         password: Union[str, None] = None,
@@ -42,7 +43,17 @@ class FatigueAPI(API):
     ) -> None:
         """Constructor for the FatigueAPI class."""
         super().__init__(api_root, token, uname, password, **kwargs)
-        # self.api_root = self.api_root + api_subdir
+        if token:
+            credentials = {"token": token}
+        elif uname and password:
+            credentials = {"uname": uname, "password": password}
+        elif kwargs is not None:
+            credentials = {}
+        else:
+            raise ValueError("No credentials provided.")
+        self.geo_api = GeometryAPI(**credentials, **kwargs)
+        self.loc_api = LocationsAPI(**credentials, **kwargs)
+        self.api_root = self.api_root + api_subdir
 
     def get_sncurves(self, **kwargs) -> List[SNCurve]:
         """Return all SN curves requested by the user.
@@ -50,7 +61,7 @@ class FatigueAPI(API):
         :param **kwargs: any API filter, e.g. 'title__icontains=-B1'
         :return: a list of SNCurve objects representing SN curves
         """
-        url_data_type = "/fatigue/userroutes/sncurve"
+        url_data_type = "sncurve"
         url_params = kwargs
 
         resp = self.send_request(url_data_type, url_params)
@@ -64,10 +75,10 @@ class FatigueAPI(API):
     def get_fatiguedetails(self, **kwargs) -> List[FatigueDetail]:
         """Return all fatigue details for a given Turbine.
 
-        :param **kwargs: any API filter, e.g. 'title__icontains': 'BBA01_TP_STHT_I'
+        :param **kwargs: any API filter, e.g. 'title__icontains': 'NW2F04_MP' for a specific turbine and subassembly
         :return: a list of FatigueDetail objects representing fatigue data for each
         """
-        url_data_type = "/fatigue/userroutes/fatiguedetail"
+        url_data_type = "fatiguedetail"
         url_params = kwargs
 
         resp = self.send_request(url_data_type, url_params)
@@ -77,6 +88,27 @@ class FatigueAPI(API):
             raise ValueError("No fatigue details found for **kwargs.")
         fatigue_details = [FatigueDetail(item, api_object=self) for item in resp.json()]
         return fatigue_details
+
+    def get_fatiguesubassembly(self, turbine, subassembly=None):
+        """Return all subassemblies for a given turbine.
+
+        :param turbine: Turbine title (e.g. 'BBC01')
+        :param subassembly: Sub-assembly type (e.g. 'MP', 'TW', 'TP')
+        :return:
+        """
+        url_data_type = "subassemblies"
+        if subassembly is not None:
+            url_params = {"asset__title": turbine, "subassembly_type": subassembly}
+        else:
+            url_params = {"asset__title": turbine}
+        resp = self.geo_api.send_request(url_data_type, url_params)
+        self.geo_api.check_request_health(resp)
+        if not resp.json():
+            raise ValueError("No subassemblies found for " + str(turbine))
+        sas_types = [j["subassembly_type"] for j in resp.json()]
+        sas = [FatigueSubAssembly(item, api_object=self) for item in resp.json()]
+        subassemblies = {k: v for (k, v) in zip(sas_types, sas)}
+        return subassemblies
 
     def fatiguedetails_df(
         self,
@@ -94,7 +126,7 @@ class FatigueAPI(API):
         df = []
         if turbines is not None:
             for turbine in turbines:
-                url_data_type = "/fatigue/userroutes/fatiguedetail"
+                url_data_type = "fatiguedetail"
                 url_params = {"asset_name": turbine}
                 resp = self.send_request(url_data_type, url_params)
                 self.check_request_health(resp)
@@ -105,7 +137,7 @@ class FatigueAPI(API):
         else:
             if projectsite_name is None:
                 raise ValueError("No projectsite_name defined.")
-            url_data_type = "/fatigue/userroutes/fatiguedetail"
+            url_data_type = "fatiguedetail"
             url_params = {"projectsite_name": projectsite_name}
             resp = self.send_request(url_data_type, url_params)
             self.check_request_health(resp)
@@ -397,27 +429,6 @@ class FatigueAPI(API):
 
         return {"DataFrame": dataset, "Plotly": fig_dict}
 
-    def get_subassembly_objects(self, turbine, subassembly=None):
-        """Return all subassemblies for a given turbine.
-
-        :param turbine: Turbine title (e.g. 'BBC01')
-        :param subassembly: Sub-assembly type (e.g. 'MP', 'TW', 'TP')
-        :return:
-        """
-        url_data_type = "/geometry/userroutes/subassemblies"
-        if subassembly is not None:
-            url_params = {"asset__title": turbine, "subassembly_type": subassembly}
-        else:
-            url_params = {"asset__title": turbine}
-        resp = self.send_request(url_data_type, url_params)
-        self.check_request_health(resp)
-        if not resp.json():
-            raise ValueError("No subassemblies found for " + str(turbine))
-        sas_types = [j["subassembly_type"] for j in resp.json()]
-        sas = [FatigueSubAssembly(item, api_object=self) for item in resp.json()]
-        subassemblies = {k: v for (k, v) in zip(sas_types, sas)}
-        return subassemblies
-
     def _add_data_to_fatiguesubassembly(
         self,
         df: pd.DataFrame,
@@ -435,13 +446,13 @@ class FatigueAPI(API):
         else:
             f = {"data": []}
         df_by_asset = df[df["asset_name"] == asset]
-        subass = self.get_subassembly_objects(asset)
+        subass = self.geo_api.get_subassembly_objects(asset)
 
         if showmudline:
-            url_data_type = "/locations/assetlocations/"
+            url_data_type = "assetlocations"
             url_params = {"title": asset}
-            elevation_req = self.send_request(url_data_type, url_params)
-            self.check_request_health(elevation_req)
+            elevation_req = self.loc_api.send_request(url_data_type, url_params)
+            self.loc_api.check_request_health(elevation_req)
             elevation = elevation_req.json()[0]["elevation"]
             mudline_dict = {
                 "x": [x_offset - x_step / 2, x_offset + x_step / 2],
