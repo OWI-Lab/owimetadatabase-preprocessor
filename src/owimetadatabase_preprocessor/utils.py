@@ -197,7 +197,7 @@ def hex_to_dec(value):
         alpha = value[6:] / 100 if len(value) == 8 else 1
         lv = len(col)
         return list(
-            int(col[i : i + lv // 3], 16) / 255 for i in range(0, lv, lv // 3)
+            int(col[i: i + lv // 3], 16) / 255 for i in range(0, lv, lv // 3)
         ) + [alpha]
 
     if isinstance(value, str):
