@@ -13,7 +13,6 @@ import plotly.graph_objects as go
 from matplotlib.colors import ListedColormap
 from pandas import DataFrame
 
-from owimetadatabase_preprocessor.fatigue.io import FatigueAPI
 from owimetadatabase_preprocessor.geometry.structures import (
     PLOT_SETTINGS_SUBASSEMBLY,
     BuildingBlock,
@@ -65,7 +64,7 @@ class SNCurve:
     def __init__(
         self,
         json_file: Dict[str, Union[None, str, np.int64, np.float64]],
-        api_object: FatigueAPI = None,
+        api_object: 'FatigueAPI' = None,
     ):
         self.api = api_object
         self.id = json_file["id"]
@@ -331,7 +330,7 @@ class FatigueDetail:
     def __init__(
         self,
         json_file: Dict[str, Union[None, str, np.int64, np.float64]],
-        api_object: FatigueAPI = None,
+        api_object: 'FatigueAPI' = None,
         subassembly: SubAssembly = None,
     ) -> None:
         """Constructor for the FatigueDetail class.
@@ -663,7 +662,7 @@ class FatigueSubAssembly:
     def __init__(
         self,
         json: Dict[str, Union[None, str, np.int64, np.float64]],
-        api_object: FatigueAPI = None,
+        api_object: 'FatigueAPI' = None,
     ) -> None:
         """Constructor for the FatigueSubAssembly class.
 

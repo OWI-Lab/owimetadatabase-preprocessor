@@ -6,9 +6,9 @@ from owimetadatabase_preprocessor.fatigue.io import FatigueAPI
 
 
 @pytest.fixture(scope="function")
-def soil_init(header):
+def fatigue_init(header):
     return {
-        "api_root": "https://owimetadatabase.owilab.be/api/v1/",
+        "api_root": "https://owimetadatabase.owilab.be/api/v1",
         "header": header,
         "auth": None,
         "uname": None,
