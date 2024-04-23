@@ -263,19 +263,16 @@ class SNCurve:
         self,
         n: Union[List[np.float64], np.ndarray, None] = None,
         sigma: Union[List[np.float64], np.ndarray, None] = None,
+        show: bool = True,
     ) -> Tuple[List[go.Scattergl], go.Layout]:
         """Use plotly to plot the SN curve
 
-        .. code-block:: python
-
-            sncurve = SNCurve(json_data, api_object)
-            data, layout = sncurve.plotly()
-            fig = go.Figure(data=data, layout=layout)
-            py.iplot(fig)
-
+        :param n: Number of cycles for which the stress ranges have to be calculated and the plot shown.
+        :param sigma: Stress ranges for which the maximum number of cycles is to be calculated and the plot shown.
+        :param show: If True, the plot will be shown.
         :return: data, layout
         """
-        n, sigma = self._sn_curve_data_points(self, n, sigma)
+        n, sigma = self._sn_curve_data_points(n, sigma)
         data = [
             go.Scattergl(
                 x=n,  # assign x as the dataframe column 'x'
@@ -293,6 +290,9 @@ class SNCurve:
                 type="log",
             ),
         )
+        if show:
+            fig = go.Figure(data=data, layout=layout)
+            fig.show()
         return data, layout
 
     def as_dict(self) -> Dict[str, Any]:
@@ -490,7 +490,7 @@ class FatigueDetail:
 
     @property
     def height(self) -> float:
-        self.buildingblock.height if self.buildingblock.height is not None else 0
+        return self.buildingblock.height if self.buildingblock.height is not None else 0
 
     @property
     def marker(self):
@@ -791,8 +791,9 @@ class FatigueSubAssembly:
         x_offset: float = 0.0,
         y_offset: float = 0.0,
         x_step: float = 10000.0,
-        showlegend: bool = False,
-        showmudline: bool = False,
+        showlegend: bool = True,
+        showmudline: bool = True,
+        showplot: bool = True,
     ) -> Dict[str, Any]:
         """Use plotly to plot the subassembly."""
         fig_dict = {"data": [], "layout": {}}
@@ -884,6 +885,9 @@ class FatigueSubAssembly:
                 "line": {"color": "DodgerBlue", "width": 0.5},
             }
             fig_dict["data"].append(waterlevel_dict)
+        if showplot:
+            fig = go.Figure(fig_dict["data"], layout=fig_dict["layout"])
+            fig.show()
         return fig_dict
 
     def as_df(
