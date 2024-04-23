@@ -8,7 +8,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from tqdm import tqdm
 
-from owimetadatabase_preprocessor.fatigue.data_objects import (  # TODO <- :class:`FatigueDetail`
+from owimetadatabase_preprocessor.fatigue.data_objects import (
     FATIGUE_DETAILS_COLORS,
     FatigueDetail,
     FatigueSubAssembly,
@@ -22,7 +22,7 @@ class FatigueAPI(API):
     """Class to connect to the fatigue data API with methods to retrieve data.
 
     A number of methods are provided to query the database via the owimetadatabase API.
-    For FatigueAPI the get_ methods return lists of custom objects storing/processing fatigue data.
+    For FatigueAPI the ``get_*`` methods return lists of custom objects storing/processing fatigue data.
     The methods are written such that a number of mandatory URL parameters are required (see documentation of the methods).
     The URL parameters can be expanded with Django-style additional filtering arguments
     (e.g. ``title__icontains="BBG01"``) as optional keyword arguments.
@@ -40,12 +40,12 @@ class FatigueAPI(API):
     ) -> None:
         """Constructor for the FatigueAPI class.
 
-        :param api_root: Root URL for the API
-        :api_subdir: Subdirectory for the API
-        :param token: Token for the API
-        :param uname: Username for the API
-        :param password: Password for the API
-        :param **kwargs: additional keyword arguments
+        :param api_root: Root URL for the API.
+        :api_subdir: Subdirectory for the API.
+        :param token: Token for the API.
+        :param uname: Username for the API.
+        :param password: Password for the API.
+        :param kwargs: Additional keyword arguments.
         """
         super().__init__(api_root, token, uname, password, **kwargs)
         if token:
@@ -63,7 +63,7 @@ class FatigueAPI(API):
     def get_sncurves(self, **kwargs) -> List[SNCurve]:
         """Get all available SN curves requested by the user.
 
-        :param **kwargs: Any API filter, e.g. 'title__icontains=NRTA1'
+        :param kwargs: Any API filter, e.g. 'title__icontains=NRTA1'
         :return: List of SNCurve objects representing SN curves
         """
         url_data_type = "sncurve"
@@ -80,7 +80,7 @@ class FatigueAPI(API):
     def get_fatiguedetails(self, **kwargs) -> List[FatigueDetail]:
         """Get all fatigue details according to the specified search parameters (see kwargs).
 
-        :param **kwargs: Any API filter, e.g. 'title__icontains': 'NW2F04_MP' for a specific turbine and subassembly
+        :param kwargs: Any API filter, e.g. 'title__icontains': 'NW2F04_MP' for a specific turbine and subassembly
         :return: List of FatigueDetail objects representing fatigue data for specified elements
         """
         url_data_type = "fatiguedetail"

@@ -1,4 +1,4 @@
-""""Module defining classes handling different kinds of fatigue data."""
+"""Module defining classes handling different kinds of fatigue data."""
 
 try:
     from collections.abc import Iterable
@@ -127,6 +127,7 @@ class SNCurve:
 
     @property
     def m(self) -> Union[list, np.ndarray]:
+        """m parameter of the SN-Curve."""
         return self._m
 
     @m.setter
@@ -135,6 +136,7 @@ class SNCurve:
 
     @property
     def log_a(self) -> Union[list, np.ndarray]:
+        """log_a parameter of the SN-Curve."""
         return self._log_a
 
     @log_a.setter
@@ -143,6 +145,7 @@ class SNCurve:
 
     @property
     def n_knee(self) -> float:
+        """Knee point of the SN-Curve."""
         return self._n_knee
 
     @n_knee.setter
@@ -398,11 +401,10 @@ class FatigueDetail:
     def sncurves(self) -> Dict[Dict[str, str], SNCurve]:
         """SN curves of the detail.
 
-        !TODO: Understand why multiple filters are not applied by Django REST.
-        NOTE: For this reason, the code hereafter uses a workaround.
-
         :return: Dictionary with SN curves of the detail.
         """
+        # !TODO: Understand why multiple filters are not applied by Django REST.
+        # NOTE: For this reason, the code hereafter uses a workaround.
         if self._sncurves:
             return self._sncurves
 
@@ -444,7 +446,7 @@ class FatigueDetail:
 
     @property
     def position(self) -> Position:
-        """ "Position of the detail."""
+        """Position of the detail."""
         if "vertical_position_reference_sistem" in self.json:
             return Position(
                 x=self.json["x_position"],
@@ -470,6 +472,7 @@ class FatigueDetail:
 
     @property
     def buildingblocktop(self):
+        """Top building block."""
         if self._buildingblocktop is not None:
             return self._buildingblocktop
         if self.fd_type == 45:  # CW
@@ -483,6 +486,7 @@ class FatigueDetail:
 
     @property
     def wall_thickness(self) -> List[float]:
+        """Wall thickness."""
         wt = [self.buildingblock.wall_thickness]
         if self.buildingblocktop is not None:
             wt.append(self.buildingblocktop.wall_thickness)
@@ -490,6 +494,7 @@ class FatigueDetail:
 
     @property
     def height(self) -> float:
+        """Height of the detail."""
         return self.buildingblock.height if self.buildingblock.height is not None else 0
 
     @property
@@ -721,6 +726,7 @@ class FatigueSubAssembly:
 
     @property
     def asset(self):
+        """Turbine name."""
         # TODO: This has to be worked out properly.
         # ! The LocationsAPI class is not mature yet.
         # ! This is how I would make it...
@@ -738,6 +744,7 @@ class FatigueSubAssembly:
 
     @property
     def subassembly(self):
+        """Subassembly object."""
         self._subassembly = self.api.geo_api.get_subassembly_objects(
             turbine=self.asset,
             subassembly=self.sa_type,
@@ -746,10 +753,12 @@ class FatigueSubAssembly:
 
     @property
     def color(self):
+        """Color for the subassembly."""
         return PLOT_SETTINGS_SUBASSEMBLY[self.sa_type]["color"]
 
     @property
     def height(self) -> float:
+        """Height of the subassembly."""
         height = 0
         for fd in self.fatiguedetails:
             if fd.fd_type == 45:  # CircumferentialWeld type
@@ -931,6 +940,7 @@ class FatigueSubAssembly:
 
     @property
     def properties(self) -> Dict[str, float]:
+        """Subassembly properties."""
         property_dict = {"height": self.height}
         return property_dict
 
