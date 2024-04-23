@@ -183,3 +183,25 @@ def fix_outline(data: Any) -> Any:
     else:
         raise ValueError("Not supported data type.")
     return data
+
+
+def hex_to_dec(value):
+    """Return [red, green, blue, alpha] for the color given as #rrggbbaa."""
+
+    def _hex_to_dec(value):
+        value = value.lstrip("#") if value.startswith("#") else value
+        if len(value) != 6:
+            if len(value) != 8:
+                raise ValueError("len(value) != 6 or 8 (excluding #)")
+        col = value[0:6]
+        alpha = value[6:] / 100 if len(value) == 8 else 1
+        lv = len(col)
+        return list(
+            int(col[i : i + lv // 3], 16) / 255  # noqa: E203
+            for i in range(0, lv, lv // 3)
+        ) + [alpha]
+
+    if isinstance(value, str):
+        value = [value]
+    elif isinstance(value, list):
+        return [_hex_to_dec(_) for _ in value]

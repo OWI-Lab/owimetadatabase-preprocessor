@@ -35,6 +35,7 @@ html_static_path = ["_static"]
 autodoc_default_options = {
     'private-members': False
 }
+autodoc_member_order = 'bysource'
 # html_theme_options = {
 #    'body_max_width': '100%',
 # }
