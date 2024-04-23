@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "owimetadatabase-preprocessor"
-version = "0.7.0"
+version = "0.8.0"
 description = "Package for preprocessing data from owimetadatabase."
 authors = ["arsmlnkv <melnikov.arsene@gmail.com>"]
 readme = "README.md"
