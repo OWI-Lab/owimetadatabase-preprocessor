@@ -12,3 +12,5 @@ API reference.
    geometry/structures
    geometry/processing
    soil/io
+   fatigue/io
+   fatigue/data_objects
