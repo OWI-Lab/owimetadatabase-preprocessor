@@ -1,3 +1,5 @@
+""""Module defining classes handling different kinds of fatigue data."""
+
 try:
     from collections.abc import Iterable
 except ImportError:
@@ -6,7 +8,7 @@ except ImportError:
 import warnings
 from copy import deepcopy
 from itertools import cycle
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 import plotly.graph_objects as go
@@ -43,7 +45,9 @@ COLOR_LIST = [
 COLOR_LIST_LEN = len(COLOR_LIST)
 
 
-FATIGUE_DETAILS_COLORS = {i: COLOR_LIST[np.random.randint(COLOR_LIST_LEN)] for i in range(100)}
+FATIGUE_DETAILS_COLORS = {
+    i: COLOR_LIST[np.random.randint(COLOR_LIST_LEN)] for i in range(100)
+}
 
 
 # FATIGUE_DETAILS_COLORS = {
@@ -60,7 +64,11 @@ FATIGUE_DETAILS_COLORS = {i: COLOR_LIST[np.random.randint(COLOR_LIST_LEN)] for i
 
 
 class SNCurve:
-    """Class to store retrieved SN curves."""
+    """Class to store and handle retrieved SN curves.
+
+    Each SN curve data requires an API call to the Fatigue API to retrieve the
+    necessary data through Owimetadatabase. SNCurve instances should be created by the FatigueAPI class.
+    """
 
     _color_ids = cycle(range(COLOR_LIST_LEN))
 
@@ -68,7 +76,12 @@ class SNCurve:
         self,
         json_file: Dict[str, Union[None, str, np.int64, np.float64]],
         api_object=None,
-    ):
+    ) -> None:
+        """Constructor for the SNCurve class.
+
+        :param json_file: The JSON object containing the SN curve data.
+        :param api_object: The FatigueAPI instance that created the SNCurve instance.
+        """
         self.api = api_object
         self.id = json_file["id"]
         self.title = json_file["title"]
@@ -113,31 +126,31 @@ class SNCurve:
             )
 
     @property
-    def m(self):
+    def m(self) -> Union[list, np.ndarray]:
         return self._m
 
     @m.setter
-    def m(self, value: Union[list, np.ndarray]):
+    def m(self, value: Union[list, np.ndarray]) -> None:
         self._m = value
 
     @property
-    def log_a(self):
+    def log_a(self) -> Union[list, np.ndarray]:
         return self._log_a
 
     @log_a.setter
-    def log_a(self, value: Union[list, np.ndarray]):
+    def log_a(self, value: Union[list, np.ndarray]) -> None:
         self._log_a = value
 
     @property
-    def n_knee(self):
+    def n_knee(self) -> float:
         return self._n_knee
 
     @n_knee.setter
-    def n_knee(self, value: float):
+    def n_knee(self, value: float) -> None:
         self._n_knee = value
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Name of the SN-Curve"""
         if self.curve is not None:
             if self.environment is not None:
@@ -165,7 +178,9 @@ class SNCurve:
         else:
             return self.color
 
-    def n(self, sigma: Union[List[np.float64], np.ndarray]):
+    def n(
+        self, sigma: Union[List[np.float64], np.ndarray]
+    ) -> Union[np.float64, np.ndarray]:
         """Return the number of cycles for a certain stress range.
 
         :param sigma: Stress ranges for which the maximum number of cycles is to be calculated
@@ -189,7 +204,9 @@ class SNCurve:
             )
         return n
 
-    def sigma(self, n: Union[List[np.float64], np.ndarray]):
+    def sigma(
+        self, n: Union[List[np.float64], np.ndarray]
+    ) -> Union[np.float64, np.ndarray]:
         """Return the stress ranges for a certain number of n.
 
         :param n: Number of cycles for which the stress ranges have to be calculated
@@ -212,7 +229,7 @@ class SNCurve:
             )
         return sigma
 
-    def _check_bi_linear(self):
+    def _check_bi_linear(self) -> None:
         sigma_1 = self.sigma(self.n_knee)
         sigma_2 = self.sigma(self.n_knee + 1e-3)
         if np.abs(sigma_1 - sigma_2) > 1e-1:
@@ -228,7 +245,7 @@ class SNCurve:
         self,
         n: Union[List[np.float64], np.ndarray, None] = None,
         sigma: Union[List[np.float64], np.ndarray, None] = None,
-    ):
+    ) -> Union[List[np.float64], np.ndarray]:
         if sigma is None:
             if n is None:
                 # Default range of n
@@ -246,12 +263,13 @@ class SNCurve:
         self,
         n: Union[List[np.float64], np.ndarray, None] = None,
         sigma: Union[List[np.float64], np.ndarray, None] = None,
-    ):
+    ) -> Tuple[List[go.Scattergl], go.Layout]:
         """Use plotly to plot the SN curve
 
         .. code-block:: python
 
-            data, layout = signal.plotly()
+            sncurve = SNCurve(json_data, api_object)
+            data, layout = sncurve.plotly()
             fig = go.Figure(data=data, layout=layout)
             py.iplot(fig)
 
@@ -277,7 +295,8 @@ class SNCurve:
         )
         return data, layout
 
-    def as_dict(self):
+    def as_dict(self) -> Dict[str, Any]:
+        """Returns the SN curve description as a dictionary."""
         return {
             "name": self.name,
             "units": self.unit_string,
@@ -286,7 +305,8 @@ class SNCurve:
             "n_knee": self.n_knee,
         }
 
-    def as_df(self):
+    def as_df(self) -> DataFrame:
+        """Returns the SN curve description as a DataFrame."""
         d = self.as_dict()
         try:
             del d["title"]
@@ -306,7 +326,7 @@ class SNCurve:
 
 
 class FatigueDetail:
-    """Class to store the fatigue data of a subassembly.
+    """Class to store the fatigue data of turbine elements.
 
     Each fatigue detail data requires an API call to the
     FatigueAPI class to retrieve the necessary data through
@@ -318,10 +338,10 @@ class FatigueDetail:
     :param title: The title of the detail.
     :param description: The description of the detail.
     :param modeldefinition: The model definition of the detail.
-    :param fatiguelifein: The fatigue life in of the detail.
-    :param fatiguelifeout: The fatigue life out of the detail.
-    :param scfin: The SCF in of the detail.
-    :param scfout: The SCF out of the detail.
+    :param fatiguelifein: The fatigue life of the detail.
+    :param fatiguelifeout: The fatigue life of the detail.
+    :param scfin: The SCF of the detail.
+    :param scfout: The SCF of the detail.
     :param materialsafatyfactor: The material safety factor of the detail.
     :param scaleeffect: The scale effect of the detail.
     :param sncurves: The SN curves of the detail.
@@ -375,10 +395,13 @@ class FatigueDetail:
                     break
 
     @property
-    def sncurves(self):
-        """
+    def sncurves(self) -> Dict[Dict[str, str], SNCurve]:
+        """SN curves of the detail.
+
         !TODO: Understand why multiple filters are not applied by Django REST.
         NOTE: For this reason, the code hereafter uses a workaround.
+
+        :return: Dictionary with SN curves of the detail.
         """
         if self._sncurves:
             return self._sncurves
@@ -420,7 +443,8 @@ class FatigueDetail:
             raise ValueError("No SN curves found.")
 
     @property
-    def position(self):
+    def position(self) -> Position:
+        """ "Position of the detail."""
         if "vertical_position_reference_sistem" in self.json:
             return Position(
                 x=self.json["x_position"],
@@ -431,7 +455,8 @@ class FatigueDetail:
         return self.buildingblock.position
 
     @property
-    def buildingblock(self):
+    def buildingblock(self) -> BuildingBlock:
+        """Building block to which the detail belongs."""
         if self._buildingblock:
             return self._buildingblock
         if self.fd_type != "Rail":
@@ -457,14 +482,14 @@ class FatigueDetail:
         return self._buildingblocktop
 
     @property
-    def wall_thickness(self):
+    def wall_thickness(self) -> List[float]:
         wt = [self.buildingblock.wall_thickness]
         if self.buildingblocktop is not None:
             wt.append(self.buildingblocktop.wall_thickness)
         return wt
 
     @property
-    def height(self):
+    def height(self) -> float:
         self.buildingblock.height if self.buildingblock.height is not None else 0
 
     @property
@@ -550,7 +575,8 @@ class FatigueDetail:
         else:
             return None
 
-    def as_dict(self, identify_sncurves: bool = False):
+    def as_dict(self, identify_sncurves: bool = False) -> Dict[str, Any]:
+        """Returns the fatigue detail description as a dictionary."""
         if identify_sncurves:
             _as_dict = {
                 "detailtype": self.fd_type,
@@ -613,6 +639,7 @@ class FatigueDetail:
         return _as_dict
 
     def as_df(self) -> DataFrame:
+        """Returns the fatigue detail description as a DataFrame."""
         d = self.as_dict()
         del d["title"]
         df = DataFrame.from_dict(d, orient="index", columns=[self.title])
@@ -634,32 +661,27 @@ class FatigueDetail:
 
 
 class FatigueSubAssembly:
-    """A class to represent fatigue subassembly.
+    """Class storing/operating fatigue data related to specific subassembly-turbine cobination.
 
-    Each subassembly data requires an API call to the Fatigue API to retrieve the
+    Each subassembly data requires an API call to the FatigueAPI to retrieve the
     necessary data through Owimetadatabase. FatigueSubAssembly instances
     should be created by the FatigueAPI class.
 
     :param api: FatigueAPI instance.
-    :param id: Fatigue subassembly ID.
+    :param id: Subassembly ID.
     :param title: The title of the subassembly.
     :param description: The description of the subassembly.
     :param position: The position of the subassembly.
-    :param sa_type: The type of the subassembly. ('TP', 'MP', 'TW', etc.)
-    :param source: The source of the subassembly. ('API', 'DB', etc.)
-    :param materials: Material instances associated with the subassembly.
-    :param projectsite: The project site of the subassembly.
-    :param asset: The asset of the subassembly.  (e.g. 'BBA01')
-    :param subassembly: The geometry subassembly object.
-    :param modeldefinition: The model definition of the subassembly.
+    :param sa_type: The type of the subassembly ('TP', 'MP', 'TW', etc.).
+    :param source: The source of the subassembly.
+    :param asset: The parent turbine of the subassembly (e.g. 'BBA01').
+    :param subassembly: The SubAssembly object.
     :param fatiguedetails: A list of FatigueDetail instances.
     :param height: The height of the subassembly.
     :param color: The color-code of the subassembly (for plotting purpose).
-    :param as_df: A DataFrame representation of the subassembly.
     :param absolute_bottom: The absolute bottom of the subassembly.
     :param absolute_top: The absolute top of the subassembly.
     :param properties: A dictionary of the subassembly properties.
-    :param plotly: A dictionary of the subassembly plotly properties.
     """
 
     def __init__(
@@ -669,7 +691,7 @@ class FatigueSubAssembly:
     ) -> None:
         """Constructor for the FatigueSubAssembly class.
 
-        :param json: The JSON object containing the fatigue data.
+        :param json: The JSON object containing the geometry data of the subassembly.
         :param api_object: The FatigueAPI instance that created the FatigueSubAssembly instance.
         """
         self.api = api_object
@@ -727,7 +749,7 @@ class FatigueSubAssembly:
         return PLOT_SETTINGS_SUBASSEMBLY[self.sa_type]["color"]
 
     @property
-    def height(self):
+    def height(self) -> float:
         height = 0
         for fd in self.fatiguedetails:
             if fd.fd_type == 45:  # CircumferentialWeld type
@@ -736,7 +758,8 @@ class FatigueSubAssembly:
         return height
 
     @property
-    def fatiguedetails(self):
+    def fatiguedetails(self) -> List[FatigueDetail]:
+        """Fatigue details of the subassembly."""
         if self.fds:
             return self.fds
 
@@ -770,7 +793,8 @@ class FatigueSubAssembly:
         x_step: float = 10000.0,
         showlegend: bool = False,
         showmudline: bool = False,
-    ):
+    ) -> Dict[str, Any]:
+        """Use plotly to plot the subassembly."""
         fig_dict = {"data": [], "layout": {}}
 
         sub_data, sub_layout = self.subassembly.plotly(x_offset)
@@ -865,6 +889,7 @@ class FatigueSubAssembly:
     def as_df(
         self, include_absolute_postion: bool = True, identify_sncurves: bool = False
     ) -> DataFrame:
+        """Returns the subassembly fatigue data as a DataFrame."""
         df = DataFrame()
         out = []
         for fd in self.fatiguedetails:
@@ -882,13 +907,13 @@ class FatigueSubAssembly:
         return df
 
     @property
-    def absolute_bottom(self):
+    def absolute_bottom(self) -> float:
         """Absolute bottom."""
         temp_df = self.as_df(include_absolute_postion=True)
         return temp_df["absolute_position, m"].iloc[-1]
 
     @property
-    def absolute_top(self):
+    def absolute_top(self) -> float:
         """Absolute top."""
         temp_df = self.as_df(include_absolute_postion=True)
         temp_df.dropna(inplace=True, how="any", axis=0)  # Drop all masses etc
@@ -901,7 +926,7 @@ class FatigueSubAssembly:
         )
 
     @property
-    def properties(self):
+    def properties(self) -> Dict[str, float]:
         property_dict = {"height": self.height}
         return property_dict
 

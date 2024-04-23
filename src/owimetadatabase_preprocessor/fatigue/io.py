@@ -1,3 +1,5 @@
+"""Module defining API to retrieve/plot specific fatigue data from the owimetadatabase."""
+
 from time import sleep
 from typing import Dict, List, Union
 
@@ -20,16 +22,11 @@ class FatigueAPI(API):
     """Class to connect to the fatigue data API with methods to retrieve data.
 
     A number of methods are provided to query the database via the owimetadatabase API.
-    In the majority of cases, the methods return a dataframe based on the URL parameters provided.
+    For FatigueAPI the get_ methods return lists of custom objects storing/processing fatigue data.
     The methods are written such that a number of mandatory URL parameters are required (see documentation of the methods).
     The URL parameters can be expanded with Django-style additional filtering arguments
-    (e.g. ``location__title__icontains="BB"``) as optional keyword arguments.
+    (e.g. ``title__icontains="BBG01"``) as optional keyword arguments.
     Knowledge of the Django models is required for this (see ``owimetadatabase`` code).
-
-    :param api_root: Root URL for the API
-    :param token: Token for the API
-    :param uname: Username for the API
-    :param password: Password for the API
     """
 
     def __init__(
@@ -41,7 +38,15 @@ class FatigueAPI(API):
         password: Union[str, None] = None,
         **kwargs,
     ) -> None:
-        """Constructor for the FatigueAPI class."""
+        """Constructor for the FatigueAPI class.
+
+        :param api_root: Root URL for the API
+        :api_subdir: Subdirectory for the API
+        :param token: Token for the API
+        :param uname: Username for the API
+        :param password: Password for the API
+        :param **kwargs: additional keyword arguments
+        """
         super().__init__(api_root, token, uname, password, **kwargs)
         if token:
             credentials = {"token": token}
@@ -56,10 +61,10 @@ class FatigueAPI(API):
         self.api_root = self.api_root + api_subdir
 
     def get_sncurves(self, **kwargs) -> List[SNCurve]:
-        """Return all SN curves requested by the user.
+        """Get all available SN curves requested by the user.
 
-        :param **kwargs: any API filter, e.g. 'title__icontains=-B1'
-        :return: a list of SNCurve objects representing SN curves
+        :param **kwargs: Any API filter, e.g. 'title__icontains=NRTA1'
+        :return: List of SNCurve objects representing SN curves
         """
         url_data_type = "sncurve"
         url_params = kwargs
@@ -68,15 +73,15 @@ class FatigueAPI(API):
         self.check_request_health(resp)
 
         if not resp.json():
-            raise ValueError("No SN curves found.")
+            raise ValueError("No SN curves found for the specified parameters.")
         sncurves = [SNCurve(item, api_object=self) for item in resp.json()]
         return sncurves
 
     def get_fatiguedetails(self, **kwargs) -> List[FatigueDetail]:
-        """Return all fatigue details for a given Turbine.
+        """Get all fatigue details according to the specified search parameters (see kwargs).
 
-        :param **kwargs: any API filter, e.g. 'title__icontains': 'NW2F04_MP' for a specific turbine and subassembly
-        :return: a list of FatigueDetail objects representing fatigue data for each
+        :param **kwargs: Any API filter, e.g. 'title__icontains': 'NW2F04_MP' for a specific turbine and subassembly
+        :return: List of FatigueDetail objects representing fatigue data for specified elements
         """
         url_data_type = "fatiguedetail"
         url_params = kwargs
@@ -85,16 +90,18 @@ class FatigueAPI(API):
         self.check_request_health(resp)
 
         if not resp.json():
-            raise ValueError("No fatigue details found for **kwargs.")
+            raise ValueError("No fatigue details found for the specified parameters.")
         fatigue_details = [FatigueDetail(item, api_object=self) for item in resp.json()]
         return fatigue_details
 
-    def get_fatiguesubassembly(self, turbine, subassembly=None):
-        """Return all subassemblies for a given turbine.
+    def get_fatiguesubassembly(
+        self, turbine: str, subassembly: str = None
+    ) -> List[FatigueSubAssembly]:
+        """Get all fatigue details for a given turbine/turbine subassembly.
 
         :param turbine: Turbine title (e.g. 'BBC01')
         :param subassembly: Sub-assembly type (e.g. 'MP', 'TW', 'TP')
-        :return:
+        :return: List of FatigueSubAssembly objects representing subassemblies
         """
         url_data_type = "subassemblies"
         if subassembly is not None:
@@ -115,11 +122,11 @@ class FatigueAPI(API):
         turbines: Union[str, List[str], np.ndarray] = None,
         projectsite_name: str = None,
     ) -> pd.DataFrame:
-        """Return a dataframe with all fatigue details for given turbines.
+        """Return a dataframe with all fatigue details for given turbine(s).
 
-        :param turbines: list of turbine names
-        :param projectsite_name: name of the projectsite
-        :return: a pandas DataFrame with all fatigue details
+        :param turbines: Turbine name(s)
+        :param projectsite_name: Name of the projectsite
+        :return: Pandas DataFrame with all fatigue details for given turbine(s)
         """
         if isinstance(turbines, str):
             turbines = [turbines]
@@ -173,13 +180,13 @@ class FatigueAPI(API):
         showmudline: bool = True,
         show: bool = True,
     ) -> Dict[str, Union[go.Figure, pd.DataFrame]]:
-        """Return all data and generated plot data for given turbines.
+        """Plot (animated) fatigue data information for given turbine(s).
 
-        :param turbines: list of turbine names
-        :param projectsite_name: name of the projectsite
-        :param showmudline: show mudline in the plot
-        :param show: show the plot
-        :return: a dictionary with the DataFrame and Plotly figure
+        :param turbines: Turbine name(s)
+        :param projectsite_name: Name of the projectsite
+        :param showmudline: Whether to show mudline in the plot
+        :param show: Whether to show the plot
+        :return: Dictionary with the fatigue data DataFrame and Plotly figure
         """
         # ? Dataset
         dataset = self.fatiguedetails_df(
@@ -345,16 +352,16 @@ class FatigueAPI(API):
         x_step: float = 10000.0,
         show: bool = True,
         marker_scaler: int = 6,
-    ):
-        """Return all data and generated plot data for given turbines.
+    ) -> Dict[str, Union[go.Figure, pd.DataFrame]]:
+        """Plot (static) fatigue data information for given turbine(s).
 
-        :param turbines: list of turbine names
-        :param projectsite_name: name of the projectsite
-        :param showmudline: show mudline in the plot
+        :param turbines: Turbine name(s)
+        :param projectsite_name: Name of the projectsite
+        :param showmudline: Whether to show mudline in the plot
         :param x_step:
-        :param show: show the plot
+        :param show: Whether to show the figure
         :param marker_scaler:
-        :return: a dictionary with the DataFrame and Plotly figure
+        :return: Dictionary with the fatigue data DataFrame and Plotly figure
         """
         # ? Dataset
         dataset = self.fatiguedetails_df(
@@ -441,6 +448,7 @@ class FatigueAPI(API):
         x_step: float = 10000,
         marker_scaler: int = 8,
     ):
+        """Helper internal method to add data to the fatigue subassembly plot."""
         if is_frame:
             f = {"data": [], "name": str(asset)}
         else:
