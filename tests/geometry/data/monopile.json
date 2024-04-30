@@ -1,7 +1,7 @@
 [
     {
-        "Depth from [m]": -36.5,
-        "Depth to [m]": -7.5,
+        "Elevation from [m]": -36.5,
+        "Elevation to [m]": -7.5,
         "Pile material": "S228",
         "Pile material submerged unit weight [kN/m3]": 67.0,
         "Wall thickness [mm]": 100.0,
@@ -10,8 +10,8 @@
         "Poissons ratio [-]": 0.3
     },
     {
-        "Depth from [m]": -7.5,
-        "Depth to [m]": 32.5,
+        "Elevation from [m]": -7.5,
+        "Elevation to [m]": 32.5,
         "Pile material": "S228",
         "Pile material submerged unit weight [kN/m3]": 67.0,
         "Wall thickness [mm]": 150.0,

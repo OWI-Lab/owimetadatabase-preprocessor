@@ -10,8 +10,8 @@
             "x": [0.0, 0.0],
             "y": [0.0, 0.0],
             "z": [18800.0, 0.0],
-            "Depth from [mLAT]": [16.0, 15.8],
-            "Depth to [mLAT]": [15.8, -3.0]
+            "Elevation from [mLAT]": [16.0, 15.8],
+            "Elevation to [mLAT]": [15.8, -3.0]
         },
         {
             "title": ["aaa01_mp_01", "aaa01_mp_10", "aaa01_mp_20"],
@@ -23,8 +23,8 @@
             "x": [0.0, 0.0, 0.0],
             "y": [0.0, 0.0, 0.0],
             "z": [69000.0, 40000.0, 0.0],
-            "Depth from [mLAT]": [7.5, 6.5, -22.5],
-            "Depth to [mLAT]": [6.5, -22.5, -62.5]
+            "Elevation from [mLAT]": [7.5, 6.5, -22.5],
+            "Elevation to [mLAT]": [6.5, -22.5, -62.5]
         },
         {
             "title": ["aaa01_tw_01", "aaa01_tw_30"],
@@ -36,15 +36,15 @@
             "x": [0.0, 0.0],
             "y": [0.0, 0.0],
             "z": [1000.0, 0.0],
-            "Depth from [mLAT]": [76.0, 17.0],
-            "Depth to [mLAT]": [17.0, 16.0]
+            "Elevation from [mLAT]": [76.0, 17.0],
+            "Elevation to [mLAT]": [17.0, 16.0]
         }
     ],
     "process_tube": [
         {
             "title": ["aaa01_tp_01", "aaa01_tp_10"],
-            "Depth from [mLAT]": [16.0, 15.8],
-            "Depth to [mLAT]": [15.8, -3.0],
+            "Elevation from [mLAT]": [16.0, 15.8],
+            "Elevation to [mLAT]": [15.8, -3.0],
             "Height [m]": [0.2, 18.8],
             "Diameter from [m]": [4.5, 5.25],
             "Diameter to [m]": [5.25, 5.25],
@@ -57,8 +57,8 @@
         },
         {
             "title": ["aaa01_mp_01", "aaa01_mp_10", "aaa01_mp_20"],
-            "Depth from [mLAT]": [7.5, 6.5, -22.5],
-            "Depth to [mLAT]": [6.5, -22.5, -62.5],
+            "Elevation from [mLAT]": [7.5, 6.5, -22.5],
+            "Elevation to [mLAT]": [6.5, -22.5, -62.5],
             "Height [m]": [1.0, 29.0, 40.0],
             "Diameter from [m]": [5.05, 5.05, 5.5],
             "Diameter to [m]": [5.05, 5.5, 6.0],
@@ -71,8 +71,8 @@
         },
         {
             "title": ["aaa01_tw_01", "aaa01_tw_30"],
-            "Depth from [mLAT]": [76.0, 17.0],
-            "Depth to [mLAT]": [17.0, 16.0],
+            "Elevation from [mLAT]": [76.0, 17.0],
+            "Elevation to [mLAT]": [17.0, 16.0],
             "Height [m]": [59.0, 1.0],
             "Diameter from [m]": [3.5, 4.5],
             "Diameter to [m]": [4.5, 4.5],

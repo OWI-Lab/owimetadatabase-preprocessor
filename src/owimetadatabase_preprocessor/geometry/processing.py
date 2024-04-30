@@ -202,10 +202,10 @@ class OWT(object):
             depth_from = depth_to + df.height * 1e-3
         else:
             raise ValueError("Unknown index.")
-        df["Depth from [mLAT]"] = depth_from
-        df["Depth to [mLAT]"] = depth_to
+        df["Elevation from [mLAT]"] = depth_from
+        df["Elevation to [mLAT]"] = depth_to
         # Round elevations to mm to avoid numerical inconsistencies later when setting altitude values to apply loads.
-        df = df.round({"Depth from [mLAT]": 3, "Depth to [mLAT]": 3})
+        df = df.round({"Elevation from [mLAT]": 3, "Elevation to [mLAT]": 3})
         return df
 
     def process_structure_geometry(self, idx: str) -> pd.DataFrame:
@@ -232,8 +232,8 @@ class OWT(object):
         df["Youngs modulus [GPa]"] = 210
         df["Poissons ratio [-]"] = 0.3
         cols = [
-            "Depth from [mLAT]",
-            "Depth to [mLAT]",
+            "Elevation from [mLAT]",
+            "Elevation to [mLAT]",
             "Height [m]",
             "Diameter from [m]",
             "Diameter to [m]",
@@ -451,7 +451,7 @@ class OWT(object):
         :return: Pandas series of recalculated can properties.
         """
         density = row["Mass [t]"] / row["Volume [m3]"]
-        height = row["Depth from [mLAT]"] - row["Depth to [mLAT]"]
+        height = row["Elevation from [mLAT]"] - row["Elevation to [mLAT]"]
         r1 = row["Diameter from [m]"] / 2
         r2 = row["Diameter to [m]"] / 2
         volume_out = 1 / 3 * np.pi * (r1**2 + r1 * r2 + r2**2) * height
@@ -487,8 +487,11 @@ class OWT(object):
         else:
             ind = 0
             _col = " from "
-        df.loc[df.index[ind], "Depth" + _col + "[mLAT]"] = altitude  # type: ignore
-        elevation = [df.iloc[ind]["Depth from [mLAT]"], df.iloc[ind]["Depth to [mLAT]"]]
+        df.loc[df.index[ind], "Elevation" + _col + "[mLAT]"] = altitude  # type: ignore
+        elevation = [
+            df.iloc[ind]["Elevation from [mLAT]"],
+            df.iloc[ind]["Elevation to [mLAT]"],
+        ]
         diameters = [df.iloc[ind]["Diameter from [m]"], df.iloc[ind]["Diameter to [m]"]]
         df.loc[df.index[ind], "Diameter" + _col + "[m]"] = np.interp(
             [altitude], elevation, diameters  # type: ignore
@@ -507,15 +510,15 @@ class OWT(object):
         if (self.transition_piece is not None) and (self.monopile is not None):
             mp_head = self.pile_head
             tp = self.transition_piece
-            df = deepcopy(tp[tp["Depth from [mLAT]"] > mp_head])
-            if df.loc[df.index[0], "Depth to [mLAT]"] != mp_head:
+            df = deepcopy(tp[tp["Elevation from [mLAT]"] > mp_head])
+            if df.loc[df.index[0], "Elevation to [mLAT]"] != mp_head:
                 # Not bolted connection (i.e. Rentel) preprocessing needed
                 tp1 = self.can_modification(df, mp_head, position="bottom")
                 self.substructure = pd.concat([tp1, deepcopy(self.monopile)])
             else:
                 # Bolted connection, nothing to do
                 self.substructure = pd.concat([df, deepcopy(self.monopile)])
-            df = deepcopy(tp[tp["Depth to [mLAT]"] < mp_head])
+            df = deepcopy(tp[tp["Elevation to [mLAT]"] < mp_head])
             self.tp_skirt = self.can_modification(df, mp_head, position="top")
         else:
             raise TypeError("TP or MP items need to be processed before!")
@@ -574,8 +577,10 @@ class OWT(object):
         df.reset_index(inplace=True)
         for i, row in df.iterrows():
             if i != 0:
-                pile.loc[i, "Depth from [m]"] = penetration - 1e-3 * df["z"].iloc[i - 1]
-                pile.loc[i, "Depth to [m]"] = penetration - 1e-3 * row["z"]
+                pile.loc[i, "Elevation from [m]"] = (
+                    penetration - 1e-3 * df["z"].iloc[i - 1]
+                )
+                pile.loc[i, "Elevation to [m]"] = penetration - 1e-3 * row["z"]
                 pile.loc[i, "Pile material"] = (
                     self.sub_assemblies["MP"].bb[0].material.title
                 )
@@ -595,8 +600,10 @@ class OWT(object):
                     self.sub_assemblies["MP"].bb[0].material.poisson_ratio
                 )
         if not np.math.isnan(cutoff_point):
-            pile = pile.loc[pile["Depth to [m]"] > cutoff_point].reset_index(drop=True)
-            pile.loc[0, "Depth from [m]"] = cutoff_point
+            pile = pile.loc[pile["Elevation to [m]"] > cutoff_point].reset_index(
+                drop=True
+            )
+            pile.loc[0, "Elevation from [m]"] = cutoff_point
         return pile
 
     def __eq__(self, other) -> bool:

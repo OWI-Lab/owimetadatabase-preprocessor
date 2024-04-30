@@ -150,9 +150,9 @@ class TestOWT:
         owt.process_structure("full")
         tp = owt.transition_piece
         if pos == "bottom":
-            dff = tp[tp["Depth from [mLAT]"] > 7.5]
+            dff = tp[tp["Elevation from [mLAT]"] > 7.5]
         else:
-            dff = tp[tp["Depth to [mLAT]"] < 7.5]
+            dff = tp[tp["Elevation to [mLAT]"] < 7.5]
         df = owt.can_modification(dff.copy(), 7.5, position=pos)
         pd_testing.assert_frame_equal(df, can_mod)
 

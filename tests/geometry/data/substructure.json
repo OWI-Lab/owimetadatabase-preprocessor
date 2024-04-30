@@ -10,8 +10,8 @@
     "can_mod_bot": [
         {    
             "title": ["aaa01_tp_01", "aaa01_tp_10"],
-            "Depth from [mLAT]": [16.0, 15.8],
-            "Depth to [mLAT]": [15.8, 7.5],
+            "Elevation from [mLAT]": [16.0, 15.8],
+            "Elevation to [mLAT]": [15.8, 7.5],
             "Height [m]": [0.2, 8.3],
             "Diameter from [m]": [4.5, 5.25],
             "Diameter to [m]": [5.25, 5.25],
@@ -26,8 +26,8 @@
     "can_mod_top": [
         {
             "title": ["aaa01_tp_10"],
-            "Depth from [mLAT]": [7.5],
-            "Depth to [mLAT]": [-3.0],
+            "Elevation from [mLAT]": [7.5],
+            "Elevation to [mLAT]": [-3.0],
             "Height [m]": [10.5],
             "Diameter from [m]": [5.25],
             "Diameter to [m]": [5.25],
