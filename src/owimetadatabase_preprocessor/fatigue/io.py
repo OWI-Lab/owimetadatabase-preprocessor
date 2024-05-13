@@ -56,8 +56,8 @@ class FatigueAPI(API):
             credentials = {}
         else:
             raise ValueError("No credentials provided.")
-        self.geo_api = GeometryAPI(**credentials, **kwargs)
-        self.loc_api = LocationsAPI(**credentials, **kwargs)
+        self.geo_api = GeometryAPI(api_root=self.api_root, **credentials, **kwargs)
+        self.loc_api = LocationsAPI(api_root=self.api_root, **credentials, **kwargs)
         self.api_root = self.api_root + api_subdir
 
     def get_sncurves(self, **kwargs) -> List[SNCurve]:

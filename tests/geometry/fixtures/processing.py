@@ -101,6 +101,13 @@ def sa_list_out(data, api_root, header, materials_dicts_init, bb_list_in):
             "uname": None,
             "password": None,
             "auth": None,
+            "loc_api": {
+                "api_root": api_root + "/locations/",
+                "header": header,
+                "uname": None,
+                "password": None,
+                "auth": None,
+            }
         }
         data_["type"] = data_["subassembly_type"]
         data_list.append(
