@@ -35,6 +35,15 @@ class GeometryAPI(API):
         :return: None
         """
         super().__init__(api_root, token, uname, password, **kwargs)
+        if token:
+            credentials = {"token": token}
+        elif uname and password:
+            credentials = {"uname": uname, "password": password}
+        elif kwargs is not None:
+            credentials = {}
+        else:
+            raise ValueError("No credentials provided.")
+        self.loc_api = LocationsAPI(api_root=self.api_root, **credentials, **kwargs)
         self.api_root = self.api_root + api_subdir
 
     def get_subassemblies(
@@ -170,7 +179,7 @@ class GeometryAPI(API):
             monopile_head = [monopile_head] * len(turbines)  # type: ignore
         for i in range(len(turbines)):
             subassemblies_data = self.get_subassemblies(assetlocation=turbines[i])
-            location_data = LocationsAPI(header=self.header).get_assetlocation_detail(
+            location_data = self.loc_api.get_assetlocation_detail(
                 assetlocation=turbines[i]
             )
             if subassemblies_data["exists"] and location_data["exists"]:

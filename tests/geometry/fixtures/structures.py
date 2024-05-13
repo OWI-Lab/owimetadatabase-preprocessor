@@ -252,6 +252,13 @@ def sa_out(sa_in, position_sa_1, materials_dicts_init, api_root, header):
         "uname": None,
         "password": None,
         "auth": None,
+        "loc_api": {
+            "api_root": api_root + "/locations/",
+            "header": header,
+            "uname": None,
+            "password": None,
+            "auth": None,
+        }
     }
     data_["type"] = data_["subassembly_type"]
     return dict_generator(

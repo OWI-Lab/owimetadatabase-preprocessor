@@ -334,7 +334,7 @@ def mock_requests_for_proc(
             data_ = sa_list
         elif url == "https://test.api/test/geometry/userroutes/materials":
             data_ = materials_dicts_init
-        elif url == "https://owimetadatabase.owilab.be/api/v1/locations/assetlocations":
+        elif url == "https://test.api/test/locations/assetlocations":
             data_ = {"id": [1], "elevation": [30.0]}
         elif url == "https://test.api/test/geometry/userroutes/buildingblocks":
             if int(kwargs["params"]["sub_assembly__id"]) == 1:
