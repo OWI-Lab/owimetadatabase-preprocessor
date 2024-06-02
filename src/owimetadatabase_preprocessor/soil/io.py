@@ -559,6 +559,17 @@ class SoilAPI(API):
         for col in cols:
             try:
                 df_ = pd.DataFrame(df[col].iloc[0]).reset_index(drop=True)
+            except KeyError:
+                warnings.warn(
+                    """
+                    Something is wrong with the output dataframe:
+                    check that the database gave a non-empty output.
+                    
+                    Check that you entered correct parameters in your request
+                    or contact database administrators.
+                    """
+                )
+                df_ = pd.DataFrame()
             except Exception:
                 df_ = pd.DataFrame()
             dfs[col] = df_
@@ -718,8 +729,7 @@ class SoilAPI(API):
         }
         if cpt:
             cpt_ = self._process_cpt(df_sum, df_raw, **kwargs)
-            if cpt_ is not None:
-                dict_["cpt"] = cpt_
+            dict_["cpt"] = cpt_
             return dict_
         return dict_
 
@@ -874,9 +884,20 @@ class SoilAPI(API):
                 )
             dsp = profile_from_dataframe(soilprofile_df, title=profile_title)
             return dsp
+        except KeyError:
+            warnings.warn(
+                """
+                Something is wrong with the output dataframe:
+                check that the database gave a non-empty output.
+                
+                Check that you entered correct parameters in your request
+                or contact database administrators.
+                """
+            )
+            return None
         except Exception as err:
             warnings.warn(
-                f"Error during loading of soil layers and parameters for {df_sum['title'].iloc[0]} - {err}"
+                f"Error during loading of soil layers and parameters: {err}"
             )
             return None
 
@@ -931,8 +952,7 @@ class SoilAPI(API):
             dsp = self._convert_to_profile(
                 df_sum, df_detail, profile_title, drop_info_cols
             )
-            if dsp is not None:
-                dict_["soilprofile"] = dsp
+            dict_["soilprofile"] = dsp
             return dict_
         return dict_
 
