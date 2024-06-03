@@ -129,8 +129,16 @@ class OWT(object):
             setattr(self, attr, None)
         self.water_depth = location["elevation"].values[0]
         if not tower_base or not pile_head:
-            self.tower_base = self.sub_assemblies["TW"].absolute_bottom
-            self.pile_head = self.sub_assemblies["MP"].absolute_top
+            if "TW" in self.sub_assemblies.keys():
+                self.tower_base = self.sub_assemblies["TW"].absolute_bottom
+            elif "TP" in self.sub_assemblies.keys():
+                self.tower_base = self.sub_assemblies["TP"].absolute_top
+            else:
+                self.tower_base = None
+            if "MP" in self.sub_assemblies.keys():
+                self.pile_head = self.sub_assemblies["MP"].absolute_top
+            else:
+                self.pile_head = None
         else:
             self.tower_base = tower_base
             self.pile_head = pile_head
@@ -428,7 +436,7 @@ class OWT(object):
             self.tp_distributed_mass = self.process_distributed_lumped_masses("TP")
             self.mp_distributed_mass = self.process_distributed_lumped_masses("MP")
             self.grout = self.process_distributed_lumped_masses("grout")
-        elif option == "tower":
+        elif option == "TW":
             self.process_rna()
             self.tower = self.process_structure_geometry("tw")
             self.tw_lumped_mass = self.process_lumped_masses("TW")
@@ -437,7 +445,7 @@ class OWT(object):
             self.tp_lumped_mass = self.process_lumped_masses("TP")
             self.tp_distributed_mass = self.process_distributed_lumped_masses("TP")
             self.grout = self.process_distributed_lumped_masses("grout")
-        elif option == "monopile":
+        elif option == "MP":
             self.monopile = self.process_structure_geometry("mp")
             self.mp_lumped_mass = self.process_lumped_masses("MP")
             self.mp_distributed_mass = self.process_distributed_lumped_masses("MP")
@@ -554,8 +562,16 @@ class OWT(object):
                 elif "mp_" in attr or "monopile" in attr:
                     df["Subassembly"] = "MP"
                     setattr(self, attr, df)
-        self.assembly_tp_mp()
-        self.assembly_full_structure()
+        if "TP" in self.sub_assemblies.keys() and "MP" in self.sub_assemblies.keys():
+            self.assembly_tp_mp()
+        else:
+            self._init_spec_part = True
+            self.tp_skirt = None
+        if "TW" in self.sub_assemblies.keys():
+            self.assembly_full_structure()
+        else:
+            self.full_structure = None
+            self._init_spec_full = True
 
     @typing.no_type_check
     def transform_monopile_geometry(
@@ -689,7 +705,11 @@ class OWTs(object):
             }
             setattr(self, attr, dict_)
         for attr in ["tw_sub_assemblies", "tp_sub_assemblies", "mp_sub_assemblies"]:
-            df = pd.concat([getattr(owt, attr) for owt in self.owts.values()])
+            sa_turb_list = [getattr(owt, attr) for owt in self.owts.values() if getattr(owt, attr) is not None]
+            if sa_turb_list == []:
+                df = None
+            else:
+                df = pd.concat(sa_turb_list)
             setattr(self, attr, df)
         for attr in ATTR_PROC:
             setattr(self, attr, [])
@@ -706,7 +726,12 @@ class OWTs(object):
         :return: None
         """
         for attr in attr_list:
-            setattr(self, attr, pd.concat(getattr(self, attr)))
+            attr_val = getattr(self, attr)
+            if attr_val is None or attr_val == [] or all(v is None for v in attr_val):
+                df = None
+            else:
+                df = pd.concat(attr_val)
+            setattr(self, attr, df)
 
     def _assembly_turbine(self) -> None:
         """Method to assemble general geometry data of all specified turbines.
@@ -725,12 +750,13 @@ class OWTs(object):
             "Transition piece mass [t]",
             "Tower height [m]",
             "Tower mass [t]",
+            "RNA mass [t]"
         ]
         df_list = []
         for attr in ATTR_PROC:
             df = getattr(self, attr)
-            if df is None:
-                raise ValueError(f"Attribute '{attr}' is None.")
+            # if df is None:
+            #     raise ValueError(f"Attribute '{attr}' is None.")
         for turb in self.owts.keys():
             df_list.append(
                 [
@@ -752,12 +778,12 @@ class OWTs(object):
                         + self.owts[turb].tp_lumped_mass["Mass [t]"].sum()
                         + self.owts[turb].grout["Mass [t]"].sum()
                     ),
-                    self.owts[turb].tower["Height [m]"].sum(),
+                    self.owts[turb].tower["Height [m]"].sum() if self.owts[turb].tower is not None else None,
                     (
                         self.owts[turb].tower["Mass [t]"].sum()
                         + self.owts[turb].tw_lumped_mass["Mass [t]"].sum()
-                        + self.owts[turb].rna["Mass [t]"].sum()
-                    ),
+                    ) if self.owts[turb].tower is not None else None,
+                    self.owts[turb].rna["Mass [t]"].sum() if self.owts[turb].rna is not None else None
                 ]
             )
         df = pd.DataFrame(df_list, columns=cols)
@@ -774,7 +800,11 @@ class OWTs(object):
             return
         self._init = True
         for owt in self.owts.values():
-            owt.process_structure()
+            if not len(owt.sub_assemblies) == 3:
+                for sa in owt.sub_assemblies.keys():
+                    owt.process_structure(option=sa)
+            else:
+                owt.process_structure()
             owt.extend_dfs()
             for attr in attr_list:
                 if attr == "pile_toe":
@@ -792,17 +822,21 @@ class OWTs(object):
                         ]
                     )
                 elif attr == "all_lumped_mass":
-                    cols = [
-                        "X [m]",
-                        "Y [m]",
-                        "Z [mLAT]",
-                        "Mass [t]",
-                        "Description",
-                        "Subassembly",
-                    ]
+                    if isinstance(owt.rna, pd.DataFrame):
+                        cols = [
+                            "X [m]",
+                            "Y [m]",
+                            "Z [mLAT]",
+                            "Mass [t]",
+                            "Description",
+                            "Subassembly",
+                        ]
+                        rna_ = owt.rna[cols]
+                    else:
+                        rna_ = owt.rna
                     self.all_lumped_mass.extend(
                         [
-                            owt.rna[cols],
+                            rna_,
                             owt.tw_lumped_mass,
                             owt.tp_lumped_mass,
                             owt.mp_lumped_mass,
