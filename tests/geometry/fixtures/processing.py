@@ -107,7 +107,7 @@ def sa_list_out(data, api_root, header, materials_dicts_init, bb_list_in):
                 "uname": None,
                 "password": None,
                 "auth": None,
-            }
+            },
         }
         data_["type"] = data_["subassembly_type"]
         data_list.append(

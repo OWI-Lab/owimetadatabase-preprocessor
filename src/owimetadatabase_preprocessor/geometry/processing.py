@@ -705,7 +705,11 @@ class OWTs(object):
             }
             setattr(self, attr, dict_)
         for attr in ["tw_sub_assemblies", "tp_sub_assemblies", "mp_sub_assemblies"]:
-            sa_turb_list = [getattr(owt, attr) for owt in self.owts.values() if getattr(owt, attr) is not None]
+            sa_turb_list = [
+                getattr(owt, attr)
+                for owt in self.owts.values()
+                if getattr(owt, attr) is not None
+            ]
             if sa_turb_list == []:
                 df = None
             else:
@@ -750,7 +754,7 @@ class OWTs(object):
             "Transition piece mass [t]",
             "Tower height [m]",
             "Tower mass [t]",
-            "RNA mass [t]"
+            "RNA mass [t]",
         ]
         df_list = []
         for attr in ATTR_PROC:
@@ -778,12 +782,24 @@ class OWTs(object):
                         + self.owts[turb].tp_lumped_mass["Mass [t]"].sum()
                         + self.owts[turb].grout["Mass [t]"].sum()
                     ),
-                    self.owts[turb].tower["Height [m]"].sum() if self.owts[turb].tower is not None else None,
                     (
-                        self.owts[turb].tower["Mass [t]"].sum()
-                        + self.owts[turb].tw_lumped_mass["Mass [t]"].sum()
-                    ) if self.owts[turb].tower is not None else None,
-                    self.owts[turb].rna["Mass [t]"].sum() if self.owts[turb].rna is not None else None
+                        self.owts[turb].tower["Height [m]"].sum()
+                        if self.owts[turb].tower is not None
+                        else None
+                    ),
+                    (
+                        (
+                            self.owts[turb].tower["Mass [t]"].sum()
+                            + self.owts[turb].tw_lumped_mass["Mass [t]"].sum()
+                        )
+                        if self.owts[turb].tower is not None
+                        else None
+                    ),
+                    (
+                        self.owts[turb].rna["Mass [t]"].sum()
+                        if self.owts[turb].rna is not None
+                        else None
+                    ),
                 ]
             )
         df = pd.DataFrame(df_list, columns=cols)

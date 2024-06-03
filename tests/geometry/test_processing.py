@@ -103,9 +103,9 @@ class TestOWT:
         "opt, df_proc_struct_true",
         [
             ("full", 0),
-            ("tower", 1),
+            ("TW", 1),
             ("TP", 2),
-            ("monopile", 3),
+            ("MP", 3),
         ],
         indirect=["df_proc_struct_true"],
     )

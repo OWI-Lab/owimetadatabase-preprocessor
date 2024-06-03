@@ -564,7 +564,7 @@ class SoilAPI(API):
                     """
                     Something is wrong with the output dataframe:
                     check that the database gave a non-empty output.
-                    
+
                     Check that you entered correct parameters in your request
                     or contact database administrators.
                     """
@@ -889,16 +889,14 @@ class SoilAPI(API):
                 """
                 Something is wrong with the output dataframe:
                 check that the database gave a non-empty output.
-                
+
                 Check that you entered correct parameters in your request
                 or contact database administrators.
                 """
             )
             return None
         except Exception as err:
-            warnings.warn(
-                f"Error during loading of soil layers and parameters: {err}"
-            )
+            warnings.warn(f"Error during loading of soil layers and parameters: {err}")
             return None
 
     def get_soilprofile_detail(
