@@ -111,7 +111,7 @@ class GeometryPylesAPI(API):
             if i != 0:
                 pile.loc[i, "Depth to [m]"] = penetration - 1e-3 * bbs['data'].loc[i-1, 'z_position']
                 pile.loc[i, "Depth from [m]"] = penetration - 1e-3 * row['z_position']
-                pile.loc[i, "Pile material"] =  row["material_name"]
+                pile.loc[i, "Pile material"] = row["material_name"]
                 pile.loc[i, "Pile material submerged unit weight [kN/m3]"] = 1e-2 * row["density"] - 10
                 pile.loc[i, "Wall thickness [mm]"] = row['wall_thickness']
                 pile.loc[i, "Diameter [m]"] = 1e-3 * 0.5 * (row['bottom_outer_diameter'] + row['top_outer_diameter'])
