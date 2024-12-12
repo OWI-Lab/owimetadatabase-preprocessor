@@ -13,13 +13,55 @@ def data_subassemblies(request) -> List[Dict[str, object]]:
     if request.param is not None:
         params = request.param
     data_original = [
-        {"id": 11, "project": "Nobelwind", "type": "TW", "turbine": "BBK01"},
-        {"id": 11, "project": "Nobelwind", "type": "TP", "turbine": "BBK01"},
-        {"id": 11, "project": "Nobelwind", "type": "MP", "turbine": "BBK01"},
-        {"id": 21, "project": "Nobelwind", "type": "TW", "turbine": "BBK02"},
-        {"id": 21, "project": "Nobelwind", "type": "TP", "turbine": "BBK02"},
-        {"id": 21, "project": "Nobelwind", "type": "MP", "turbine": "BBK02"},
-        {"id": 31, "project": "Another", "type": "TW", "turbine": "GGP02"},
+        {
+            "id": 11,
+            "project": "Nobelwind",
+            "subassembly_type": "TW",
+            "turbine": "BBK01",
+            "z_position": 15000,
+        },
+        {
+            "id": 11,
+            "project": "Nobelwind",
+            "subassembly_type": "TP",
+            "turbine": "BBK01",
+            "z_position": -5000,
+        },
+        {
+            "id": 11,
+            "project": "Nobelwind",
+            "subassembly_type": "MP",
+            "turbine": "BBK01",
+            "z_position": -50000,
+        },
+        {
+            "id": 21,
+            "project": "Nobelwind",
+            "subassembly_type": "TW",
+            "turbine": "BBK02",
+            "z_position": 15000,
+        },
+        {
+            "id": 21,
+            "project": "Nobelwind",
+            "subassembly_type": "TP",
+            "turbine": "BBK02",
+            "z_position": -5000,
+        },
+        {
+            "id": 21,
+            "project": "Nobelwind",
+            "subassembly_type": "MP",
+            "turbine": "BBK02",
+            "z_position": -45000,
+        },
+        {
+            "id": 31,
+            "project": "Another",
+            "subassembly_type": "TW",
+            "turbine": "GGP02",
+            "z_position": 10000,
+        },
     ]
     if params == "empty":
         data = data_original
@@ -40,13 +82,55 @@ def data_subassemblies(request) -> List[Dict[str, object]]:
 def data_subassemblies_call() -> Callable[[str], Any]:
     def data_gen(params: str):
         data_original = [
-            {"id": 11, "project": "Nobelwind", "type": "TW", "turbine": "BBK01"},
-            {"id": 11, "project": "Nobelwind", "type": "TP", "turbine": "BBK01"},
-            {"id": 11, "project": "Nobelwind", "type": "MP", "turbine": "BBK01"},
-            {"id": 21, "project": "Nobelwind", "type": "TW", "turbine": "BBK02"},
-            {"id": 21, "project": "Nobelwind", "type": "TP", "turbine": "BBK02"},
-            {"id": 21, "project": "Nobelwind", "type": "MP", "turbine": "BBK02"},
-            {"id": 31, "project": "Another", "type": "TW", "turbine": "GGP02"},
+            {
+                "id": 11,
+                "project": "Nobelwind",
+                "subassembly_type": "TW",
+                "turbine": "BBK01",
+                "z_position": 15000,
+            },
+            {
+                "id": 11,
+                "project": "Nobelwind",
+                "subassembly_type": "TP",
+                "turbine": "BBK01",
+                "z_position": -5000,
+            },
+            {
+                "id": 11,
+                "project": "Nobelwind",
+                "subassembly_type": "MP",
+                "turbine": "BBK01",
+                "z_position": -50000,
+            },
+            {
+                "id": 21,
+                "project": "Nobelwind",
+                "subassembly_type": "TW",
+                "turbine": "BBK02",
+                "z_position": 15000,
+            },
+            {
+                "id": 21,
+                "project": "Nobelwind",
+                "subassembly_type": "TP",
+                "turbine": "BBK02",
+                "z_position": -5000,
+            },
+            {
+                "id": 21,
+                "project": "Nobelwind",
+                "subassembly_type": "MP",
+                "turbine": "BBK02",
+                "z_position": -45000,
+            },
+            {
+                "id": 31,
+                "project": "Another",
+                "subassembly_type": "TW",
+                "turbine": "GGP02",
+                "z_position": 10000,
+            },
         ]
         if params == "empty":
             data = data_original

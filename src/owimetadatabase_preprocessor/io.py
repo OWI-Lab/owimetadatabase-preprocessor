@@ -1,7 +1,7 @@
 """Module for the base class handling the access to the Database API."""
-import warnings
 
 import json
+import warnings
 from typing import Dict, Tuple, Union
 
 import numpy as np
@@ -162,30 +162,38 @@ class API(object):
                 + "."
             )
         return data_add
-    
+
     @staticmethod
     def validate_data(df, data_type):
-        z_sa_mp = {'min': -100000, 'max': -10000}
-        z_sa_tp = {'min': -20000, 'max': -1000}
-        z_sa_tw = {'min': 1000, 'max': 100000}
-        sa_type = ['TW', 'TP', 'MP']
+        z_sa_mp = {"min": -100000, "max": -10000}
+        z_sa_tp = {"min": -20000, "max": -1000}
+        z_sa_tw = {"min": 1000, "max": 100000}
+        sa_type = ["TW", "TP", "MP"]
         z = [z_sa_tw, z_sa_tp, z_sa_mp]
         if data_type == "subassemblies":
             for i, sat in enumerate(sa_type):
-                cond_small_units = ((df['subassembly_type'] == sat) & (df["z_position"] < z[i]['min']))
-                cond_big_units = ((df['subassembly_type'] == sat) & (df["z_position"] > z[i]['max']))
+                cond_small_units = (df["subassembly_type"] == sat) & (
+                    df["z_position"] < z[i]["min"]
+                )
+                cond_big_units = (df["subassembly_type"] == sat) & (
+                    df["z_position"] > z[i]["max"]
+                )
                 if df[cond_small_units].__len__() > 0:
-                    df.loc[cond_small_units, "z_position"] = df.loc[cond_small_units, "z_position"] / 1e3
+                    df.loc[cond_small_units, "z_position"] = (
+                        df.loc[cond_small_units, "z_position"] / 1e3
+                    )
                     warnings.warn(
                         f"The value of z location for {df.loc[cond_small_units | cond_big_units, 'title'].values} \
                         might be wrong or in wrong units! There will be an attempt to correct the units."
-                    )   
+                    )
                 if df[cond_big_units].__len__() > 0:
-                    df.loc[cond_big_units, "z_position"] = df.loc[cond_big_units, "z_position"] * 1e3
+                    df.loc[cond_big_units, "z_position"] = (
+                        df.loc[cond_big_units, "z_position"] * 1e3
+                    )
                     warnings.warn(
                         f"The value of z location for {df.loc[cond_small_units | cond_big_units, 'title'].values} \
                         might be wrong or in wrong units! There will be an attempt to correct the units."
-                    )   
+                    )
         return df
 
     def process_data(

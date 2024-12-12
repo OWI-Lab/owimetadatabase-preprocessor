@@ -8,7 +8,7 @@ from owimetadatabase_preprocessor.fatigue.io import FatigueAPI
 @pytest.fixture(scope="function")
 def fatigue_init(header):
     return {
-        "api_root": "https://owimetadatabase.owilab.be/api/v1/fatigue/userroutes/",
+        "api_root": "https://owimetadatabase.azurewebsites.net/api/v1/fatigue/userroutes/",
         "header": header,
         "auth": None,
         "uname": None,

@@ -12,7 +12,7 @@ from owimetadatabase_preprocessor.soil.io import SoilAPI
 @pytest.fixture(scope="function")
 def soil_init(header):
     return {
-        "api_root": "https://owimetadatabase.owilab.be/api/v1/soildata/",
+        "api_root": "https://owimetadatabase.azurewebsites.net/api/v1/soildata/",
         "header": header,
         "auth": None,
         "uname": None,
