@@ -31,7 +31,7 @@ class FatigueAPI(API):
 
     def __init__(
         self,
-        api_root: str = "https://owimetadatabase.owilab.be/api/v1",
+        api_root: str = "https://owimetadatabase.azurewebsites.net/api/v1",
         api_subdir: str = "/fatigue/userroutes/",
         token: Union[str, None] = None,
         uname: Union[str, None] = None,

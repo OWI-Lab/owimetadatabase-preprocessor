@@ -16,7 +16,7 @@ class API(object):
 
     def __init__(
         self,
-        api_root: str = "https://owimetadatabase.owilab.be/api/v1",
+        api_root: str = "https://owimetadatabase.azurewebsites.net/api/v1",
         token: Union[str, None] = None,
         uname: Union[str, None] = None,
         password: Union[str, None] = None,
