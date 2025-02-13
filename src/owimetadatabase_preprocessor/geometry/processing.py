@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from owimetadatabase_preprocessor.geometry.structures import DataSA, SubAssembly
-from owimetadatabase_preprocessor.utils import (
+from src.owimetadatabase_preprocessor.utility.utils import (
     deepcompare,
 )  # custom_formatwarning, deepcompare
 

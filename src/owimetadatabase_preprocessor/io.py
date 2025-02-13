@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import requests
 
-from owimetadatabase_preprocessor.utils import deepcompare
+from src.owimetadatabase_preprocessor.utility.utils import deepcompare
 
 
 class API(object):

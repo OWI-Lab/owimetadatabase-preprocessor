@@ -1,14 +1,14 @@
 """ 
-Custom exceptions for the SoilAPI module. These exceptions encapsulate 
+Custom exceptions for the API client. These exceptions encapsulate 
 common errors that can occur during API calls and data post‐processing.
 """
 
 
-class SoilAPIException(Exception): 
+class APIException(Exception): 
     """ Base exception for all errors raised by SoilAPI. """ 
     pass
 
-class APIConnectionError(SoilAPIException): 
+class APIConnectionError(APIException): 
     """ 
     Exception raised when the API cannot be reached or returns a failure. 
     """ 
@@ -16,21 +16,21 @@ class APIConnectionError(SoilAPIException):
         self.response = response 
         super().init(message)
 
-class DataNotFoundError(SoilAPIException): 
+class DataNotFoundError(APIException): 
     """ 
     Exception raised when no data is found for the given query parameters. 
     """ 
     def init(self, message="No data found for the given search criteria."): 
         super().init(message)
 
-class DataProcessingError(SoilAPIException): 
+class DataProcessingError(APIException): 
     """ Exception raised when there is a problem while processing the data 
     (e.g. merging, converting). 
     """ 
     def init(self, message="Error during data processing."): 
         super().init(message)
 
-class InvalidParameterError(SoilAPIException): 
+class InvalidParameterError(APIException): 
     """ 
     Exception raised when query parameters are invalid or missing. 
     """ 

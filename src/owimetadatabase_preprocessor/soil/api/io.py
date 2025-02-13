@@ -4,7 +4,7 @@ API client Module for the soil data in the OWIMetadatabase.
 import requests
 import pandas as pd
 from typing import Dict, Any, Union
-from owimetadatabase_preprocessor.soil.utils.exceptions import APIConnectionError, DataProcessingError
+from owimetadatabase_preprocessor.utility.exceptions import APIConnectionError, DataProcessingError
 
 class SoilAPIClient:
     """
