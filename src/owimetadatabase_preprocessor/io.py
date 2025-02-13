@@ -63,7 +63,8 @@ class API:
             else:
                 raise InvalidParameterError(
                     "If you provide a header directly, \
-                    the header must contain the 'Authorization' key with the value starting with 'Token'."
+                    the header must contain the 'Authorization' \
+                    key with the value starting with 'Token'."
                 )
         elif token:
             self.header = {"Authorization": f"Token {token}"}
@@ -238,4 +239,6 @@ class API:
         df = self.output_to_df(resp)
         df = self.validate_data(df, url_data_type)
         df_add = self.postprocess_data(df, output_type)
+        # Add the response object to the returned dictionary so tests can inspect it
+        df_add["response"] = resp
         return df, df_add

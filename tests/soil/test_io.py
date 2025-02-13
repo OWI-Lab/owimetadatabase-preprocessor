@@ -7,11 +7,31 @@ import pytest
 import requests
 
 from owimetadatabase_preprocessor.soil.io import SoilAPI
+from owimetadatabase_preprocessor.soil.processing.soil_pp import SoilDataProcessor
 
 
-def test_init(soil_init: Dict[str, Any], header: Dict[str, str]) -> None:
-    api_soil = SoilAPI(header=header)
-    assert soil_init == api_soil
+@pytest.fixture
+def api_soil(header: dict) -> SoilAPI:
+    # Extract the token from the header fixture.
+    token = header["Authorization"].split()[-1]
+    return SoilAPI(token=token)
+
+def test_init(header: dict) -> None:
+    token = header["Authorization"].split()[-1]
+    api_soil = SoilAPI(token=token)
+    expected = {
+        "api_root": "https://owimetadatabase.azurewebsites.net/api/v1/soildata/",
+        "uname": None,
+        "password": None,
+        "auth": None,
+        # When providing a Bearer token, the API converts it into the header.
+        "header": {"Authorization": f"Token Bearer {token}"}
+    }
+    assert api_soil.api_root == expected["api_root"]
+    assert api_soil.uname == expected["uname"]
+    assert api_soil.password == expected["password"]
+    assert api_soil.auth == expected["auth"]
+    assert api_soil.header == expected["header"]
 
 
 def test_process_data(api_soil: SoilAPI, mock_requests_get_advanced: mock.Mock) -> None:
@@ -50,6 +70,8 @@ def test_get_proximity_entities_2d_wrong_data(
         api_soil.get_proximity_entities_2d(
             api_url="test", latitude=50, longitude=2.22, radius=0.75
         )
+
+
 
 
 @pytest.mark.parametrize(
@@ -96,11 +118,10 @@ def test_search_any_entity_exception(
     indirect=["df_gathered_inp", "dict_gathered_true"],
 )
 def test_gather_data_entity(
-    api_soil: SoilAPI,
     df_gathered_inp: pd.DataFrame,
     dict_gathered_true: Dict[str, Union[str, float]],
 ) -> None:
-    dict_gathered = api_soil._gather_data_entity(df_gathered_inp)
+    dict_gathered = SoilDataProcessor._gather_data_entity(df_gathered_inp)
     for key in dict_gathered:
         if key != "data":
             assert dict_gathered[key] == dict_gathered_true[key]

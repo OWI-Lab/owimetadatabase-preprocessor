@@ -12,7 +12,7 @@ from groundhog.siteinvestigation.insitutests.pcpt_processing import PCPTProcessi
 
 class SoilDataProcessor:
     @staticmethod
-    def transform_coord(
+    def _transform_coord(
         df: pd.DataFrame, longitude: float, latitude: float, target_srid: str
     ) -> Tuple[pd.DataFrame, float, float]:
         """
