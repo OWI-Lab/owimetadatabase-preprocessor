@@ -16,7 +16,7 @@ from owimetadatabase_preprocessor.utility.exceptions import (
 )
 
 
-class API(object):
+class API:
     """Base API class handling user access information to the Database API."""
 
     def __init__(

@@ -5,10 +5,12 @@ import requests
 import pandas as pd
 from typing import Dict, Any, Union
 from owimetadatabase_preprocessor.utility.exceptions import APIConnectionError, DataProcessingError
+from owimetadatabase_preprocessor.io import API
 
-class SoilAPIClient:
+class SoilAPI(API):
     """
     API client to handle HTTP communication for soil data.
+    Inherits common functionality from the API class.
     """
     def __init__(
         self,
@@ -21,16 +23,21 @@ class SoilAPIClient:
         """
         Constructor for the SoilAPI.
 
-        :param api_root: Base URL for the API
-        :param api_subdir: Sub-directory for soil data endpoints
-        :param token: API token (if required)
-        :param uname: Username for authentication
-        :param password: Password for authentication
+        :param api_root: Base URL for the API.
+        :param api_subdir: Sub-directory for soil data endpoints.
+        :param token: API token (if required). A Bearer token will be used.
+        :param uname: Username for authentication.
+        :param password: Password for authentication.
         """
-        self.api_root = api_root + api_subdir
-        self.token = token
-        self.uname = uname
-        self.password = password
+        # Combine base URL and subdirectory
+        soil_api_root = api_root + api_subdir
+
+        # If token is provided, supply a header that uses the Bearer scheme.
+        if token:
+            header = {"Authorization": f"Bearer {token}"}
+            super().__init__(api_root=soil_api_root, token=token, uname=uname, password=password, header=header)
+        else:
+            super().__init__(api_root=soil_api_root, token=token, uname=uname, password=password)
 
     def send_request(self, data_type: str, params: Dict[str, Any]) -> requests.Response:
         """
