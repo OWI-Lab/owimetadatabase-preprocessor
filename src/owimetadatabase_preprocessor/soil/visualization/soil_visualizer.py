@@ -5,15 +5,17 @@ or show them.
 """
 import pandas as pd
 import plotly.graph_objs as go
+import plotly.express as px
 from typing import Any, Dict, List, Union
 from groundhog.siteinvestigation.insitutests.pcpt_processing import (
     plot_combined_longitudinal_profile,
     plot_longitudinal_profile,
 )
 
-# REMINDER: • The current methods call self._objects_to_list and 
-# self.get_cpttest_detail. Make sure those are defined (or inherited) somewhere. 
-# If they rely on any initialization, then an init could be appropriate to set them up.
+# REMINDER: • The current methods call self._objects_to_list, 
+# self.get_cpttest_detail and self.get_testlocations. Make sure those are 
+# defined (or inherited) somewhere. If they rely on any initialization, then 
+# an init could be appropriate to set them up.
 
 class SoilPlot():
     def plot_cpt_fence(
@@ -95,22 +97,30 @@ class SoilPlot():
     ) -> Dict[str, go.Figure]:
         """Creates a combined fence diagram with soil profile and CPT data.
 
-        :param profiles: List with georeferenced soil profiles (run plot_soilprofile_fence first)
-        :param cpts: List with georeference CPTs (run plot_cpt_fence first)
+        :param profiles: List with georeferenced soil profiles 
+            (run plot_soilprofile_fence first)
+        :param cpts: List with georeference CPTs 
+            (run plot_cpt_fence first)
         :param startpoint: Name of the CPT location for the start point
         :param endpoint: Name of the CPT location for the end point
         :param band: Thickness of the band (in m, default=1000m)
-        :param scale_factor: Width of the CPT axis in the fence diagram (default=10)
-        :param extend_profile: Boolean determining whether the profile needs to be extended (default=True)
-        :param show_annotations: Boolean determining whether annotations are shown (default=True)
-        :param general_layout: Dictionary with general layout options (default = dict())
+        :param scale_factor: Width of the CPT axis in the fence diagram 
+            (default=10)
+        :param extend_profile: Boolean determining whether the profile needs 
+            to be extended (default=True)
+        :param show_annotations: Boolean determining whether annotations are 
+            shown (default=True)
+        :param general_layout: Dictionary with general layout options 
+            (default = dict())
         :param fillcolordict: Dictionary with colors for soil types
         :param logwidth: Width of the log in the fence diagram
         :param opacity: Opacity of the soil profile logs
-        :param uniformcolor: If a valid color is provided (e.g. 'black'), it is used for all CPT traces
+        :param uniformcolor: If a valid color is provided (e.g. 'black'), it 
+            is used for all CPT traces
         :return: Dictionary with the following keys:
 
-            - 'diagram': Plotly figure with the fence diagram for CPTs and soil profiles
+            - 'diagram': Plotly figure with the fence diagram for CPTs and 
+                soil profiles
         """
         combined_fence_fig_1 = plot_combined_longitudinal_profile(
             cpts=cpts,
@@ -130,3 +140,31 @@ class SoilPlot():
             **kwargs,
         )
         return {"diagram": combined_fence_fig_1}
+
+    def plot_testlocations(self, return_fig: bool = False, **kwargs) -> None:
+        """
+        Retrieves soil test locations and generates a Plotly plot to show them.
+
+        :param return_fig: Boolean indicating whether the Plotly figure object 
+            needs to be returned (default is False which simply shows the plot)
+        :param kwargs: Keyword arguments for the search 
+            (see ``get_testlocations``)
+        :return: Plotly figure object with selected asset locations plotted 
+            on OpenStreetMap tiles (if requested)
+        """
+        testlocations = self.get_testlocations(**kwargs)["data"]
+        fig = px.scatter_mapbox(
+            testlocations,
+            lat="northing",
+            lon="easting",
+            hover_name="title",
+            hover_data=["projectsite_name", "description"],
+            zoom=10,
+            height=500,
+        )
+        fig.update_layout(mapbox_style="open-street-map")
+        fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+        if return_fig:
+            return fig
+        else:
+            fig.show()
