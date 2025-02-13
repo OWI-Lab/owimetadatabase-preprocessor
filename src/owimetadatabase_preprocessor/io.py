@@ -9,6 +9,11 @@ import pandas as pd
 import requests
 
 from src.owimetadatabase_preprocessor.utility.utils import deepcompare
+from owimetadatabase_preprocessor.utility.exceptions import (
+    APIConnectionError,
+    DataProcessingError,
+    InvalidParameterError,
+)
 
 
 class API(object):
@@ -24,7 +29,8 @@ class API(object):
     ) -> None:
         """Create an instance of the API class with the required parameters.
 
-        :param api_root: Optional: root URL of the API endpoint, the default working database url is provided.
+        :param api_root: Optional: root URL of the API endpoint, the default 
+            working database url is provided.
         :param token: Optional: token to access the API.
         :param uname: Optional: username to access the API.
         :param password: Optional: password to access the API.
@@ -55,7 +61,7 @@ class API(object):
                             "Authorization": f"Token {self.header['Authorization']}"
                         }
             else:
-                raise ValueError(
+                raise InvalidParameterError(
                     "If you provide a header directly, \
                     the header must contain the 'Authorization' key with the value starting with 'Token'."
                 )
@@ -64,11 +70,17 @@ class API(object):
         elif self.uname and self.password:
             self.auth = requests.auth.HTTPBasicAuth(self.uname, self.password)
         else:
-            raise ValueError(
+            raise InvalidParameterError(
                 "Either header, token or user name and password must be defined."
             )
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Union["API", dict]) -> bool:
+        """
+        Compare two instances of the API class.
+
+        :param other: Another instance of the API class or a dictionary.
+        :return: True if the instances are equal, False otherwise.
+        """
         if isinstance(other, type(self)):
             comp = deepcompare(self, other)
             assert comp[0], comp[1]
@@ -97,7 +109,7 @@ class API(object):
         else:
             if self.uname is None or self.password is None:
                 e = "Either self.header or self.uname and self.password must be defined."
-                raise ValueError(e)
+                raise InvalidParameterError(e)
             else:
                 response = requests.get(
                     url=self.api_root + url_data_type,
@@ -114,8 +126,10 @@ class API(object):
         :return: None
         """
         if resp.status_code != 200:
-            e = "Error " + str(resp.status_code) + ".\n" + resp.reason
-            raise Exception(e)
+            raise APIConnectionError(
+                message=f"Error {resp.status_code}.\n{resp.reason}",
+                response=resp
+            )
 
     @staticmethod
     def output_to_df(response: requests.Response) -> pd.DataFrame:
@@ -124,8 +138,11 @@ class API(object):
         :param response: Raw output of the sent request.
         :return: Pandas dataframe of the data from the output.
         """
-        df = pd.DataFrame(json.loads(response.text))
-        return df
+        try:
+            data = json.loads(response.text)
+        except Exception as err:
+            raise DataProcessingError("Failed to decode JSON from API response") from err
+        return pd.DataFrame(data)
 
     @staticmethod
     def postprocess_data(
@@ -145,7 +162,7 @@ class API(object):
                 exists = True
                 project_id = df["id"].iloc[0]
             else:
-                raise ValueError(
+                raise InvalidParameterError(
                     "More than one project site was returned, check search criteria."
                 )
             data_add = {"existance": exists, "id": project_id}
@@ -156,7 +173,7 @@ class API(object):
                 exists = True
             data_add = {"existance": exists}
         else:
-            raise ValueError(
+            raise InvalidParameterError(
                 "Output type must be either 'single' or 'list', not "
                 + output_type
                 + "."
@@ -164,7 +181,15 @@ class API(object):
         return data_add
 
     @staticmethod
-    def validate_data(df, data_type):
+    def validate_data(df: pd.DataFrame, data_type: str) -> pd.DataFrame:
+        """
+        Validate the data extracted from the database.
+
+        :param df: Dataframe of the output data.
+        :param data_type: Type of the data we want to request (according to 
+            database model).
+        :return: Dataframe with corrected data.
+        """
         z_sa_mp = {"min": -100000, "max": -10000}
         z_sa_tp = {"min": -20000, "max": -1000}
         z_sa_tw = {"min": 1000, "max": 100000}
@@ -201,10 +226,12 @@ class API(object):
     ) -> Tuple[pd.DataFrame, Dict[str, Union[bool, np.int64, None]]]:
         """Process output data according to specified request parameters.
 
-        :param url_data_type: Type of the data we want to request (according to database model).
+        :param url_data_type: Type of the data we want to request (according to 
+            database model).
         :param url_params: Parameters to send with the request to the database.
         :param output_type: Expected type (amount) of the data extracted.
-        :return: A tuple of dataframe with the requested data and additional data from postprocessing.
+        :return: A tuple of dataframe with the requested data and additional 
+            data from postprocessing.
         """
         resp = self.send_request(url_data_type, url_params)
         self.check_request_health(resp)
