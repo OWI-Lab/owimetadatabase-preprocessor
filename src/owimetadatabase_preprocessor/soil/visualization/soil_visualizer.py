@@ -11,68 +11,15 @@ from groundhog.siteinvestigation.insitutests.pcpt_processing import (
     plot_combined_longitudinal_profile,
     plot_longitudinal_profile,
 )
+from owimetadatabase_preprocessor.soil.io import SoilAPI
+from owimetadatabase_preprocessor.soil.processing.soil_pp import SoilDataProcessor
 
-# REMINDER: • The current methods call self._objects_to_list, 
-# self.get_cpttest_detail and self.get_testlocations. Make sure those are 
-# defined (or inherited) somewhere. If they rely on any initialization, then 
-# an init could be appropriate to set them up.
+# TODO : plot_cpt_fence method is commented out in the original code
+# since it's believed it will not work properly. It calls an instance method
+# get_cpttest_detail()from SoilAPI class. It should be fixed.
 
 class SoilPlot():
-    def plot_cpt_fence(
-        self,
-        cpt_df: pd.DataFrame,
-        start: str,
-        end: str,
-        band: float = 1000.0,
-        scale_factor: float = 10.0,
-        extend_profile: bool = True,
-        plotmap: bool = False,
-        show_annotations: bool = True,
-        general_layout: Dict[Any, Any] = dict(),
-        uniformcolor: Union[str, None] = None,
-        **kwargs,
-    ) -> Dict[str, Union[List[pd.DataFrame], go.Figure]]:
-        """Creates a fence diagram for CPTs.
-
-        :param cpt_df: Dataframe with the summary data of the selected CPTs
-        :param start: Name of the location for the start point
-        :param end: Name of the location for the end point
-        :param band: Thickness of the band (in m, default=1000m)
-        :param scale_factor: Width of the CPT axis in the fence diagram 
-            (default=10)
-        :param extend_profile: Boolean determining whether the profile needs 
-            to be extended (default=True)
-        :param plotmap: Boolean determining whether a map with the locations is 
-            shown (default=False)
-        :param show_annotations: Boolean determining whether annotations are 
-            shown (default=True)
-        :param general_layout: Dictionary with general layout options 
-            (default = dict())
-        :param uniformcolor: If a valid color is provided (e.g. 'black'), it is 
-            used for all CPT traces
-        :param kwargs: Keyword arguments for the get_insitutests method
-        :return: Dictionary with the following keys:
-
-            - 'cpts': List of CPT objects
-            - 'diagram': Plotly figure with the fence diagram
-        """
-        selected_cpts = cpt_df
-        cpts = self._objects_to_list(selected_cpts, self.get_cpttest_detail, "cpt")
-        cpt_fence_fig_1 = plot_longitudinal_profile(
-            cpts=cpts,
-            latlon=True,
-            start=start,
-            end=end,
-            band=band,
-            scale_factor=scale_factor,
-            extend_profile=extend_profile,
-            plotmap=plotmap,
-            show_annotations=show_annotations,
-            general_layout=general_layout,
-            uniformcolor=uniformcolor,
-            **kwargs,
-        )
-        return {"cpts": cpts, "diagram": cpt_fence_fig_1}
+    """Class to visualize soil data using Plotly."""
 
     def plot_combined_fence(
         self,
@@ -168,3 +115,59 @@ class SoilPlot():
             return fig
         else:
             fig.show()
+
+    # def plot_cpt_fence(
+    #     self,
+    #     cpt_df: pd.DataFrame,
+    #     start: str,
+    #     end: str,
+    #     band: float = 1000.0,
+    #     scale_factor: float = 10.0,
+    #     extend_profile: bool = True,
+    #     plotmap: bool = False,
+    #     show_annotations: bool = True,
+    #     general_layout: Dict[Any, Any] = dict(),
+    #     uniformcolor: Union[str, None] = None,
+    #     **kwargs,
+    # ) -> Dict[str, Union[List[pd.DataFrame], go.Figure]]:
+    #     """Creates a fence diagram for CPTs.
+
+    #     :param cpt_df: Dataframe with the summary data of the selected CPTs
+    #     :param start: Name of the location for the start point
+    #     :param end: Name of the location for the end point
+    #     :param band: Thickness of the band (in m, default=1000m)
+    #     :param scale_factor: Width of the CPT axis in the fence diagram 
+    #         (default=10)
+    #     :param extend_profile: Boolean determining whether the profile needs 
+    #         to be extended (default=True)
+    #     :param plotmap: Boolean determining whether a map with the locations is 
+    #         shown (default=False)
+    #     :param show_annotations: Boolean determining whether annotations are 
+    #         shown (default=True)
+    #     :param general_layout: Dictionary with general layout options 
+    #         (default = dict())
+    #     :param uniformcolor: If a valid color is provided (e.g. 'black'), it is 
+    #         used for all CPT traces
+    #     :param kwargs: Keyword arguments for the get_insitutests method
+    #     :return: Dictionary with the following keys:
+
+    #         - 'cpts': List of CPT objects
+    #         - 'diagram': Plotly figure with the fence diagram
+    #     """
+    #     selected_cpts = cpt_df
+    #     cpts = SoilDataProcessor._objects_to_list(selected_cpts, self.get_cpttest_detail, "cpt")
+    #     cpt_fence_fig_1 = plot_longitudinal_profile(
+    #         cpts=cpts,
+    #         latlon=True,
+    #         start=start,
+    #         end=end,
+    #         band=band,
+    #         scale_factor=scale_factor,
+    #         extend_profile=extend_profile,
+    #         plotmap=plotmap,
+    #         show_annotations=show_annotations,
+    #         general_layout=general_layout,
+    #         uniformcolor=uniformcolor,
+    #         **kwargs,
+    #     )
+    #     return {"cpts": cpts, "diagram": cpt_fence_fig_1}
