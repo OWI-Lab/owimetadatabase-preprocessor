@@ -18,7 +18,7 @@ from owimetadatabase_preprocessor.soil.processing.soil_pp import SoilDataProcess
 # since it's believed it will not work properly. It calls an instance method
 # get_cpttest_detail()from SoilAPI class. It should be fixed.
 
-class SoilPlot():
+class SoilPlot:
     """Class to visualize soil data using Plotly."""
 
     def plot_combined_fence(
