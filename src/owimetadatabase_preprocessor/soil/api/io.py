@@ -4,6 +4,7 @@ API client Module for the soil data in the OWIMetadatabase.
 import requests
 import pandas as pd
 from typing import Dict, Any, Union
+from owimetadatabase_preprocessor.soil.utils.exceptions import APIConnectionError, DataProcessingError
 
 class SoilAPIClient:
     """
@@ -51,11 +52,12 @@ class SoilAPIClient:
         Checks if the API request succeeded.
 
         :param response: Response object from the API request
-        :raises Exception: If the response indicates a failure.
+        :raises APIConnectionError: If the response indicates a failure.
         """
         if not response.ok:
-            raise Exception(
-                f"API request failed with status code: {response.status_code}. Response: {response.text}"
+            raise APIConnectionError(
+                message=f"API request failed with status code: {response.status_code}. Response: {response.text}",
+                response=response
             )
 
     def output_to_df(self, response: requests.Response) -> pd.DataFrame:
@@ -64,12 +66,12 @@ class SoilAPIClient:
 
         :param response: Response object from the API request
         :return: A pandas DataFrame constructed from the JSON data.
-        :raises Exception: If JSON decoding fails.
+        :raises DataProcessingError: If JSON decoding fails.
         """
         try:
             data = response.json()
         except Exception as err:
-            raise Exception("Failed to decode JSON from API response") from err
+            raise DataProcessingError("Failed to decode JSON from API response") from err
         return pd.DataFrame(data)
 
     def process_data(self, data_type: str, params: Dict[str, Any]) -> Dict[str, Any]:
