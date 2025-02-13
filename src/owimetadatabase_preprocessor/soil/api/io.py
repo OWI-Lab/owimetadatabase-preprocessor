@@ -5,23 +5,9 @@ import requests
 import warnings
 import numpy as np
 import pandas as pd
-from typing import Dict, Any, Union
+from typing import Dict, Any, Union, Callable 
 from owimetadatabase_preprocessor.io import API
-
-
-# 6) TODO : self._process_cpt
-# 7) TODO : self._convert_to_profile
-# 8) TODO : self._fulldata_processing
-# 9) TODO : self._process_soilprofile_dfs
-# 10) TODO : self._process_soilprofile
-# 11) TODO : self._partialdata_processing
-# 12) TODO :_process_data_units
-# 13) TODO : _process_data_entity
-# 14) TODO : _process_data_insitutest
-# 15) TODO : _process_data_soilprofile
-# 16) TODO : _process_data_testlocation
-# 17) TODO : _fulldata_processing
-# 18) TODO : _objects_to_list
+from owimetadatabase_preprocessor.soil.processing.soil_pp import SoilDataProcessor
 
 
 class SoilAPI(API):
@@ -156,14 +142,14 @@ class SoilAPI(API):
         geosearch_params = dict(latitude=latitude, longitude=longitude)
         url_params = {**geosearch_params, **kwargs}
         df = self._search_any_entity(api_url, radius_init, url_params)
-        df, point_east, point_north = self._transform_coord(
+        df, point_east, point_north = SoilDataProcessor._transform_coord(
             df, longitude, latitude, target_srid
         )
         df["offset [m]"] = np.sqrt(
             (df["easting [m]"] - point_east) ** 2
             + (df["northing [m]"] - point_north) ** 2
         )
-        return self._gather_data_entity(df)    
+        return SoilDataProcessor._gather_data_entity(df)    
 
     def get_closest_entity_3d(
         self,
@@ -202,7 +188,7 @@ class SoilAPI(API):
         geosearch_params = dict(latitude=latitude, longitude=longitude)
         url_params = {**geosearch_params, **kwargs}
         df = self._search_any_entity(api_url, radius_init, url_params)
-        df, point_east, point_north = self._transform_coord(
+        df, point_east, point_north = SoilDataProcessor._transform_coord(
             df, longitude, latitude, target_srid
         )
         if not sampletest:
@@ -212,7 +198,7 @@ class SoilAPI(API):
             + (df["northing [m]"] - point_north) ** 2
             + (df["depth"] - depth) ** 2
         )
-        return self._gather_data_entity(df)
+        return SoilDataProcessor._gather_data_entity(df)
 
     def get_surveycampaigns(
         self, projectsite: Union[str, None] = None, **kwargs
@@ -570,9 +556,9 @@ class SoilAPI(API):
             url_data_type, url_params, output_type
         )
         cols = ["rawdata", "processeddata", "conditions"]
-        dfs = self._process_insitutest_dfs(df_detail, cols)
+        dfs = SoilDataProcessor._process_insitutest_dfs(df_detail, cols)
         if combine:
-            df_raw = self._combine_dfs(dfs)
+            df_raw = SoilDataProcessor._combine_dfs(dfs)
         else:
             df_raw = dfs["rawdata"]
         return {
@@ -639,9 +625,9 @@ class SoilAPI(API):
             url_data_type, url_params, output_type
         )
         cols = ["rawdata", "processeddata", "conditions"]
-        dfs = self._process_insitutest_dfs(df_detail, cols)
+        dfs = SoilDataProcessor._process_insitutest_dfs(df_detail, cols)
         if combine:
-            df_raw = self._combine_dfs(dfs)
+            df_raw = SoilDataProcessor._combine_dfs(dfs)
         else:
             df_raw = dfs["rawdata"]
         dict_ = {
@@ -654,7 +640,7 @@ class SoilAPI(API):
             "exists": df_add_sum["existance"],
         }
         if cpt:
-            cpt_ = self._process_cpt(df_sum, df_raw, **kwargs)
+            cpt_ = SoilDataProcessor._process_cpt(df_sum, df_raw, **kwargs)
             dict_["cpt"] = cpt_
             return dict_
         return dict_
@@ -823,7 +809,7 @@ class SoilAPI(API):
             "exists": df_add_sum["existance"],
         }
         if convert_to_profile:
-            dsp = self._convert_to_profile(
+            dsp = SoilDataProcessor._convert_to_profile(
                 df_sum, df_detail, profile_title, drop_info_cols
             )
             dict_["soilprofile"] = dsp
@@ -1673,4 +1659,39 @@ class SoilAPI(API):
         output_type = "list"
         df, _ = self.process_data(url_data_type, url_params, output_type)
         return df
+
+    def _process_data_units(
+        self,
+        soilunit: str,
+        func_get: Callable,
+        func_get_details: Union[Callable, None] = None,
+        depthcol: Union[str, None] = None,
+        full: bool = True,
+        **kwargs,
+    ) -> pd.DataFrame:
+        # TODO: Add docstring
+        selected_depths = self.get_soilunit_depthranges(soilunit=soilunit)
+        selected_tests = func_get(**kwargs)["data"]
+        all_unit_data = pd.DataFrame()
+        for _, row in selected_tests.iterrows():
+            unitdata = pd.DataFrame()
+            if row["location_name"] in selected_depths["location_name"].unique():
+                if full:
+                    unitdata = SoilDataProcessor._fulldata_processing(
+                        unitdata,
+                        row,
+                        selected_depths,
+                        func_get_details,
+                        depthcol,
+                        **kwargs,
+                    )
+                else:
+                    unitdata = SoilDataProcessor._partialdata_processing(
+                        unitdata, row, selected_depths, selected_tests
+                    )
+            else:
+                print(f"Soil unit not found for {row['location_name']}")
+            all_unit_data = pd.concat([all_unit_data, unitdata])
+        all_unit_data.reset_index(drop=True, inplace=True)
+        return all_unit_data
     
