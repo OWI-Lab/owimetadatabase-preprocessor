@@ -9,11 +9,6 @@ from typing import Dict, Any, Union
 from owimetadatabase_preprocessor.io import API
 
 
-# 1) TODO : self._gather_data_entity(df) is not defined in the class SoilAPI
-# 2) TODO : self._transform_coord(df, longitude, latitude, target_srid) 
-# 3) TODO : self._process_insitutest_dfs
-# 4) TODO : self._combine_dfs
-# 5) TODO : self.process_data
 # 6) TODO : self._process_cpt
 # 7) TODO : self._convert_to_profile
 # 8) TODO : self._fulldata_processing
@@ -21,6 +16,12 @@ from owimetadatabase_preprocessor.io import API
 # 10) TODO : self._process_soilprofile
 # 11) TODO : self._partialdata_processing
 # 12) TODO :_process_data_units
+# 13) TODO : _process_data_entity
+# 14) TODO : _process_data_insitutest
+# 15) TODO : _process_data_soilprofile
+# 16) TODO : _process_data_testlocation
+# 17) TODO : _fulldata_processing
+# 18) TODO : _objects_to_list
 
 
 class SoilAPI(API):
@@ -1516,7 +1517,8 @@ class SoilAPI(API):
         campaign: Union[str, None] = None,
         **kwargs,
     ) -> Union[int, bool]:
-        """Checks if the batch lab test answering to the search criteria exists.
+        """
+        Checks if the batch lab test answering to the search criteria exists.
 
         :param sampletest: Title of the sample test
         :param projectsite: Title of the project site
@@ -1547,7 +1549,8 @@ class SoilAPI(API):
         location: Union[str, None] = None,
         **kwargs,
     ) -> pd.DataFrame:
-        """Retrieves the depth ranges for where the soil unit occurs.
+        """
+        Retrieves the depth ranges for where the soil unit occurs.
 
         :param soilunit: Title of the soil unit for which depth ranges need to 
             be retrieved
@@ -1566,4 +1569,108 @@ class SoilAPI(API):
         df, _ = self.process_data(url_data_type, url_params, output_type)
         return df
 
+    def get_unit_insitutestdata(
+        self, soilunit: str, depthcol: Union[str, None] = "z [m]", **kwargs
+    ) -> pd.DataFrame:
+        """
+        Retrieves proportions of in-situ test data located inside a soil unit.
+        The data in the ``rawdata`` field is filtered based on the depth column.
+
+        :param soilunit: Name of the soil unit
+        :param depthcol: Name of the column with the depth in the ``rawdata`` field
+        :param kwargs: Optional keyword arguments for retrieval of in-situ tests 
+            (e.g. ``projectsite`` and ``testtype``)
+        :return: Dataframe with in-situ test data in the selected soil unit.
+        """
+        return self._process_data_units(
+            soilunit,
+            self.get_insitutests,
+            self.get_insitutest_detail,
+            depthcol=depthcol,
+            **kwargs,
+        )
+
+    def get_unit_batchlabtestdata(
+        self, soilunit: str, depthcol: Union[str, None] = "z [m]", **kwargs
+    ) -> pd.DataFrame:
+        """
+        Retrieves proportions of batch lab test data located inside a soil unit.
+        The data in the ``rawdata`` field is filtered based on the depth column.
+
+        :param soilunit: Name of the soil unit
+        :param depthcol: Name of the column with the depth in the ``rawdata`` field
+        :param kwargs: Optional keyword arguments for retrieval of in-situ tests 
+            (e.g. ``projectsite`` and ``testtype``)
+        :return: Dataframe with batch lab test data in the selected soil unit.
+        """
+        return self._process_data_units(
+            soilunit,
+            depthcol,
+            self.get_batchlabtests,
+            self.get_batchlabtest_detail,
+            depthcol=depthcol,
+            **kwargs,
+        )
+
+    def get_unit_sampletests(self, soilunit: str, **kwargs) -> pd.DataFrame:
+        """
+        Retrieves the sample tests data located inside a soil unit.
+        The metadata of the samples is filtered based on the depth column.
+        Further retrieval of the test data can follow after this method.
+
+        :param soilunit: Name of the soil unit
+        :param kwargs: Optional keyword arguments for retrieval of sample tests 
+            (e.g. ``projectsite`` and ``testtype``)
+        :return: Dataframe with sample test metadata in the selected soil unit.
+        """
+        return self._process_data_units(soilunit, self.get_sampletests, **kwargs)
+
+    def get_soilprofile_profile(
+        self, lat1: float, lon1: float, lat2: float, lon2: float, band: float = 1000
+    ) -> pd.DataFrame:
+        """
+        Retrieves soil profiles along a profile line.
+
+        :param lat1: Latitude of the start point
+        :param lon1: Longitude of the start point
+        :param lat2: Latitude of the end point
+        :param lon2: Longitude of the end point
+        :param band: Thickness of the band (in m, default=1000m)
+        :return: Returns a dataframe with the summary data of the selected soil profiles
+        """
+        url_params = {
+            "lat1": lat1,
+            "lon1": lon1,
+            "lat2": lat2,
+            "lon2": lon2,
+            "offset": band,
+        }
+        url_data_type = "soilprofileprofile"
+        output_type = "list"
+        df, _ = self.process_data(url_data_type, url_params, output_type)
+        return df    
+
+    def get_insitutests_profile(
+        self, lat1: float, lon1: float, lat2: float, lon2: float, band: float = 1000
+    ) -> pd.DataFrame:
+        """Retrieves in-situ tests along a profile line.
+
+        :param lat1: Latitude of the start point
+        :param lon1: Longitude of the start point
+        :param lat2: Latitude of the end point
+        :param lon2: Longitude of the end point
+        :param band: Thickness of the band (in m, default=1000m)
+        :return: Returns a dataframe with the summary data of the selected in-situ tests
+        """
+        url_params = {
+            "lat1": lat1,
+            "lon1": lon1,
+            "lat2": lat2,
+            "lon2": lon2,
+            "offset": band,
+        }
+        url_data_type = "insitutestprofile"
+        output_type = "list"
+        df, _ = self.process_data(url_data_type, url_params, output_type)
+        return df
     
