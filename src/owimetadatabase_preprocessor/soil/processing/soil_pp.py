@@ -11,6 +11,9 @@ from groundhog.general.soilprofile import profile_from_dataframe
 from groundhog.siteinvestigation.insitutests.pcpt_processing import PCPTProcessing
 
 class SoilDataProcessor:
+    """
+    Helper class for processing soil data.
+    """
     @staticmethod
     def _transform_coord(
         df: pd.DataFrame, longitude: float, latitude: float, target_srid: str
@@ -297,3 +300,185 @@ class SoilDataProcessor:
                     f"Error loading {row['projectsite_name']}-{row['location_name']}-{row['title']}"
                 )
         return obj
+    
+
+class SoilprofileProcessor:
+    """
+    Helper class for processing required inputs from a given dataframe for
+    soil-strucutre interaction modeling. 
+
+    The class defines a database of keys (LATERAL_SOIL_KEYS) to be used by the
+    lateral() method. For each available option (e.g. "apirp2geo", "pisa"), the
+    dictionary contains lists of mandatory and, optionally, optional keys.
+    If any mandatory keys are missing in the provided DataFrame, an error is 
+    raised. Otherwise, the DataFrame is filtered to include the mandatory keys 
+    and any optional keys that are present.
+    """
+    LATERAL_SSI_KEYS: dict[str, dict[str, list[str]]] = {
+        "apirp2geo": {
+            "mandatory": [
+                "Depth from [m]",
+                "Depth to [m]",
+                "Soil type",
+                ("Total unit weight", "[kN/m3]"),
+                ("Su", "[kPa]"),
+                ("Phi", "[deg]"),
+                "epsilon50 [-]",
+            ],     
+            "optional": [
+                ("Dr", "[-]"),
+            ]      
+        },
+        "pisa": {
+            "mandatory": [
+                ("Depth", "[m]"),
+                "Soil type",
+                ("Total unit weight", "[kN/m3]"),
+                ("Gmax", "[kPa]"),
+                ("Su", "[kPa]"),
+                ("Dr", "[-]"),
+            ],
+        }
+    }
+
+    AXIAL_SSI_KEYS: dict[str, dict[str, list[str]]] = {
+        "cpt": {
+            "mandatory": [],
+            "optional": [],
+        }
+    }
+
+    @classmethod
+    def get_available_options(cls, loading: str='lateral') -> list[str]:
+        """
+        Return a list of available lateral soil reaction modeling options.
+
+        :param loading: String specifying the type of loading (default='lateral').
+        :return: List of available options for the specified loading type.
+        :raises ValueError: If the provided loading type is not supported.
+        """
+        if loading.lower() == 'lateral':
+            return list(cls.LATERAL_SSI_KEYS.keys())
+        elif loading.lower() == 'axial':
+            return list(cls.AXIAL_SSI_KEYS.keys())
+        else:
+            raise ValueError(f"Unsupported loading type '{loading}'.")
+
+    @staticmethod
+    def _validate_keys(data: pd.DataFrame, required_keys: list, mandatory: bool = True) -> list[str]:
+        """
+        Validate that all required keys are present in the data and return a list
+        of standardized column names corresponding to these keys.
+        For keys defined as tuples, ensures that at least one column contains all the
+        tuple elements (case-insensitive); for string keys, performs a case-insensitive
+        check and renames the column to the standardized key if needed.
+
+        :param data: DataFrame containing the soil profile data.
+        :param required_keys: List of required keys that may be strings or tuples.
+        :param mandatory: Boolean flag. If True, raise error when a key is missing;
+                        if False, skip keys that are not found.
+        :return: A list of validated (and standardized) column names.
+        :raises ValueError: If any required key is missing and mandatory is True.
+        """
+        validated_columns = []
+        # Map lower-case column names to original names for renaming.
+        keys_lower = {col.lower(): col for col in data.columns}
+
+        for key in required_keys:
+            if isinstance(key, tuple):
+                # For tuple keys, find the first column that contains all tuple elements.
+                candidate = None
+                for col in data.columns:
+                    if all(elem.lower() in col.lower() for elem in key):
+                        candidate = col
+                        break
+                if candidate is None:
+                    if mandatory:
+                        raise ValueError(f"Soil input: '{key}' is missing in the soil data.")
+                    else:
+                        continue
+                validated_columns.append(candidate)
+            else:
+                # For a string key, check using lower-case comparison.
+                if key.lower() not in keys_lower:
+                    if mandatory:
+                        raise ValueError(f"Soil input: '{key}' is missing in the soil data.")
+                    else:
+                        continue
+                original = keys_lower[key.lower()]
+                if original != key:
+                    data.rename(columns={original: key}, inplace=True)
+                validated_columns.append(key)
+        return validated_columns
+
+    @classmethod
+    def lateral(cls, df: pd.DataFrame, option: str, mudline: Union[float, None]=None, pw: float=1.025) -> pd.DataFrame:
+        """
+        Process soil profile data to ensure that the required inputs for lateral 
+        soil reaction modeling are present based on the specified option.
+
+        The method uses a pre-defined set of keys stored in the LATERAL_SSI_KEYS 
+        dictionary. Each option defines two categories:
+          - mandatory: columns that must be present in the DataFrame.
+          - optional: columns that will be included if they are present.
+        
+        Available options: {"apirp2geo", "pisa"}.
+
+        If any mandatory key defined for the selected option is missing from 
+        the DataFrame, a KeyError will be raised. The returned DataFrame will 
+        include the mandatory keys and any optional keys that exist in the 
+        input.
+
+        :param df: DataFrame containing the soil profile data.
+        :param option: String specifying the option to model the lateral soil
+            reaction. The option must be one of the available options (e.g., 
+            "apirp2geo" or "pisa").
+        :param mudline: float, sea bed level in mLAT coordinates (default=None).
+        :param pw: float, sea water density (default=1.025 t/m3)
+        :return: Filtered DataFrame containing only the required columns.
+        :raises NotImplementedError: If the provided option is not supported.
+        :raises KeyError: If one or more mandatory columns are missing.
+        """
+        available_options = cls.get_available_options(loading='lateral')
+        if option not in available_options:
+            raise NotImplementedError(f"Option '{option}' not supported.")
+
+        key_db = cls.LATERAL_SSI_KEYS[option]
+        # Mandatory keys for the selected option.
+        _keys = key_db.get("mandatory", [])
+        mandatory_keys = cls._validate_keys(data=df, required_keys=_keys, mandatory=True)
+        # Include optional keys that are present.
+        _keys = key_db.get("optional", [])
+        optional_keys = cls._validate_keys(data=df, required_keys=_keys, mandatory=False) 
+        soilprofile = df[mandatory_keys + optional_keys].copy()
+        # Add additional required info
+        soilprofile = cls._add_soilinfo(soilprofile, pw, mudline)
+
+        return soilprofile
+
+    @staticmethod
+    def _add_soilinfo(df: pd.DataFrame, pw: float, mudline: Union[float, None]) -> pd.DataFrame:
+        """
+        Add additional soil information to the soil profile DataFrame. The
+        method calculates the submerged unit weight of the soil and, if provided,
+        the mudline depth in mLAT coordinates.
+
+        :param df: DataFrame containing the soil profile data.
+        :param pw: float, sea water density (default=1.025 t/m3).
+        :param mudline: float, sea bed level in mLAT coordinates (default=None).
+        :return: DataFrame with the added columns.
+        """
+        # Add submerged unit weight
+        acc_gravity = 9.81  # acceleration due to gravity (m/s2)
+        for col in df.columns:
+            if 'Total unit weight' in col:
+                new_col = col.replace('Total unit weight', 'Submerged unit weight')
+                df[new_col] = df[col] - pw * acc_gravity
+
+        # Add mudline depth in mLAT coordinates
+        if mudline:
+            df['Depth from [mLAT]'] = mudline - df['Depth from [m]']
+            df['Depth to [mLAT]'] = mudline - df['Depth to [m]']
+        
+
+        return df
