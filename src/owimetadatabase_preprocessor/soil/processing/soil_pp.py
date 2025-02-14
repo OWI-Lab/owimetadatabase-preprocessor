@@ -323,7 +323,7 @@ class SoilprofileProcessor:
                 ("Total unit weight", "[kN/m3]"),
                 ("Su", "[kPa]"),
                 ("Phi", "[deg]"),
-                "epsilon50 [-]",
+                ("epsilon50", "[-]"),
             ],     
             "optional": [
                 ("Dr", "[-]"),
@@ -400,11 +400,15 @@ class SoilprofileProcessor:
                 validated_columns.append(candidate)
             else:
                 # For a string key, check using lower-case comparison.
-                if key.lower() not in keys_lower:
+                matching_cols = [col for col in data.columns if key.lower() in col.lower()]
+                if len(matching_cols) == 0:
                     if mandatory:
                         raise ValueError(f"Soil input: '{key}' is missing in the soil data.")
                     else:
                         continue
+                elif len(matching_cols) > 1:
+                    raise ValueError(f"'{key}' should be defined by a single column, found: {matching_cols}")
+                
                 original = keys_lower[key.lower()]
                 if original != key:
                     data.rename(columns={original: key}, inplace=True)

@@ -1,0 +1,38 @@
+[
+    {
+        "Depth from [m]": 0,
+        "Depth to [m]": 1.5,
+        "Su [kPa]": 87.0852380125,
+        "Dr [-]": null,
+        "Total unit weight [kN/m3]": 19.2,
+        "phi [deg]": 0,
+        "epsilon50 [-]": 0.005
+    },
+    {
+        "Depth from [m]": 1.5,
+        "Depth to [m]": 3.5,
+        "Su [kPa]": null,
+        "Dr [-]": 0.6,
+        "Total unit weight [kN/m3]": 19.7,
+        "phi [deg]": 36,
+        "epsilon50 [-]": 0.0
+    },
+    {
+        "Depth from [m]": 3.5,
+        "Depth to [m]": 34.5,
+        "Su [kPa]": 80.0024963182,
+        "Dr [-]": null,
+        "Total unit weight [kN/m3]": 19.8,
+        "phi [deg]": null,
+        "epsilon50 [-]": 0.003487852
+    },
+    {
+        "Depth from [m]": 34.5,
+        "Depth to [m]": 50.0,
+        "Su [kPa]": 0.0,
+        "Dr [-]": null,
+        "Total unit weight [kN/m3]": 18.0,
+        "phi [deg]": 39,
+        "epsilon50 [-]": null
+    }
+]

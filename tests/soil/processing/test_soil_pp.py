@@ -8,10 +8,10 @@ from owimetadatabase_preprocessor.soil.processing.soil_pp import SoilprofileProc
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 @pytest.mark.parametrize("filename, mudline", [
-    ("api_ok_1.json", None),
-    ("api_ok_2.json", None),
-    ("api_ok_3.json", None),
-    ("api_ok_1.json", -26.0),
+    ("api_ok_1.json", None),   # "from" and "to" keys
+    ("api_ok_1.json", -26.0),  # mudline provided [mLAT]
+    ("api_ok_2.json", None),   # cte keys
+    ("api_ok_3.json", None),   # Su #from and #to keys; no "Dr" (optional)
 ])
 def test_lateral_api2rpgeo(filename: str, mudline: float) -> None:
     """Test lateral method with option 'apirp2geo' for various mudline values."""
@@ -43,5 +43,46 @@ def test_lateral_api2rpgeo(filename: str, mudline: float) -> None:
     # Check that the returned soil profile has columns which contains "Submerged unit weight" column
     assert any("Submerged unit weight" in col for col in result.columns), "No column contains 'Submerged unit weight'."
 
+@pytest.mark.parametrize("filename, mudline", [
+    ("api_bad_1.json", None),  # Missing "Depth" keys since "Z" used instead
+    ("api_bad_2.json", None),  # Missing "Soil type" keys
+    ("api_bad_3.json", None),  # Missing "epsilon50" keys
+])
+def test_fail_1_lateral_api2rpgeo(filename: str, mudline: float) -> None:
+    """Test lateral method fails appropriately with invalid input data."""
+    filepath = os.path.join(DATA_DIR, filename)
+    with open(filepath, "r") as f:
+        data = json.load(f)
+    df = pd.DataFrame(data)
+
+    # Test that the method raises ValueError due to missing mandatory keys
+    with pytest.raises(ValueError) as exc_info:
+        _ = SoilprofileProcessor.lateral(
+            df, option="apirp2geo", mudline=mudline, pw=1.025
+        )
+
+    # Verify the error message mentions the missing mandatory key
+    assert "missing in the soil data" in str(exc_info.value), "Error message does not mention missing mandatory key."
+
+@pytest.mark.parametrize("filename, mudline", [
+    ("api_bad_1bis.json", None),  # Double "Soil type" key definition
+])
+def test_fail_1_lateral_api2rpgeo(filename: str, mudline: float) -> None:
+    """Test lateral method fails appropriately because incorrect parameter
+    definition in the input data."""
+    filepath = os.path.join(DATA_DIR, filename)
+    with open(filepath, "r") as f:
+        data = json.load(f)
+    df = pd.DataFrame(data)
+    
+    # Test that the method raises ValueError due to incorrect parameter definition
+    with pytest.raises(ValueError) as exc_info:
+        _ = SoilprofileProcessor.lateral(
+            df, option="apirp2geo", mudline=mudline, pw=1.025
+        )
+
+    # Verify the error message mentions the incorrect parameter definition
+    assert "defined by a single column" in str(exc_info.value), "Error message does not mention incorrect parameter definition."
+    
 
 

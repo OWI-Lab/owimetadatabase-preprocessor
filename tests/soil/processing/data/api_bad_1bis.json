@@ -1,0 +1,46 @@
+[
+    {
+        "Depth from [m]": 0,
+        "Depth to [m]": 1.5,
+        "Soil type": "clay",
+        "SOIL TYPE": "CLAY",
+        "Su from [kPa]": 87.0852380125,
+        "Su to [kPa]": 66.3991339971,
+        "Total unit weight [kN/m3]": 19.2,
+        "phi [deg]": 0,
+        "epsilon50 [-]": 0.005
+    },
+    {
+        "Depth from [m]": 1.5,
+        "Depth to [m]": 3.5,
+        "Soil type": "sand",
+        "SOIL TYPE": "SAND",
+        "Su from [kPa]": null,
+        "Su to [kPa]": null,
+        "Total unit weight [kN/m3]": 19.7,
+        "phi [deg]": 36,
+        "epsilon50 [-]": 0.0
+    },
+    {
+        "Depth from [m]": 3.5,
+        "Depth to [m]": 34.5,
+        "Soil type": "clay",
+        "SOIL TYPE": "CLAY",
+        "Su from [kPa]": 80.0024963182,
+        "Su to [kPa]": 83.6462118516,
+        "Total unit weight [kN/m3]": 19.8,
+        "phi [deg]": null,
+        "epsilon50 [-]": 0.003487852
+    },
+    {
+        "Depth from [m]": 34.5,
+        "Depth to [m]": 50.0,
+        "Soil type": "sand",
+        "SOIL TYPE": "SAND",
+        "Su from [kPa]": 0.0,
+        "Su to [kPa]": 0.0,
+        "Total unit weight [kN/m3]": 18.0,
+        "phi [deg]": 39,
+        "epsilon50 [-]": null
+    }
+]
