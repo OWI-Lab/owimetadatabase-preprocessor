@@ -9,7 +9,7 @@ import requests
 
 from owimetadatabase_preprocessor.geometry.io import GeometryAPI
 from owimetadatabase_preprocessor.geometry.structures import Material, Position
-from owimetadatabase_preprocessor.utils import dict_generator
+from owimetadatabase_preprocessor.utility.utils import dict_generator
 
 
 @pytest.fixture(scope="function")

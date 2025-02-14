@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from owimetadatabase_preprocessor.utils import (
+from owimetadatabase_preprocessor.utility.utils import (
     compare_if_simple_close,
     deepcompare,
     dict_generator,

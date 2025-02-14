@@ -6,7 +6,7 @@ import pytest
 
 from owimetadatabase_preprocessor.geometry.processing import OWT, OWTs
 from owimetadatabase_preprocessor.geometry.structures import Position
-from owimetadatabase_preprocessor.utils import dict_generator
+from owimetadatabase_preprocessor.utility.utils import dict_generator
 
 
 @pytest.fixture(scope="function")
