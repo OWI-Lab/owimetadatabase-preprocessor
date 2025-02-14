@@ -1,0 +1,47 @@
+import os
+import json
+import pandas as pd
+import pytest
+
+from owimetadatabase_preprocessor.soil.processing.soil_pp import SoilprofileProcessor
+
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+
+@pytest.mark.parametrize("filename, mudline", [
+    ("api_ok_1.json", None),
+    ("api_ok_2.json", None),
+    ("api_ok_3.json", None),
+    ("api_ok_1.json", -26.0),
+])
+def test_lateral_api2rpgeo(filename: str, mudline: float) -> None:
+    """Test lateral method with option 'apirp2geo' for various mudline values."""
+    filepath = os.path.join(DATA_DIR, filename)
+    with open(filepath, "r") as f:
+        data = json.load(f)
+    df = pd.DataFrame(data)
+
+    # Execute lateral with option 'apirp2geo' and given mudline
+    result = SoilprofileProcessor.lateral(df, option="apirp2geo", mudline=mudline, pw=1.025)
+    
+    # Ensure the returned soil profile is not empty
+    assert not result.empty, "Returned soil profile is empty."
+
+    # Check that the returned soil profile has the same number of rows as the input
+    assert len(result) == len(df), "Number of rows in the returned soil profile is different from the input."
+
+    if mudline is None:
+        # Check that no column contains "[mLAT]" since no mudline was provided
+        for col in result.columns:
+            assert "[mLAT]" not in col, f"Column '{col}' should not contain [mLAT] when mudline is None."
+    else:
+        # When mudline is provided, check that at least one column contains "[mLAT]"
+        assert any("[mLAT]" in col for col in result.columns), "No column contains [mLAT] despite mudline being provided."
+        assert result.iloc[0]["Elevation from [mLAT]"] == mudline, "Mudline value is not correctly set."
+        sp_depth = result.iloc[-1]["Depth to [m]"]
+        assert mudline - result.iloc[-1]["Elevation to [mLAT]"] == sp_depth, "Bottom elevation [mLAT] is not correctly set."
+    
+    # Check that the returned soil profile has columns which contains "Submerged unit weight" column
+    assert any("Submerged unit weight" in col for col in result.columns), "No column contains 'Submerged unit weight'."
+
+
+

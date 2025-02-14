@@ -477,8 +477,8 @@ class SoilprofileProcessor:
 
         # Add mudline depth in mLAT coordinates
         if mudline:
-            df['Depth from [mLAT]'] = mudline - df['Depth from [m]']
-            df['Depth to [mLAT]'] = mudline - df['Depth to [m]']
+            df['Elevation from [mLAT]'] = mudline - df['Depth from [m]']
+            df['Elevation to [mLAT]'] = mudline - df['Depth to [m]']
         
 
         return df
