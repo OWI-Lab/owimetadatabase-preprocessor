@@ -509,6 +509,132 @@ class SoilAPI(API):
             **kwargs,
         )
 
+    def get_closest_insitutest_byname(
+        self,
+        projectsite: str,
+        location: str,
+        radius: float = 1.0,
+        target_srid: str = "25831",
+        **kwargs,
+    ) -> Dict[str, Union[pd.DataFrame, int, str, float, None]]:
+        """
+        Get the in-situ test closest to a location specified by name.
+
+        :param projectsite: Name of the projectsite (e.g. "Nobelwind")
+        :param location: Name of the test location (e.g. "CPT-7C")
+        :param radius: Initial search radius around the central point in km,
+            the search radius is increased until locations are found
+        :param target_srid: SRID for the offset calculation in meters
+        :param kwargs: Optional keyword arguments for filtering tests
+        :return: Dictionary with the following keys:
+            - 'data': Pandas dataframe with the in-situ test data
+            - 'id': ID of the closest in-situ test 
+            - 'title': Title of the closest in-situ test
+            - 'offset [m]': Offset in meters from the location
+        :raises ValueError: If the location does not exist
+        """
+        # First verify the location exists
+        location_id = self.testlocation_exists(
+            projectsite=projectsite,
+            location=location
+        )
+        
+        if not location_id:
+            raise ValueError(f"Location '{location}' not found in project '{projectsite}'")
+
+        # Get location details to obtain coordinates
+        location_details = self.get_testlocation_detail(
+            projectsite=projectsite,
+            location=location
+        )
+        
+        # Extract coordinates from location data
+        location_data = location_details["data"]
+        latitude = location_data["latitude"].iloc[0]
+        longitude = location_data["longitude"].iloc[0]
+
+        # Use existing method to find closest in-situ test
+        return self.get_closest_insitutest(
+            latitude=latitude,
+            longitude=longitude,
+            radius=radius,
+            target_srid=target_srid,
+            **kwargs
+        )
+
+    def get_closest_soilprofile_byname(
+        self,
+        projectsite: str,
+        location: str,
+        radius: float = 1.0,
+        target_srid: str = "25831",
+        retrieve_details: bool = True,
+        verbose: bool = True,
+        **kwargs,
+    ) -> Dict[str, Union[pd.DataFrame, int, str, float, None]]:
+        """
+        Get the soil profile closest to a location specified by name.
+
+        :param projectsite: Name of the projectsite (e.g. "Nobelwind")
+        :param location: Name of the test location (e.g. "CPT-7C")
+        :param radius: Initial search radius around the central point in km,
+            the search radius is increased until locations are found
+        :param target_srid: SRID for the offset calculation in meters
+        :param retrieve_details: Boolean determining whether the soil profile detail 
+            needs to be retrieved. Default is true in which case the result of 
+            get_soilprofile_detail is returned
+        :param verbose: Boolean determining whether to print info about found profile
+        :param kwargs: Optional keyword arguments for filtering profiles
+        :return: Dictionary with the following keys:
+            - 'data': Pandas dataframe with the soil profile data
+            - 'id': ID of the closest soil profile
+            - 'title': Title of the closest soil profile
+            - 'offset [m]': Offset in meters from the location
+            If retrieve_details is True, returns the full soil profile details instead
+        :raises ValueError: If the location does not exist
+        """
+        # First verify the location exists
+        location_id = self.testlocation_exists(
+            projectsite=projectsite,
+            location=location
+        )
+        
+        if not location_id:
+            raise ValueError(f"Location '{location}' not found in project '{projectsite}'")
+
+        # Get location details to obtain coordinates
+        location_details = self.get_testlocation_detail(
+            projectsite=projectsite,
+            location=location
+        )
+        
+        # Extract coordinates from location data
+        location_data = location_details["data"]
+        latitude = location_data["latitude"].iloc[0]
+        longitude = location_data["longitude"].iloc[0]
+
+        # Use existing method to find closest soil profile
+        closest_profile = self.get_closest_soilprofile(
+            latitude=latitude,
+            longitude=longitude,
+            radius=radius,
+            target_srid=target_srid,
+            **kwargs
+        )
+        
+        if verbose:
+            print(f"Soil profile {closest_profile['title']} found at {closest_profile['offset [m]']:.1f}m offset")
+
+        if retrieve_details:
+            return self.get_soilprofile_detail(
+                projectsite=projectsite,
+                location=location,
+                soilprofile=closest_profile['title'],
+                **kwargs
+            )
+        
+        return closest_profile
+
     def get_insitutest_detail(
         self,
         insitutest: str,
@@ -1694,4 +1820,3 @@ class SoilAPI(API):
             all_unit_data = pd.concat([all_unit_data, unitdata])
         all_unit_data.reset_index(drop=True, inplace=True)
         return all_unit_data
-    
