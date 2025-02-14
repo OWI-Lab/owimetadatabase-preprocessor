@@ -84,5 +84,29 @@ def test_fail_1_lateral_api2rpgeo(filename: str, mudline: float) -> None:
     # Verify the error message mentions the incorrect parameter definition
     assert "defined by a single column" in str(exc_info.value), "Error message does not mention incorrect parameter definition."
     
+@pytest.mark.parametrize("filename, mudline", [
+    ("pisa_ok_1.json", None),  # Ok
+    ("pisa_ok_2.json", None),  # Dr cte value
+    ("pisa_ok_3.json", None),  # Dr cte value; gamma linear
+])
+def test_lateral_pisa(filename: str, mudline: float) -> None:
+    """Test lateral method with option 'pisa'."""
+    filepath = os.path.join(DATA_DIR, filename)
+    with open(filepath, "r") as f:
+        data = json.load(f)
+    df = pd.DataFrame(data)
 
+    # Execute lateral with option 'pisa'
+    result = SoilprofileProcessor.lateral(df, option="pisa", mudline=mudline, pw=1.025)
+    
+    # Ensure the returned soil profile is not empty
+    assert not result.empty, "Returned soil profile is empty."
 
+    # Check that the returned soil profile has the same number of rows as the input
+    assert len(result) == len(df), "Number of rows in the returned soil profile is different from the input."
+
+    # Check that the returned soil profile has columns which contains "Submerged unit weight" column
+    assert any("Submerged unit weight" in col for col in result.columns), "No column contains 'Submerged unit weight'."
+
+    # Check that no apirp2geo columns are present
+    assert not any("epsilon50" in col for col in result.columns), "Columns from apirp2geo method are present."
