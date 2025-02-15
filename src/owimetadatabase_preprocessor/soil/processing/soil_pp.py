@@ -331,7 +331,8 @@ class SoilprofileProcessor:
         },
         "pisa": {
             "mandatory": [
-                ("Depth", "[m]"),
+                "Depth from [m]",
+                "Depth to [m]",
                 "Soil type",
                 ("Total unit weight", "[kN/m3]"),
                 ("Gmax", "[kPa]"),
