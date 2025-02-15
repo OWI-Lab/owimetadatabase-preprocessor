@@ -11,13 +11,16 @@ from groundhog.siteinvestigation.insitutests.pcpt_processing import (
     plot_combined_longitudinal_profile,
     plot_longitudinal_profile,
 )
+from owimetadatabase_preprocessor.soil.io import SoilAPI
+from owimetadatabase_preprocessor.soil.processing.soil_pp import SoilDataProcessor
 
-# TODO : plot_cpt_fence method is commented out in the original code
-# since it's believed it will not work properly. It calls an instance method
-# get_cpttest_detail()from SoilAPI class. It should be fixed.
 
 class SoilPlot:
     """Class to visualize soil data using Plotly."""
+    
+    def __init__(self, soil_api: SoilAPI = None):
+        """Initialize with optional SoilAPI instance."""
+        self.soil_api = soil_api
 
     @classmethod
     def plot_combined_fence(
@@ -87,19 +90,23 @@ class SoilPlot:
         )
         return {"diagram": combined_fence_fig_1}
 
-    @classmethod
-    def plot_testlocations(cls, testlocations: pd.DataFrame, return_fig: bool = False, **kwargs) -> None:
+    def plot_testlocations(self, return_fig: bool = False, soil_api: SoilAPI = None, **kwargs) -> None:
         """
-        Generates a Plotly plot to show the retrieved test locations.
+        Retrieves soil test locations and generates a Plotly plot to show them.
 
-        :param testlocations: Dataframe with the test locations
         :param return_fig: Boolean indicating whether the Plotly figure object 
             needs to be returned (default is False which simply shows the plot)
+        :param soil_api: SoilAPI instance to use for data retrieval (overrides instance attribute)
         :param kwargs: Keyword arguments for the search 
             (see ``get_testlocations``)
         :return: Plotly figure object with selected asset locations plotted 
             on OpenStreetMap tiles (if requested)
         """
+        api = soil_api or self.soil_api
+        if api is None:
+            raise ValueError("SoilAPI instance must be provided either during initialization or as parameter")
+            
+        testlocations = api.get_testlocations(**kwargs)["data"]
         fig = px.scatter_mapbox(
             testlocations,
             lat="northing",
@@ -116,63 +123,58 @@ class SoilPlot:
         else:
             fig.show()
 
+    def plot_cpt_fence(
+        self,
+        cpt_df: pd.DataFrame,
+        start: str,
+        end: str,
+        soil_api: SoilAPI = None,
+        band: float = 1000.0,
+        scale_factor: float = 10.0,
+        extend_profile: bool = True,
+        plotmap: bool = False,
+        show_annotations: bool = True,
+        general_layout: Dict[Any, Any] = dict(),
+        uniformcolor: Union[str, None] = None,
+        **kwargs,
+    ) -> Dict[str, Union[List[pd.DataFrame], go.Figure]]:
+        """Creates a fence diagram for CPTs.
 
-# TODO : plot_cpt_fence method is commented out in the original code, since
-# self.get_cpttest_detail() method is implemented in the SoilAPI class. Thus
-# needs to be modified to do not work as an instance method from SoilAPI class.
+        :param cpt_df: Dataframe with the summary data of the selected CPTs
+        :param start: Name of the location for the start point
+        :param end: Name of the location for the end point
+        :param soil_api: SoilAPI instance to use for data retrieval (overrides instance attribute)
+        :param band: Thickness of the band (in m, default=1000m)
+        :param scale_factor: Width of the CPT axis in the fence diagram (default=10)
+        :param extend_profile: Boolean determining whether the profile needs to be extended
+        :param plotmap: Boolean determining whether a map with locations is shown
+        :param show_annotations: Boolean determining whether annotations are shown
+        :param general_layout: Dictionary with general layout options (default = dict())
+        :param uniformcolor: If a valid color is provided, used for all CPT traces
+        :param kwargs: Keyword arguments for get_insitutests method
+        :return: Dictionary with:
+            - 'cpts': List of CPT objects
+            - 'diagram': Plotly figure with the fence diagram
+        :raises ValueError: If no SoilAPI instance is provided
+        """
+        api = soil_api or self.soil_api
+        if api is None:
+            raise ValueError("SoilAPI instance must be provided either during initialization or as parameter")
 
-    # def plot_cpt_fence(
-    #     self,
-    #     cpt_df: pd.DataFrame,
-    #     start: str,
-    #     end: str,
-    #     band: float = 1000.0,
-    #     scale_factor: float = 10.0,
-    #     extend_profile: bool = True,
-    #     plotmap: bool = False,
-    #     show_annotations: bool = True,
-    #     general_layout: Dict[Any, Any] = dict(),
-    #     uniformcolor: Union[str, None] = None,
-    #     **kwargs,
-    # ) -> Dict[str, Union[List[pd.DataFrame], go.Figure]]:
-    #     """Creates a fence diagram for CPTs.
-
-    #     :param cpt_df: Dataframe with the summary data of the selected CPTs
-    #     :param start: Name of the location for the start point
-    #     :param end: Name of the location for the end point
-    #     :param band: Thickness of the band (in m, default=1000m)
-    #     :param scale_factor: Width of the CPT axis in the fence diagram 
-    #         (default=10)
-    #     :param extend_profile: Boolean determining whether the profile needs 
-    #         to be extended (default=True)
-    #     :param plotmap: Boolean determining whether a map with the locations is 
-    #         shown (default=False)
-    #     :param show_annotations: Boolean determining whether annotations are 
-    #         shown (default=True)
-    #     :param general_layout: Dictionary with general layout options 
-    #         (default = dict())
-    #     :param uniformcolor: If a valid color is provided (e.g. 'black'), it is 
-    #         used for all CPT traces
-    #     :param kwargs: Keyword arguments for the get_insitutests method
-    #     :return: Dictionary with the following keys:
-
-    #         - 'cpts': List of CPT objects
-    #         - 'diagram': Plotly figure with the fence diagram
-    #     """
-    #     selected_cpts = cpt_df
-    #     cpts = SoilDataProcessor._objects_to_list(selected_cpts, , "cpt")
-    #     cpt_fence_fig_1 = plot_longitudinal_profile(
-    #         cpts=cpts,
-    #         latlon=True,
-    #         start=start,
-    #         end=end,
-    #         band=band,
-    #         scale_factor=scale_factor,
-    #         extend_profile=extend_profile,
-    #         plotmap=plotmap,
-    #         show_annotations=show_annotations,
-    #         general_layout=general_layout,
-    #         uniformcolor=uniformcolor,
-    #         **kwargs,
-    #     )
-    #     return {"cpts": cpts, "diagram": cpt_fence_fig_1}
+        selected_cpts = cpt_df
+        cpts = SoilDataProcessor._objects_to_list(selected_cpts, api.get_cpttest_detail, "cpt")
+        cpt_fence_fig_1 = plot_longitudinal_profile(
+            cpts=cpts,
+            latlon=True,
+            start=start,
+            end=end,
+            band=band,
+            scale_factor=scale_factor,
+            extend_profile=extend_profile,
+            plotmap=plotmap,
+            show_annotations=show_annotations,
+            general_layout=general_layout,
+            uniformcolor=uniformcolor,
+            **kwargs,
+        )
+        return {"cpts": cpts, "diagram": cpt_fence_fig_1}
