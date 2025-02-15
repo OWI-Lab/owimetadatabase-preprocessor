@@ -22,6 +22,7 @@ class SoilAPI(API):
         token: Union[str, None] = None,
         uname: Union[str, None] = None,
         password: Union[str, None] = None,
+        **kwargs,
     ) -> None:
         """
         Constructor for the SoilAPI.
@@ -32,25 +33,9 @@ class SoilAPI(API):
         :param uname: Username for authentication.
         :param password: Password for authentication.
         """
-        # Combine base URL and subdirectory
-        soil_api_root = api_root + api_subdir
+        super().__init__(api_root, token, uname, password, **kwargs)
+        self.api_root = self.api_root + api_subdir
 
-        # If token is provided, supply a header that uses the Bearer scheme.
-        if token:
-            header = {"Authorization": f"Bearer {token}"}
-            super().__init__(
-                api_root=soil_api_root, 
-                token=token, uname=uname, 
-                password=password, 
-                header=header
-                )
-        else:
-            super().__init__(
-                api_root=soil_api_root, 
-                token=token, 
-                uname=uname, 
-                password=password
-                )
 
     def get_proximity_entities_2d(
         self, api_url: str, latitude: float, longitude: float, radius: float, **kwargs
