@@ -9,7 +9,7 @@ import pandas as pd
 import plotly.graph_objs as go  # type: ignore
 from numpy import pi
 
-from src.owimetadatabase_preprocessor.utility.utils import deepcompare
+from owimetadatabase_preprocessor.utility.utils import deepcompare
 
 PLOT_SETTINGS_SUBASSEMBLY = {
     "MP": {"color": "brown"},
