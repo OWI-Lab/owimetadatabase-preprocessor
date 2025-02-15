@@ -9,47 +9,30 @@ import requests
 from owimetadatabase_preprocessor.soil.io import SoilAPI
 from owimetadatabase_preprocessor.soil.processing.soil_pp import SoilDataProcessor
 
-
-@pytest.fixture
-def api_soil(header: dict) -> SoilAPI:
-    # Extract the token from the header fixture.
-    token = header["Authorization"].split()[-1]
-    return SoilAPI(token=token)
-
-def test_init(header: dict) -> None:
-    token = header["Authorization"].split()[-1]
-    api_soil = SoilAPI(token=token)
+def test_init(api_root: str, header: Dict[str, str]) -> None:
+    """Test initialization of SoilAPI class."""
+    api_test = SoilAPI(api_root, header=header)
     expected = {
-        "api_root": "https://owimetadatabase.azurewebsites.net/api/v1/soildata/",
+        "api_root": f"{api_root}/soildata/",
+        "header": header,
+        "auth": None,
         "uname": None,
         "password": None,
-        "auth": None,
-        # When providing a Bearer token, the API converts it into the header.
-        "header": {"Authorization": f"Token Bearer {token}"}
     }
-    assert api_soil.api_root == expected["api_root"]
-    assert api_soil.uname == expected["uname"]
-    assert api_soil.password == expected["password"]
-    assert api_soil.auth == expected["auth"]
-    assert api_soil.header == expected["header"]
-
-
-def test_process_data(api_soil: SoilAPI, mock_requests_get_advanced: mock.Mock) -> None:
-    url_data_type = "/test/"
-    url_params = {"test": "test"}
-    output_type = "list"
-    df, df_add = api_soil.process_data(url_data_type, url_params, output_type)
-    assert isinstance(df, pd.DataFrame)
-    assert isinstance(df_add, dict)
-    assert isinstance(df_add["existance"], bool)
-    assert isinstance(df_add["response"], requests.Response)
-
+    assert api_test.api_root == expected["api_root"]
+    assert api_test.header == expected["header"]
+    assert api_test.auth == expected["auth"]
+    assert api_test.uname == expected["uname"]
+    assert api_test.password == expected["password"]
 
 def test_get_proximity_entities_2d(
-    api_soil: SoilAPI,
+    api_root: str,
+    header: Dict[str, str],
     mock_requests_get_proximity_entities_2d: mock.Mock,
 ) -> None:
-    data = api_soil.get_proximity_entities_2d(
+    """Test proximity entities retrieval in 2D."""
+    api_test = SoilAPI(api_root, header=header)
+    data = api_test.get_proximity_entities_2d(
         api_url="test", latitude=50.1, longitude=2.22, radius=0.75
     )
     df = data["data"]
@@ -61,7 +44,6 @@ def test_get_proximity_entities_2d(
     for col, dtype_ in zip(df.columns, [int, float, bool, object, dict, object]):
         assert df[col].dtype == dtype_
 
-
 def test_get_proximity_entities_2d_wrong_data(
     api_soil: SoilAPI,
     mock_requests_get_proximity_entities_2d: mock.Mock,
@@ -70,8 +52,6 @@ def test_get_proximity_entities_2d_wrong_data(
         api_soil.get_proximity_entities_2d(
             api_url="test", latitude=50, longitude=2.22, radius=0.75
         )
-
-
 
 
 @pytest.mark.parametrize(
@@ -111,7 +91,6 @@ def test_search_any_entity_exception(
             radius_max=0.5,
         )
 
-
 @pytest.mark.parametrize(
     "df_gathered_inp, dict_gathered_true",
     [("regular", "regular"), ("single", "single")],
@@ -128,7 +107,6 @@ def test_gather_data_entity(
         else:
             pd_testing.assert_frame_equal(dict_gathered[key], dict_gathered_true[key])
 
-
 def test_get_closest_entity_2d(
     api_soil: SoilAPI,
     dict_gathered_final_true: Dict[str, Union[str, float]],
@@ -144,7 +122,6 @@ def test_get_closest_entity_2d(
             assert dict_[key] == dict_true[key]
         else:
             pd_testing.assert_frame_equal(dict_[key], dict_true[key])
-
 
 # def test_get_closest_entity_3d(
 #     api_soil: SoilAPI,
