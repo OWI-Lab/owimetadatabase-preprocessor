@@ -79,7 +79,7 @@ class SoilAPI(API):
         """
         radius = radius_init
         while True:
-            url_params["offset"] = radius
+            url_params["offset"] = str(radius)
             url_data_type = api_url
             output_type = "list"
             df, df_add = self.process_data(url_data_type, url_params, output_type)
@@ -1186,7 +1186,7 @@ class SoilAPI(API):
             url_data_type, url_params, output_type
         )
         cols = ["rawdata", "processeddata", "conditions"]
-        dfs = self._process_insitutest_dfs(df_detail, cols)
+        dfs = SoilDataProcessor._process_insitutest_dfs(df_detail, cols)
         return {
             "id": df_add_detail["id"],
             "summary": df_sum,
@@ -1593,7 +1593,7 @@ class SoilAPI(API):
             url_data_type, url_params, output_type
         )
         cols = ["rawdata", "processeddata", "conditions"]
-        dfs = self._process_insitutest_dfs(df_detail, cols)
+        dfs = SoilDataProcessor._process_insitutest_dfs(df_detail, cols)
         return {
             "id": df_add_detail["id"],
             "summary": df_sum,

@@ -162,25 +162,27 @@ def mock_requests_search_any_entity(data_search, mocker: mock.Mock) -> mock.Mock
 
     def custom_side_effect(*args, **kwargs) -> requests.Response:
         resp = requests.Response()
+        # Convert offset string to float for comparison
+        offset = float(kwargs.get("params")["offset"])
         if (
             kwargs.get("params")["latitude"] == 50.0
             and kwargs.get("params")["longitude"] == 2.0
-            and kwargs.get("params")["offset"] >= 10.0
+            and offset >= 10.0
         ):
             data = data_search
             resp.status_code = 200
         elif (
             kwargs.get("params")["latitude"] == 50.0
             and kwargs.get("params")["longitude"] == 2.0
-            and kwargs.get("params")["offset"] >= 1.0
-            and kwargs.get("params")["offset"] <= 10.0
+            and offset >= 1.0
+            and offset <= 10.0
         ):
             data = [data_search[i] for i in [0, 2]]
             resp.status_code = 200
         elif (
             kwargs.get("params")["latitude"] == 50.0
             and kwargs.get("params")["longitude"] == 2.0
-            and kwargs.get("params")["offset"] <= 1.0
+            and offset <= 1.0
         ):
             data = []
             resp.status_code = 200
