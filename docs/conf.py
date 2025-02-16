@@ -31,7 +31,6 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "sphinx_rtd_theme"  # "alabaster"
-html_static_path = ["_static"]
 autodoc_default_options = {
     'private-members': False
 }
@@ -39,3 +38,12 @@ autodoc_member_order = 'bysource'
 # html_theme_options = {
 #    'body_max_width': '100%',
 # }
+# Logo configuration
+html_logo = "_static/LogoOWI.png"
+html_theme_options = {
+    'logo_only': True,
+    'display_version': True,
+    'style_nav_header_background': '#2980B9',  # Header background color
+}
+
+html_static_path = ["_static"]
