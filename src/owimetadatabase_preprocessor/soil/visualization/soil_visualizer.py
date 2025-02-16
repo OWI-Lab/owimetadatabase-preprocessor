@@ -20,8 +20,11 @@ from owimetadatabase_preprocessor.soil.processing.soil_pp import SoilDataProcess
 class SoilPlot:
     """Class to visualize soil data using Plotly."""
 
-    def __init__(self, soil_api: SoilAPI = None):
-        """Initialize with optional SoilAPI instance."""
+    def __init__(self, soil_api: SoilAPI):
+        """Initialize with SoilAPI instance.
+        
+        :param soil_api: SoilAPI instance for data retrieval
+        """
         self.soil_api = soil_api
 
     def plot_soilprofile_fence(
@@ -29,7 +32,6 @@ class SoilPlot:
         soilprofiles_df: pd.DataFrame,
         start: str,
         end: str,
-        soil_api: SoilAPI = None,
         plotmap: bool = False,
         fillcolordict: Dict[str, str] = {
             "SAND": "yellow",
@@ -58,15 +60,8 @@ class SoilPlot:
             - 'diagram': Plotly figure with the fence diagram
         :raises ValueError: If no SoilAPI instance is provided
         """
-        api = soil_api or self.soil_api
-        if api is None:
-            raise ValueError(
-                "SoilAPI instance must be provided either during initialization or as parameter"
-            )
-
-        selected_profiles = soilprofiles_df
         soilprofiles = SoilDataProcessor._objects_to_list(
-            selected_profiles, api.get_soilprofile_detail, "soilprofile"
+            soilprofiles_df, self.soil_api.get_soilprofile_detail, "soilprofile"
         )
         fence_diagram_1 = plot_fence_diagram(
             profiles=soilprofiles,
@@ -150,7 +145,7 @@ class SoilPlot:
         return {"diagram": combined_fence_fig_1}
 
     def plot_testlocations(
-        self, return_fig: bool = False, soil_api: SoilAPI = None, **kwargs
+        self, return_fig: bool = False, **kwargs
     ) -> None:
         """
         Retrieves soil test locations and generates a Plotly plot to show them.
@@ -163,13 +158,7 @@ class SoilPlot:
         :return: Plotly figure object with selected asset locations plotted
             on OpenStreetMap tiles (if requested)
         """
-        api = soil_api or self.soil_api
-        if api is None:
-            raise ValueError(
-                "SoilAPI instance must be provided either during initialization or as parameter"
-            )
-
-        testlocations = api.get_testlocations(**kwargs)["data"]
+        testlocations = self.soil_api.get_testlocations(**kwargs)["data"]
         fig = px.scatter_mapbox(
             testlocations,
             lat="northing",
@@ -191,7 +180,6 @@ class SoilPlot:
         cpt_df: pd.DataFrame,
         start: str,
         end: str,
-        soil_api: SoilAPI = None,
         band: float = 1000.0,
         scale_factor: float = 10.0,
         extend_profile: bool = True,
@@ -220,15 +208,9 @@ class SoilPlot:
             - 'diagram': Plotly figure with the fence diagram
         :raises ValueError: If no SoilAPI instance is provided
         """
-        api = soil_api or self.soil_api
-        if api is None:
-            raise ValueError(
-                "SoilAPI instance must be provided either during initialization or as parameter"
-            )
-
         selected_cpts = cpt_df
         cpts = SoilDataProcessor._objects_to_list(
-            selected_cpts, api.get_cpttest_detail, "cpt"
+            selected_cpts, self.soil_api.get_cpttest_detail, "cpt"
         )
         cpt_fence_fig_1 = plot_longitudinal_profile(
             cpts=cpts,
