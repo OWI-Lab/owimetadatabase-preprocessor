@@ -22,7 +22,7 @@ class SoilPlot:
 
     def __init__(self, soil_api: SoilAPI):
         """Initialize with SoilAPI instance.
-        
+
         :param soil_api: SoilAPI instance for data retrieval
         """
         self.soil_api = soil_api
