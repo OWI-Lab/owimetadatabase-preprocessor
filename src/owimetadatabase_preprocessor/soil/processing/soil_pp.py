@@ -1,19 +1,22 @@
 """
-This module defines the SoilDataProcessor class which provides helper routines 
+This module defines the SoilDataProcessor class which provides helper routines
 for processing soil data.  It is used to transform coordinates, combine raw
 and processed DataFrames, and extract/convert in-situ test detail data.
 """
-import pandas as pd 
-import warnings 
+
+import pandas as pd
+import warnings
 from typing import Dict, List, Tuple, Union
 from pyproj import Transformer
 from groundhog.general.soilprofile import profile_from_dataframe
 from groundhog.siteinvestigation.insitutests.pcpt_processing import PCPTProcessing
 
+
 class SoilDataProcessor:
     """
     Helper class for processing soil data.
     """
+
     @staticmethod
     def _transform_coord(
         df: pd.DataFrame, longitude: float, latitude: float, target_srid: str
@@ -21,9 +24,9 @@ class SoilDataProcessor:
         """
         Transform coordinates from EPSG:4326 to the target SRID.
 
-        The input DataFrame must contain the keys 'easting' and 'northing'. 
+        The input DataFrame must contain the keys 'easting' and 'northing'.
         The function transforms these to new columns 'easting [m]' and '
-        northing [m]'. In addition, the central point (longitude, latitude) 
+        northing [m]'. In addition, the central point (longitude, latitude)
         is also transformed.
 
         :param df: Input DataFrame with 'easting' and 'northing' columns.
@@ -36,10 +39,8 @@ class SoilDataProcessor:
             - The transformed northing of the central point.
         """
         transformer = Transformer.from_crs(
-            "epsg:4326", 
-            f"epsg:{target_srid}", 
-            always_xy=True
-            )
+            "epsg:4326", f"epsg:{target_srid}", always_xy=True
+        )
         try:
             # Transform the easting and northing columns in the DataFrame
             df["easting [m]"], df["northing [m]"] = transformer.transform(
@@ -54,15 +55,15 @@ class SoilDataProcessor:
     @staticmethod
     def _combine_dfs(dfs: Dict[str, pd.DataFrame]) -> pd.DataFrame:
         """
-        Combine two DataFrames (usually raw and processed data) along the 
+        Combine two DataFrames (usually raw and processed data) along the
         common column "z [m]".
 
-        If the merge fails, the method returns the 'rawdata' DataFrame as a 
+        If the merge fails, the method returns the 'rawdata' DataFrame as a
         fallback.
 
-        :param dfs: Dictionary of DataFrames with keys "rawdata" and 
+        :param dfs: Dictionary of DataFrames with keys "rawdata" and
             "processeddata".
-        :return: The merged DataFrame if successful; otherwise, returns the 
+        :return: The merged DataFrame if successful; otherwise, returns the
             "rawdata" DataFrame.
         """
         try:
@@ -83,23 +84,23 @@ class SoilDataProcessor:
         df: pd.DataFrame, cols: List[str]
     ) -> Dict[str, pd.DataFrame]:
         """
-        Process the in-situ test detail DataFrame by extracting specified 
+        Process the in-situ test detail DataFrame by extracting specified
         columns.
 
-        Each specified column is assumed to contain nested data (such as a 
-        dictionary or list) in its first row. The method attempts to convert 
-        these nested structures into new DataFrames and also applies numerical 
+        Each specified column is assumed to contain nested data (such as a
+        dictionary or list) in its first row. The method attempts to convert
+        these nested structures into new DataFrames and also applies numerical
         conversion where applicable.
 
         :param df: The input DataFrame containing in-situ test details.
         :param cols: A list of column names to extract from the DataFrame.
-        :return: A dictionary mapping each column name (as key) to its 
+        :return: A dictionary mapping each column name (as key) to its
             processed DataFrame.
         """
         processed_dfs = {}
         for col in cols:
             try:
-                # The column data is assumed to be in the first row as a nested 
+                # The column data is assumed to be in the first row as a nested
                 # dict or list.
                 temp_df = pd.DataFrame(df[col].iloc[0]).reset_index(drop=True)
                 processed_dfs[col] = temp_df
@@ -116,11 +117,13 @@ class SoilDataProcessor:
             except Exception as e:
                 warnings.warn(f"Error processing column '{col}': {e}")
                 processed_dfs[col] = pd.DataFrame()
-        
+
         # Attempt to convert values to numeric where applicable.
         for key in processed_dfs:
             try:
-                processed_dfs[key] = processed_dfs[key].apply(lambda x: pd.to_numeric(x, errors="ignore"))
+                processed_dfs[key] = processed_dfs[key].apply(
+                    lambda x: pd.to_numeric(x, errors="ignore")
+                )
             except Exception as err:
                 warnings.warn(f"Numeric conversion warning for {key}: {err}")
         return processed_dfs
@@ -152,9 +155,9 @@ class SoilDataProcessor:
                 "offset [m]"
             ].iloc[0],
         }
-    
+
     @staticmethod
-    def _process_cpt(df_sum: pd.DataFrame, df_raw:pd.DataFrame, **kwargs):
+    def _process_cpt(df_sum: pd.DataFrame, df_raw: pd.DataFrame, **kwargs):
         # TODO: add docstring and type hints
         try:
             cpt = PCPTProcessing(title=df_sum["title"].iloc[0])
@@ -167,7 +170,7 @@ class SoilDataProcessor:
         except Exception as err:
             warnings.warn(f"ERROR: PCPTProcessing object not created - {err}")
             return None
-        
+
     @staticmethod
     def _convert_to_profile(df_sum, df_detail, profile_title, drop_info_cols):
         # TODO: add docstring and type hints
@@ -226,7 +229,7 @@ class SoilDataProcessor:
         except Exception as err:
             warnings.warn(f"Error during loading of soil layers and parameters: {err}")
             return None
-        
+
     @staticmethod
     def _fulldata_processing(
         unitdata, row, selected_depths, func_get_details, depthcol, **kwargs
@@ -247,7 +250,7 @@ class SoilDataProcessor:
         unitdata.loc[:, "projectsite_name"] = row["projectsite_name"]
         unitdata.loc[:, "test_type_name"] = row["test_type_name"]
         return unitdata
-    
+
     @staticmethod
     def _partialdata_processing(unitdata, row, selected_depths, selected_tests):
         # TODO: add docstring and type hints
@@ -300,20 +303,21 @@ class SoilDataProcessor:
                     f"Error loading {row['projectsite_name']}-{row['location_name']}-{row['title']}"
                 )
         return obj
-    
+
 
 class SoilprofileProcessor:
     """
     Helper class for processing required inputs from a given dataframe for
-    soil-strucutre interaction modeling. 
+    soil-strucutre interaction modeling.
 
     The class defines a database of keys (LATERAL_SOIL_KEYS) to be used by the
     lateral() method. For each available option (e.g. "apirp2geo", "pisa"), the
     dictionary contains lists of mandatory and, optionally, optional keys.
-    If any mandatory keys are missing in the provided DataFrame, an error is 
-    raised. Otherwise, the DataFrame is filtered to include the mandatory keys 
+    If any mandatory keys are missing in the provided DataFrame, an error is
+    raised. Otherwise, the DataFrame is filtered to include the mandatory keys
     and any optional keys that are present.
     """
+
     LATERAL_SSI_KEYS: dict[str, dict[str, list[str]]] = {
         "apirp2geo": {
             "mandatory": [
@@ -324,10 +328,10 @@ class SoilprofileProcessor:
                 ("Su", "[kPa]"),
                 ("Phi", "[deg]"),
                 ("epsilon50", "[-]"),
-            ],     
+            ],
             "optional": [
                 ("Dr", "[-]"),
-            ]      
+            ],
         },
         "pisa": {
             "mandatory": [
@@ -339,7 +343,7 @@ class SoilprofileProcessor:
                 ("Su", "[kPa]"),
                 ("Dr", "[-]"),
             ],
-        }
+        },
     }
 
     AXIAL_SSI_KEYS: dict[str, dict[str, list[str]]] = {
@@ -350,7 +354,7 @@ class SoilprofileProcessor:
     }
 
     @classmethod
-    def get_available_options(cls, loading: str='lateral') -> list[str]:
+    def get_available_options(cls, loading: str = "lateral") -> list[str]:
         """
         Return a list of available lateral soil reaction modeling options.
 
@@ -358,15 +362,17 @@ class SoilprofileProcessor:
         :return: List of available options for the specified loading type.
         :raises ValueError: If the provided loading type is not supported.
         """
-        if loading.lower() == 'lateral':
+        if loading.lower() == "lateral":
             return list(cls.LATERAL_SSI_KEYS.keys())
-        elif loading.lower() == 'axial':
+        elif loading.lower() == "axial":
             return list(cls.AXIAL_SSI_KEYS.keys())
         else:
             raise ValueError(f"Unsupported loading type '{loading}'.")
 
     @staticmethod
-    def _validate_keys(data: pd.DataFrame, required_keys: list, mandatory: bool = True) -> list[str]:
+    def _validate_keys(
+        data: pd.DataFrame, required_keys: list, mandatory: bool = True
+    ) -> list[str]:
         """
         Validate that all required keys are present in the data and return a list
         of standardized column names corresponding to these keys.
@@ -395,21 +401,29 @@ class SoilprofileProcessor:
                         break
                 if candidate is None:
                     if mandatory:
-                        raise ValueError(f"Soil input: '{key}' is missing in the soil data.")
+                        raise ValueError(
+                            f"Soil input: '{key}' is missing in the soil data."
+                        )
                     else:
                         continue
                 validated_columns.append(candidate)
             else:
                 # For a string key, check using lower-case comparison.
-                matching_cols = [col for col in data.columns if key.lower() in col.lower()]
+                matching_cols = [
+                    col for col in data.columns if key.lower() in col.lower()
+                ]
                 if len(matching_cols) == 0:
                     if mandatory:
-                        raise ValueError(f"Soil input: '{key}' is missing in the soil data.")
+                        raise ValueError(
+                            f"Soil input: '{key}' is missing in the soil data."
+                        )
                     else:
                         continue
                 elif len(matching_cols) > 1:
-                    raise ValueError(f"'{key}' should be defined by a single column, found: {matching_cols}")
-                
+                    raise ValueError(
+                        f"'{key}' should be defined by a single column, found: {matching_cols}"
+                    )
+
                 original = keys_lower[key.lower()]
                 if original != key:
                     data.rename(columns={original: key}, inplace=True)
@@ -417,25 +431,31 @@ class SoilprofileProcessor:
         return validated_columns
 
     @classmethod
-    def lateral(cls, df: pd.DataFrame, option: str, mudline: Union[float, None]=None, pw: float=1.025) -> pd.DataFrame:
-        """Process soil profile data to ensure that the required inputs for lateral 
+    def lateral(
+        cls,
+        df: pd.DataFrame,
+        option: str,
+        mudline: Union[float, None] = None,
+        pw: float = 1.025,
+    ) -> pd.DataFrame:
+        """Process soil profile data to ensure that the required inputs for lateral
         soil reaction modeling are present based on the specified option.
 
-        The method uses a pre-defined set of keys stored in the LATERAL_SSI_KEYS 
+        The method uses a pre-defined set of keys stored in the LATERAL_SSI_KEYS
         dictionary. Each option defines two categories:
         - mandatory: columns that must be present in the DataFrame.
         - optional: columns that will be included if they are present.
-        
+
         Available options: {"apirp2geo", "pisa"}.
 
-        If any mandatory key defined for the selected option is missing from 
-        the DataFrame, a KeyError will be raised. The returned DataFrame will 
-        include the mandatory keys and any optional keys that exist in the 
+        If any mandatory key defined for the selected option is missing from
+        the DataFrame, a KeyError will be raised. The returned DataFrame will
+        include the mandatory keys and any optional keys that exist in the
         input.
 
         :param df: DataFrame containing the soil profile data.
         :param option: String specifying the option to model the lateral soil
-            reaction. The option must be one of the available options (e.g., 
+            reaction. The option must be one of the available options (e.g.,
             "apirp2geo" or "pisa").
         :param mudline: float, sea bed level in mLAT coordinates (default=None).
         :param pw: float, sea water density (default=1.025 t/m3)
@@ -443,17 +463,21 @@ class SoilprofileProcessor:
         :raises NotImplementedError: If the provided option is not supported.
         :raises KeyError: If one or more mandatory columns are missing.
         """
-        available_options = cls.get_available_options(loading='lateral')
+        available_options = cls.get_available_options(loading="lateral")
         if option not in available_options:
             raise NotImplementedError(f"Option '{option}' not supported.")
 
         key_db = cls.LATERAL_SSI_KEYS[option]
         # Mandatory keys for the selected option.
         _keys = key_db.get("mandatory", [])
-        mandatory_keys = cls._validate_keys(data=df, required_keys=_keys, mandatory=True)
+        mandatory_keys = cls._validate_keys(
+            data=df, required_keys=_keys, mandatory=True
+        )
         # Include optional keys that are present.
         _keys = key_db.get("optional", [])
-        optional_keys = cls._validate_keys(data=df, required_keys=_keys, mandatory=False) 
+        optional_keys = cls._validate_keys(
+            data=df, required_keys=_keys, mandatory=False
+        )
         soilprofile = df[mandatory_keys + optional_keys].copy()
         # Add additional required info
         soilprofile = cls._add_soilinfo(soilprofile, pw, mudline)
@@ -461,7 +485,9 @@ class SoilprofileProcessor:
         return soilprofile
 
     @staticmethod
-    def _add_soilinfo(df: pd.DataFrame, pw: float, mudline: Union[float, None]) -> pd.DataFrame:
+    def _add_soilinfo(
+        df: pd.DataFrame, pw: float, mudline: Union[float, None]
+    ) -> pd.DataFrame:
         """
         Add additional soil information to the soil profile DataFrame. The
         method calculates the submerged unit weight of the soil and, if provided,
@@ -475,14 +501,13 @@ class SoilprofileProcessor:
         # Add submerged unit weight
         acc_gravity = 9.81  # acceleration due to gravity (m/s2)
         for col in df.columns:
-            if 'Total unit weight' in col:
-                new_col = col.replace('Total unit weight', 'Submerged unit weight')
+            if "Total unit weight" in col:
+                new_col = col.replace("Total unit weight", "Submerged unit weight")
                 df[new_col] = df[col] - pw * acc_gravity
 
         # Add mudline depth in mLAT coordinates
         if mudline:
-            df['Elevation from [mLAT]'] = mudline - df['Depth from [m]']
-            df['Elevation to [mLAT]'] = mudline - df['Depth to [m]']
-        
+            df["Elevation from [mLAT]"] = mudline - df["Depth from [m]"]
+            df["Elevation to [mLAT]"] = mudline - df["Depth to [m]"]
 
         return df

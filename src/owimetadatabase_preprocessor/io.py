@@ -29,7 +29,7 @@ class API:
     ) -> None:
         """Create an instance of the API class with the required parameters.
 
-        :param api_root: Optional: root URL of the API endpoint, the default 
+        :param api_root: Optional: root URL of the API endpoint, the default
             working database url is provided.
         :param token: Optional: token to access the API.
         :param uname: Optional: username to access the API.
@@ -128,8 +128,7 @@ class API:
         """
         if resp.status_code != 200:
             raise APIConnectionError(
-                message=f"Error {resp.status_code}.\n{resp.reason}",
-                response=resp
+                message=f"Error {resp.status_code}.\n{resp.reason}", response=resp
             )
 
     @staticmethod
@@ -142,7 +141,9 @@ class API:
         try:
             data = json.loads(response.text)
         except Exception as err:
-            raise DataProcessingError("Failed to decode JSON from API response") from err
+            raise DataProcessingError(
+                "Failed to decode JSON from API response"
+            ) from err
         return pd.DataFrame(data)
 
     @staticmethod
@@ -187,7 +188,7 @@ class API:
         Validate the data extracted from the database.
 
         :param df: Dataframe of the output data.
-        :param data_type: Type of the data we want to request (according to 
+        :param data_type: Type of the data we want to request (according to
             database model).
         :return: Dataframe with corrected data.
         """
@@ -227,11 +228,11 @@ class API:
     ) -> Tuple[pd.DataFrame, Dict[str, Union[bool, np.int64, None]]]:
         """Process output data according to specified request parameters.
 
-        :param url_data_type: Type of the data we want to request (according to 
+        :param url_data_type: Type of the data we want to request (according to
             database model).
         :param url_params: Parameters to send with the request to the database.
         :param output_type: Expected type (amount) of the data extracted.
-        :return: A tuple of dataframe with the requested data and additional 
+        :return: A tuple of dataframe with the requested data and additional
             data from postprocessing.
         """
         resp = self.send_request(url_data_type, url_params)

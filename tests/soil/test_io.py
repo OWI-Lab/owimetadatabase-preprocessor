@@ -1,13 +1,13 @@
-from typing import Any, Dict, Union
+from typing import Dict, Union
 from unittest import mock
 
 import pandas as pd
 import pandas.testing as pd_testing
 import pytest
-import requests
 
 from owimetadatabase_preprocessor.soil.io import SoilAPI
 from owimetadatabase_preprocessor.soil.processing.soil_pp import SoilDataProcessor
+
 
 def test_init(api_root: str, header: Dict[str, str]) -> None:
     """Test initialization of SoilAPI class."""
@@ -24,6 +24,7 @@ def test_init(api_root: str, header: Dict[str, str]) -> None:
     assert api_test.auth == expected["auth"]
     assert api_test.uname == expected["uname"]
     assert api_test.password == expected["password"]
+
 
 def test_get_proximity_entities_2d(
     api_root: str,
@@ -43,6 +44,7 @@ def test_get_proximity_entities_2d(
     print(df["col_4"], df["col_6"])
     for col, dtype_ in zip(df.columns, [int, float, bool, object, dict, object]):
         assert df[col].dtype == dtype_
+
 
 def test_get_proximity_entities_2d_wrong_data(
     api_soil: SoilAPI,
@@ -91,6 +93,7 @@ def test_search_any_entity_exception(
             radius_max=0.5,
         )
 
+
 @pytest.mark.parametrize(
     "df_gathered_inp, dict_gathered_true",
     [("regular", "regular"), ("single", "single")],
@@ -107,6 +110,7 @@ def test_gather_data_entity(
         else:
             pd_testing.assert_frame_equal(dict_gathered[key], dict_gathered_true[key])
 
+
 def test_get_closest_entity_2d(
     api_soil: SoilAPI,
     dict_gathered_final_true: Dict[str, Union[str, float]],
@@ -122,6 +126,7 @@ def test_get_closest_entity_2d(
             assert dict_[key] == dict_true[key]
         else:
             pd_testing.assert_frame_equal(dict_[key], dict_true[key])
+
 
 # def test_get_closest_entity_3d(
 #     api_soil: SoilAPI,

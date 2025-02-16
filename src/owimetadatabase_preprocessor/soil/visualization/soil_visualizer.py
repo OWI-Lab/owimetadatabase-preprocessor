@@ -1,8 +1,9 @@
 """
-This module receive processed data (or even raw data if needed) from the 
-API client and data processor, build the Plotly figures, and either return 
+This module receive processed data (or even raw data if needed) from the
+API client and data processor, build the Plotly figures, and either return
 or show them.
 """
+
 import pandas as pd
 import plotly.graph_objs as go
 import plotly.express as px
@@ -18,7 +19,7 @@ from owimetadatabase_preprocessor.soil.processing.soil_pp import SoilDataProcess
 
 class SoilPlot:
     """Class to visualize soil data using Plotly."""
-    
+
     def __init__(self, soil_api: SoilAPI = None):
         """Initialize with optional SoilAPI instance."""
         self.soil_api = soil_api
@@ -59,7 +60,9 @@ class SoilPlot:
         """
         api = soil_api or self.soil_api
         if api is None:
-            raise ValueError("SoilAPI instance must be provided either during initialization or as parameter")
+            raise ValueError(
+                "SoilAPI instance must be provided either during initialization or as parameter"
+            )
 
         selected_profiles = soilprofiles_df
         soilprofiles = SoilDataProcessor._objects_to_list(
@@ -102,29 +105,29 @@ class SoilPlot:
     ) -> Dict[str, go.Figure]:
         """Creates a combined fence diagram with soil profile and CPT data.
 
-        :param profiles: List with georeferenced soil profiles 
+        :param profiles: List with georeferenced soil profiles
             (run plot_soilprofile_fence first)
-        :param cpts: List with georeference CPTs 
+        :param cpts: List with georeference CPTs
             (run plot_cpt_fence first)
         :param startpoint: Name of the CPT location for the start point
         :param endpoint: Name of the CPT location for the end point
         :param band: Thickness of the band (in m, default=1000m)
-        :param scale_factor: Width of the CPT axis in the fence diagram 
+        :param scale_factor: Width of the CPT axis in the fence diagram
             (default=10)
-        :param extend_profile: Boolean determining whether the profile needs 
+        :param extend_profile: Boolean determining whether the profile needs
             to be extended (default=True)
-        :param show_annotations: Boolean determining whether annotations are 
+        :param show_annotations: Boolean determining whether annotations are
             shown (default=True)
-        :param general_layout: Dictionary with general layout options 
+        :param general_layout: Dictionary with general layout options
             (default = dict())
         :param fillcolordict: Dictionary with colors for soil types
         :param logwidth: Width of the log in the fence diagram
         :param opacity: Opacity of the soil profile logs
-        :param uniformcolor: If a valid color is provided (e.g. 'black'), it 
+        :param uniformcolor: If a valid color is provided (e.g. 'black'), it
             is used for all CPT traces
         :return: Dictionary with the following keys:
 
-            - 'diagram': Plotly figure with the fence diagram for CPTs and 
+            - 'diagram': Plotly figure with the fence diagram for CPTs and
                 soil profiles
         """
         combined_fence_fig_1 = plot_combined_longitudinal_profile(
@@ -146,22 +149,26 @@ class SoilPlot:
         )
         return {"diagram": combined_fence_fig_1}
 
-    def plot_testlocations(self, return_fig: bool = False, soil_api: SoilAPI = None, **kwargs) -> None:
+    def plot_testlocations(
+        self, return_fig: bool = False, soil_api: SoilAPI = None, **kwargs
+    ) -> None:
         """
         Retrieves soil test locations and generates a Plotly plot to show them.
 
-        :param return_fig: Boolean indicating whether the Plotly figure object 
+        :param return_fig: Boolean indicating whether the Plotly figure object
             needs to be returned (default is False which simply shows the plot)
         :param soil_api: SoilAPI instance to use for data retrieval (overrides instance attribute)
-        :param kwargs: Keyword arguments for the search 
+        :param kwargs: Keyword arguments for the search
             (see ``get_testlocations``)
-        :return: Plotly figure object with selected asset locations plotted 
+        :return: Plotly figure object with selected asset locations plotted
             on OpenStreetMap tiles (if requested)
         """
         api = soil_api or self.soil_api
         if api is None:
-            raise ValueError("SoilAPI instance must be provided either during initialization or as parameter")
-            
+            raise ValueError(
+                "SoilAPI instance must be provided either during initialization or as parameter"
+            )
+
         testlocations = api.get_testlocations(**kwargs)["data"]
         fig = px.scatter_mapbox(
             testlocations,
@@ -215,10 +222,14 @@ class SoilPlot:
         """
         api = soil_api or self.soil_api
         if api is None:
-            raise ValueError("SoilAPI instance must be provided either during initialization or as parameter")
+            raise ValueError(
+                "SoilAPI instance must be provided either during initialization or as parameter"
+            )
 
         selected_cpts = cpt_df
-        cpts = SoilDataProcessor._objects_to_list(selected_cpts, api.get_cpttest_detail, "cpt")
+        cpts = SoilDataProcessor._objects_to_list(
+            selected_cpts, api.get_cpttest_detail, "cpt"
+        )
         cpt_fence_fig_1 = plot_longitudinal_profile(
             cpts=cpts,
             latlon=True,
