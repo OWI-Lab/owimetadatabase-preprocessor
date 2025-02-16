@@ -318,7 +318,7 @@ class SoilprofileProcessor:
     and any optional keys that are present.
     """
 
-    LATERAL_SSI_KEYS: dict[str, dict[str, list[str]]] = {
+    LATERAL_SSI_KEYS: Dict[str, Dict[str, List[Union[str, Tuple[str, str]]]]] = {
         "apirp2geo": {
             "mandatory": [
                 "Depth from [m]",
@@ -346,7 +346,7 @@ class SoilprofileProcessor:
         },
     }
 
-    AXIAL_SSI_KEYS: dict[str, dict[str, list[str]]] = {
+    AXIAL_SSI_KEYS: Dict[str, Dict[str, List[Union[str, Tuple[str, str]]]]] = {
         "cpt": {
             "mandatory": [],
             "optional": [],
