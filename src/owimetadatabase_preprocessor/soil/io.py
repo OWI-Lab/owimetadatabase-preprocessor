@@ -40,18 +40,15 @@ class SoilAPI(API):
     def get_proximity_entities_2d(
         self, api_url: str, latitude: float, longitude: float, radius: float, **kwargs
     ) -> Dict[str, Union[pd.DataFrame, bool, None]]:
-        """
-        Find the entities in a certain radius around a point in 2D 
-        (cylindrical search area).
+        """Find the entities in a certain radius around a point in 2D (cylindrical search area).
 
         :param latitude: Latitude of the central point in decimal format
         :param longitude: Longitude of the central point in decimal format
         :param radius: Initial search radius around the central point in km
         :param kwargs: Optional keyword arguments for the search
-        :return:  Dictionary with the following keys:
+        :return: Dictionary with the following keys:
 
-            - "data": Pandas dataframe with the data according to the specified 
-            search criteria
+            - "data": Pandas dataframe with the data according to the specified search criteria
             - "exists": Boolean indicating whether matching records are found
         """
         geosearch_params = dict(latitude=latitude, longitude=longitude, offset=radius)
