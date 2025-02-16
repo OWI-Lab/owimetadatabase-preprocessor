@@ -42,8 +42,11 @@ autodoc_member_order = 'bysource'
 html_logo = "_static/LogoOWI.png"
 html_theme_options = {
     'logo_only': True,
-    'display_version': True,
     'style_nav_header_background': '#2980B9',  # Header background color
 }
+
+# To display version information
+html_title = f"{project} {version}"
+html_short_title = project
 
 html_static_path = ["_static"]

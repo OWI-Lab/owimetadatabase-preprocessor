@@ -418,14 +418,13 @@ class SoilprofileProcessor:
 
     @classmethod
     def lateral(cls, df: pd.DataFrame, option: str, mudline: Union[float, None]=None, pw: float=1.025) -> pd.DataFrame:
-        """
-        Process soil profile data to ensure that the required inputs for lateral 
+        """Process soil profile data to ensure that the required inputs for lateral 
         soil reaction modeling are present based on the specified option.
 
         The method uses a pre-defined set of keys stored in the LATERAL_SSI_KEYS 
         dictionary. Each option defines two categories:
-          - mandatory: columns that must be present in the DataFrame.
-          - optional: columns that will be included if they are present.
+        - mandatory: columns that must be present in the DataFrame.
+        - optional: columns that will be included if they are present.
         
         Available options: {"apirp2geo", "pisa"}.
 
