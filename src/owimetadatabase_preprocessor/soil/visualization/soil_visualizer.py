@@ -11,6 +11,7 @@ from groundhog.siteinvestigation.insitutests.pcpt_processing import (
     plot_combined_longitudinal_profile,
     plot_longitudinal_profile,
 )
+from groundhog.general.soilprofile import plot_fence_diagram
 from owimetadatabase_preprocessor.soil.io import SoilAPI
 from owimetadatabase_preprocessor.soil.processing.soil_pp import SoilDataProcessor
 
@@ -22,9 +23,64 @@ class SoilPlot:
         """Initialize with optional SoilAPI instance."""
         self.soil_api = soil_api
 
-    @classmethod
+    def plot_soilprofile_fence(
+        self,
+        soilprofiles_df: pd.DataFrame,
+        start: str,
+        end: str,
+        soil_api: SoilAPI = None,
+        plotmap: bool = False,
+        fillcolordict: Dict[str, str] = {
+            "SAND": "yellow",
+            "CLAY": "brown",
+            "SAND/CLAY": "orange",
+        },
+        logwidth: float = 100.0,
+        show_annotations: bool = True,
+        general_layout: Dict[Any, Any] = dict(),
+        **kwargs,
+    ) -> Dict[str, Union[List[pd.DataFrame], go.Figure]]:
+        """Creates a fence diagram for soil profiles.
+
+        :param soilprofiles_df: Dataframe with summary data for the selected soil profiles
+        :param start: Name of the soil profile at the start
+        :param end: Name of the soil profile at the end
+        :param soil_api: SoilAPI instance to use for data retrieval (overrides instance attribute)
+        :param plotmap: Boolean determining whether a map with the locations is shown (default=False)
+        :param fillcolordict: Dictionary used for mapping soil types to colors
+        :param logwidth: Width of the logs in the fence diagram (default=100)
+        :param show_annotations: Boolean determining whether annotations are shown (default=True)
+        :param general_layout: Dictionary with general layout options (default = dict())
+        :param kwargs: Keyword arguments for the get_soilprofiles method
+        :return: Dictionary with the following keys:
+            - 'profiles': List of SoilProfile objects
+            - 'diagram': Plotly figure with the fence diagram
+        :raises ValueError: If no SoilAPI instance is provided
+        """
+        api = soil_api or self.soil_api
+        if api is None:
+            raise ValueError("SoilAPI instance must be provided either during initialization or as parameter")
+
+        selected_profiles = soilprofiles_df
+        soilprofiles = SoilDataProcessor._objects_to_list(
+            selected_profiles, api.get_soilprofile_detail, "soilprofile"
+        )
+        fence_diagram_1 = plot_fence_diagram(
+            profiles=soilprofiles,
+            start=start,
+            end=end,
+            plotmap=plotmap,
+            latlon=True,
+            fillcolordict=fillcolordict,
+            logwidth=logwidth,
+            show_annotations=show_annotations,
+            general_layout=general_layout,
+            **kwargs,
+        )
+        return {"profiles": soilprofiles, "diagram": fence_diagram_1}
+
+    @staticmethod
     def plot_combined_fence(
-        cls,
         profiles: List[pd.DataFrame],
         cpts: List[pd.DataFrame],
         startpoint: str,
