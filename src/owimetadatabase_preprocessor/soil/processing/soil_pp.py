@@ -343,7 +343,7 @@ class SoilprofileProcessor:
                 ("Su", "[kPa]"),
                 ("Dr", "[-]"),
             ],
-            "optional": [], 
+            "optional": [],
         },
     }
 
