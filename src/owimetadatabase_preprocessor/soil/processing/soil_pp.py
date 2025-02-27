@@ -394,20 +394,18 @@ class SoilprofileProcessor:
 
         for key in required_keys:
             if isinstance(key, tuple):
-                # For tuple keys, find the first column that contains all tuple elements.
-                candidate = None
+                candidate = []
                 for col in data.columns:
                     if all(elem.lower() in col.lower() for elem in key):
-                        candidate = col
-                        break
-                if candidate is None:
+                        candidate.append(col)
+                if candidate == []:
                     if mandatory:
                         raise ValueError(
                             f"Soil input: '{key}' is missing in the soil data."
                         )
                     else:
                         continue
-                validated_columns.append(candidate)
+                validated_columns.extend(candidate)
             else:
                 # For a string key, check using lower-case comparison.
                 matching_cols = [
