@@ -21,9 +21,9 @@ __all__ = [
     # Core API classes
     "SoilAPI",
     "SoilDataProcessor",
-    "SoilprofileProcessor", 
+    "SoilprofileProcessor",
     "SoilPlot",
-    
+
     # Subpackages
     "io",
     "processing",
