@@ -5,8 +5,8 @@ import pandas as pd
 import pandas.testing as pd_testing
 import pytest
 
-from owimetadatabase_preprocessor.soil.io import SoilAPI
-from owimetadatabase_preprocessor.soil.processing.soil_pp import SoilDataProcessor
+from owimetadatabase_preprocessor.soil import SoilAPI
+from owimetadatabase_preprocessor.soil import SoilDataProcessor
 
 
 def test_init(api_root: str, header: Dict[str, str]) -> None:

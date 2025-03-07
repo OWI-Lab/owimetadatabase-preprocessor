@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 import requests
 
-from owimetadatabase_preprocessor.soil.io import SoilAPI
+from owimetadatabase_preprocessor.soil import SoilAPI
 
 
 @pytest.fixture(scope="function")

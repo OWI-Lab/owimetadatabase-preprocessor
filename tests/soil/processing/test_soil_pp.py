@@ -3,7 +3,7 @@ import json
 import pandas as pd
 import pytest
 
-from owimetadatabase_preprocessor.soil.processing.soil_pp import SoilprofileProcessor
+from owimetadatabase_preprocessor.soil import SoilprofileProcessor
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 

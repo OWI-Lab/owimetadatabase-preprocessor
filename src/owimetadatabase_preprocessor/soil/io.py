@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from typing import Dict, Union, Callable
 from owimetadatabase_preprocessor.io import API
-from owimetadatabase_preprocessor.soil.processing.soil_pp import SoilDataProcessor
+from owimetadatabase_preprocessor.soil.processing import SoilDataProcessor
 
 
 class SoilAPI(API):
