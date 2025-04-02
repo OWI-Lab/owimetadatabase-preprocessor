@@ -314,8 +314,8 @@ class OWT(object):
             # Lumped masses have 'None' height whereas distributed masses present not 'None' values
             df["height"] = pd.to_numeric(df["height"])
             df = df[df["height"].isnull()]
-            bottom = self.tower_base - self.tp_sub_assemblies.iloc[0]["z"] * 1e-3
-            df["Z [mLAT]"] = bottom + df["z"] * 1e-3
+            bottom = self.sub_assemblies["TP"].position.z * 1e-3  # m
+            df["Z [mLAT]"] = bottom + df["z"] * 1e-3  # m
         elif idx == "MP":
             if self.mp_sub_assemblies is None:
                 raise ValueError("Monopile subassembly data not found.")
