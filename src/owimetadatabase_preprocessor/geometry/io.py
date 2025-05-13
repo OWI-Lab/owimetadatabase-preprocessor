@@ -211,6 +211,69 @@ class GeometryAPI(API):
             )
         return OWTs(turbines, owts)
 
+
+    def get_monopile_pyles(self, projectsite, assetlocation, cutoff_point=np.nan):
+        """
+        Returns a dataframe with the monopile geometry with the mudline as reference
+
+        :param water_depth: Water depth in mLAT
+        :param projectsite: Name of the project site
+        :param assetlocation: Name of the wind turbine location
+        :param cutoff_point: Elevation of the load application point in (mLAT) above the mudline
+        :return:
+        """
+        # Retrieve the monopile cans
+        bbs = self.get_buildingblocks(
+            projectsite=projectsite,
+            assetlocation=assetlocation,
+            subassembly_type='MP'
+        )
+        # Retrieve the monopile subassembly
+        sas = self.get_subassemblies(
+            projectsite=projectsite,
+            assetlocation=assetlocation,
+            subassembly_type='MP'
+        )
+        # Water depth
+        location_data = self.loc_api.get_assetlocation_detail(
+                assetlocation=assetlocation,
+                projectsite=projectsite
+        )
+        if location_data["exists"]:
+            location = location_data["data"]
+            water_depth = location["elevation"].values[0]
+        else:
+            raise ValueError(f"No location found for turbine {assetlocation} and hence no water depth can be retrieved.")
+
+        # Calculate the pile penetration
+        toe_depth_lat = sas['data']['z_position'].iloc[0]
+        penetration = -((1e-3 * toe_depth_lat) - water_depth)
+
+        # Create the pile for subsequent response analysis
+        pile = pd.DataFrame()
+
+        for i, row in bbs['data'].iterrows():
+            if i != 0:
+                pile.loc[i, "Depth to [m]"] = penetration - 1e-3 * bbs['data'].loc[i-1, 'z_position']
+                pile.loc[i, "Depth from [m]"] = penetration - 1e-3 * row['z_position']
+                pile.loc[i, "Pile material"] = row["material_name"]
+                pile.loc[i, "Pile material submerged unit weight [kN/m3]"] = 1e-2 * row["density"] - 10
+                pile.loc[i, "Wall thickness [mm]"] = row['wall_thickness']
+                pile.loc[i, "Diameter [m]"] = 1e-3 * 0.5 * (row['bottom_outer_diameter'] + row['top_outer_diameter'])
+                pile.loc[i, "Youngs modulus [GPa]"] = row['youngs_modulus']
+                pile.loc[i, "Poissons ratio [-]"] = row['poissons_ratio']
+
+        pile.sort_values('Depth from [m]', inplace=True)
+        pile.reset_index(drop=True, inplace=True)
+
+        # Cut off at the mudline
+        if not np.math.isnan(cutoff_point):
+            pile = pile.loc[pile["Depth to [m]"] > cutoff_point].reset_index(drop=True)
+            pile.loc[0, 'Depth from [m]'] = cutoff_point
+
+        return pile
+
+
     def plot_turbines(
         self,
         turbines: Union[List[str], str],
