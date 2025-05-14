@@ -1,6 +1,5 @@
 """Module defining API to retrieve/plot specific fatigue data from the owimetadatabase."""
 
-from time import sleep
 from typing import Dict, List, Union
 
 import numpy as np
@@ -276,7 +275,6 @@ class FatigueAPI(API):
         }
         # * Loop through assets
         for asset in pbar:
-            sleep(0.25)
             pbar.set_description("Processing %s" % asset)
             # - generate frame
             frame = self._add_data_to_fatiguesubassembly(
@@ -381,7 +379,6 @@ class FatigueAPI(API):
         fig_dict["layout"]["autosize"] = True
         # * Loop through assets
         for nr, asset in enumerate(pbar):
-            sleep(0.25)
             pbar.set_description("Processing %s" % asset)
             # - generate frame
             fig_dict["data"].extend(
