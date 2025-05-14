@@ -95,7 +95,7 @@ def test_gather_data_entity(
     df_gathered_inp: pd.DataFrame,
     dict_gathered_true: Dict[str, Union[str, float]],
 ) -> None:
-    dict_gathered = SoilDataProcessor._gather_data_entity(df_gathered_inp)
+    dict_gathered = SoilDataProcessor.gather_data_entity(df_gathered_inp)
     for key in dict_gathered:
         if key != "data":
             assert dict_gathered[key] == dict_gathered_true[key]

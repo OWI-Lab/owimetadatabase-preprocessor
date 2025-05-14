@@ -62,7 +62,7 @@ class SoilPlot:
             - 'diagram': Plotly figure with the fence diagram
         :raises ValueError: If no SoilAPI instance is provided
         """
-        soilprofiles = SoilDataProcessor._objects_to_list(
+        soilprofiles = SoilDataProcessor.objects_to_list(
             soilprofiles_df, self.soil_api.get_soilprofile_detail, "soilprofile"
         )
         fence_diagram_1 = plot_fence_diagram(
@@ -209,7 +209,7 @@ class SoilPlot:
         :raises ValueError: If no SoilAPI instance is provided
         """
         selected_cpts = cpt_df
-        cpts = SoilDataProcessor._objects_to_list(
+        cpts = SoilDataProcessor.objects_to_list(
             selected_cpts, self.soil_api.get_cpttest_detail, "cpt"
         )
         cpt_fence_fig_1 = plot_longitudinal_profile(

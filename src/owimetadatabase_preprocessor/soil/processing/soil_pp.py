@@ -19,7 +19,7 @@ class SoilDataProcessor:
     """
 
     @staticmethod
-    def _transform_coord(
+    def transform_coord(
         df: pd.DataFrame, longitude: float, latitude: float, target_srid: str
     ) -> Tuple[pd.DataFrame, float, float]:
         """
@@ -54,7 +54,7 @@ class SoilDataProcessor:
         return df, point_east, point_north
 
     @staticmethod
-    def _combine_dfs(dfs: Dict[str, pd.DataFrame]) -> pd.DataFrame:
+    def combine_dfs(dfs: Dict[str, pd.DataFrame]) -> pd.DataFrame:
         """
         Combine two DataFrames (usually raw and processed data) along the
         common column "z [m]".
@@ -81,7 +81,7 @@ class SoilDataProcessor:
             return dfs.get("rawdata", pd.DataFrame())
 
     @staticmethod
-    def _process_insitutest_dfs(
+    def process_insitutest_dfs(
         df: pd.DataFrame, cols: List[str]
     ) -> Dict[str, pd.DataFrame]:
         """
@@ -130,7 +130,7 @@ class SoilDataProcessor:
         return processed_dfs
 
     @staticmethod
-    def _gather_data_entity(
+    def gather_data_entity(
         df: pd.DataFrame,
     ) -> Dict[str, Union[pd.DataFrame, int, str, float, None]]:
         """Gather the data for the closest entity to a certain point in 2D.
@@ -158,7 +158,7 @@ class SoilDataProcessor:
         }
 
     @staticmethod
-    def _process_cpt(df_sum: pd.DataFrame, df_raw: pd.DataFrame, **kwargs):
+    def process_cpt(df_sum: pd.DataFrame, df_raw: pd.DataFrame, **kwargs):
         # TODO: add docstring and type hints
         try:
             cpt = PCPTProcessing(title=df_sum["title"].iloc[0])
@@ -173,7 +173,7 @@ class SoilDataProcessor:
             return None
 
     @staticmethod
-    def _convert_to_profile(df_sum, df_detail, profile_title, drop_info_cols):
+    def convert_to_profile(df_sum, df_detail, profile_title, drop_info_cols):
         # TODO: add docstring and type hints
         try:
             soilprofile_df = (
@@ -232,7 +232,7 @@ class SoilDataProcessor:
             return None
 
     @staticmethod
-    def _fulldata_processing(
+    def fulldata_processing(
         unitdata, row, selected_depths, func_get_details, depthcol, **kwargs
     ):
         # TODO: add docstring and type hints
@@ -253,7 +253,7 @@ class SoilDataProcessor:
         return unitdata
 
     @staticmethod
-    def _partialdata_processing(unitdata, row, selected_depths, selected_tests):
+    def partialdata_processing(unitdata, row, selected_depths, selected_tests):
         # TODO: add docstring and type hints
         _depthranges = selected_depths[
             selected_depths["location_name"] == row["location_name"]
@@ -270,7 +270,7 @@ class SoilDataProcessor:
         unitdata.reset_index(drop=True, inplace=True)
 
     @staticmethod
-    def _objects_to_list(selected_obj, func_get_detail, data_type):
+    def objects_to_list(selected_obj, func_get_detail, data_type):
         # TODO: add docstring and type hints
         obj = []
         for _, row in selected_obj.iterrows():

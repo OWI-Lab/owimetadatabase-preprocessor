@@ -127,14 +127,14 @@ class SoilAPI(API):
         geosearch_params = dict(latitude=latitude, longitude=longitude)
         url_params = {**geosearch_params, **kwargs}
         df = self._search_any_entity(api_url, radius_init, url_params)
-        df, point_east, point_north = SoilDataProcessor._transform_coord(
+        df, point_east, point_north = SoilDataProcessor.transform_coord(
             df, longitude, latitude, target_srid
         )
         df["offset [m]"] = np.sqrt(
             (df["easting [m]"] - point_east) ** 2
             + (df["northing [m]"] - point_north) ** 2
         )
-        return SoilDataProcessor._gather_data_entity(df)
+        return SoilDataProcessor.gather_data_entity(df)
 
     def get_closest_entity_3d(
         self,
@@ -173,7 +173,7 @@ class SoilAPI(API):
         geosearch_params = dict(latitude=latitude, longitude=longitude)
         url_params = {**geosearch_params, **kwargs}
         df = self._search_any_entity(api_url, radius_init, url_params)
-        df, point_east, point_north = SoilDataProcessor._transform_coord(
+        df, point_east, point_north = SoilDataProcessor.transform_coord(
             df, longitude, latitude, target_srid
         )
         if not sampletest:
@@ -183,7 +183,7 @@ class SoilAPI(API):
             + (df["northing [m]"] - point_north) ** 2
             + (df["depth"] - depth) ** 2
         )
-        return SoilDataProcessor._gather_data_entity(df)
+        return SoilDataProcessor.gather_data_entity(df)
 
     def get_surveycampaigns(
         self, projectsite: Union[str, None] = None, **kwargs
@@ -669,9 +669,9 @@ class SoilAPI(API):
             url_data_type, url_params, output_type
         )
         cols = ["rawdata", "processeddata", "conditions"]
-        dfs = SoilDataProcessor._process_insitutest_dfs(df_detail, cols)
+        dfs = SoilDataProcessor.process_insitutest_dfs(df_detail, cols)
         if combine:
-            df_raw = SoilDataProcessor._combine_dfs(dfs)
+            df_raw = SoilDataProcessor.combine_dfs(dfs)
         else:
             df_raw = dfs["rawdata"]
         return {
@@ -738,9 +738,9 @@ class SoilAPI(API):
             url_data_type, url_params, output_type
         )
         cols = ["rawdata", "processeddata", "conditions"]
-        dfs = SoilDataProcessor._process_insitutest_dfs(df_detail, cols)
+        dfs = SoilDataProcessor.process_insitutest_dfs(df_detail, cols)
         if combine:
-            df_raw = SoilDataProcessor._combine_dfs(dfs)
+            df_raw = SoilDataProcessor.combine_dfs(dfs)
         else:
             df_raw = dfs["rawdata"]
         dict_ = {
@@ -753,7 +753,7 @@ class SoilAPI(API):
             "exists": df_add_sum["existance"],
         }
         if cpt:
-            cpt_ = SoilDataProcessor._process_cpt(df_sum, df_raw, **kwargs)
+            cpt_ = SoilDataProcessor.process_cpt(df_sum, df_raw, **kwargs)
             dict_["cpt"] = cpt_
             return dict_
         return dict_
@@ -922,7 +922,7 @@ class SoilAPI(API):
             "exists": df_add_sum["existance"],
         }
         if convert_to_profile:
-            dsp = SoilDataProcessor._convert_to_profile(
+            dsp = SoilDataProcessor.convert_to_profile(
                 df_sum, df_detail, profile_title, drop_info_cols
             )
             dict_["soilprofile"] = dsp
@@ -1188,7 +1188,7 @@ class SoilAPI(API):
             url_data_type, url_params, output_type
         )
         cols = ["rawdata", "processeddata", "conditions"]
-        dfs = SoilDataProcessor._process_insitutest_dfs(df_detail, cols)
+        dfs = SoilDataProcessor.process_insitutest_dfs(df_detail, cols)
         return {
             "id": df_add_detail["id"],
             "summary": df_sum,
@@ -1595,7 +1595,7 @@ class SoilAPI(API):
             url_data_type, url_params, output_type
         )
         cols = ["rawdata", "processeddata", "conditions"]
-        dfs = SoilDataProcessor._process_insitutest_dfs(df_detail, cols)
+        dfs = SoilDataProcessor.process_insitutest_dfs(df_detail, cols)
         return {
             "id": df_add_detail["id"],
             "summary": df_sum,
@@ -1790,7 +1790,7 @@ class SoilAPI(API):
             unitdata = pd.DataFrame()
             if row["location_name"] in selected_depths["location_name"].unique():
                 if full:
-                    unitdata = SoilDataProcessor._fulldata_processing(
+                    unitdata = SoilDataProcessor.fulldata_processing(
                         unitdata,
                         row,
                         selected_depths,
@@ -1799,7 +1799,7 @@ class SoilAPI(API):
                         **kwargs,
                     )
                 else:
-                    unitdata = SoilDataProcessor._partialdata_processing(
+                    unitdata = SoilDataProcessor.partialdata_processing(
                         unitdata, row, selected_depths, selected_tests
                     )
             else:
