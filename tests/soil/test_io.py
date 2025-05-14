@@ -1,24 +1,17 @@
-from typing import Dict, Union
+from typing import Any, Dict, Union
 from unittest import mock
 
 import pandas as pd
 import pandas.testing as pd_testing
 import pytest
 
-from owimetadatabase_preprocessor.soil import SoilAPI
-from owimetadatabase_preprocessor.soil import SoilDataProcessor
+from owimetadatabase_preprocessor.soil import SoilAPI, SoilDataProcessor
 
 
-def test_init(api_root: str, header: Dict[str, str]) -> None:
+def test_init(header: Dict[str, str], soil_init: Dict[str, Any]) -> None:
     """Test initialization of SoilAPI class."""
-    api_test = SoilAPI(api_root, header=header)
-    expected = {
-        "api_root": f"{api_root}/soildata/",
-        "header": header,
-        "auth": None,
-        "uname": None,
-        "password": None,
-    }
+    api_test = SoilAPI(header=header)
+    expected = soil_init
     assert api_test.api_root == expected["api_root"]
     assert api_test.header == expected["header"]
     assert api_test.auth == expected["auth"]
@@ -27,12 +20,11 @@ def test_init(api_root: str, header: Dict[str, str]) -> None:
 
 
 def test_get_proximity_entities_2d(
-    api_root: str,
-    header: Dict[str, str],
+    api_soil: SoilAPI,
     mock_requests_get_proximity_entities_2d: mock.Mock,
 ) -> None:
     """Test proximity entities retrieval in 2D."""
-    api_test = SoilAPI(api_root, header=header)
+    api_test = api_soil
     data = api_test.get_proximity_entities_2d(
         api_url="test", latitude=50.1, longitude=2.22, radius=0.75
     )

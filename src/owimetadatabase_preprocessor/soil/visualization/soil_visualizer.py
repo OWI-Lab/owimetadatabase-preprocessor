@@ -4,15 +4,17 @@ API client and data processor, build the Plotly figures, and either return
 or show them.
 """
 
-import pandas as pd
-import plotly.graph_objs as go
-import plotly.express as px
 from typing import Any, Dict, List, Union
+
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objs as go
+from groundhog.general.soilprofile import plot_fence_diagram
 from groundhog.siteinvestigation.insitutests.pcpt_processing import (
     plot_combined_longitudinal_profile,
     plot_longitudinal_profile,
 )
-from groundhog.general.soilprofile import plot_fence_diagram
+
 from owimetadatabase_preprocessor.soil.io import SoilAPI
 from owimetadatabase_preprocessor.soil.processing.soil_pp import SoilDataProcessor
 
@@ -144,9 +146,7 @@ class SoilPlot:
         )
         return {"diagram": combined_fence_fig_1}
 
-    def plot_testlocations(
-        self, return_fig: bool = False, **kwargs
-    ) -> None:
+    def plot_testlocations(self, return_fig: bool = False, **kwargs) -> None:
         """
         Retrieves soil test locations and generates a Plotly plot to show them.
 

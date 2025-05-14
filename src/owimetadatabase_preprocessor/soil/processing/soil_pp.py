@@ -4,12 +4,13 @@ for processing soil data.  It is used to transform coordinates, combine raw
 and processed DataFrames, and extract/convert in-situ test detail data.
 """
 
-import pandas as pd
 import warnings
 from typing import Dict, List, Tuple, Union
-from pyproj import Transformer
+
+import pandas as pd
 from groundhog.general.soilprofile import profile_from_dataframe
 from groundhog.siteinvestigation.insitutests.pcpt_processing import PCPTProcessing
+from pyproj import Transformer
 
 
 class SoilDataProcessor:

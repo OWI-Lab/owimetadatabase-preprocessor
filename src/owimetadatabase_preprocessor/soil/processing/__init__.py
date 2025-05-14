@@ -8,7 +8,4 @@ and preparation of soil profiles for various soil-structure interaction models.
 
 from .soil_pp import SoilDataProcessor, SoilprofileProcessor
 
-__all__ = [
-    "SoilDataProcessor",
-    "SoilprofileProcessor"
-]
+__all__ = ["SoilDataProcessor", "SoilprofileProcessor"]

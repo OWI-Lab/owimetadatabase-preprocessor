@@ -1,5 +1,6 @@
-import os
 import json
+import os
+
 import pandas as pd
 import pytest
 
@@ -95,7 +96,9 @@ def test_fail_1_lateral_api2rpgeo(filename: str, mudline: float) -> None:
         ("api_bad_1bis.json", None),  # Double "Soil type" key definition
     ],
 )
-def test_fail_2_lateral_api2rpgeo(filename: str, mudline: float) -> None:  # Changed function name
+def test_fail_2_lateral_api2rpgeo(
+    filename: str, mudline: float
+) -> None:  # Changed function name
     """Test lateral method fails appropriately because incorrect parameter
     definition in the input data."""
     filepath = os.path.join(DATA_DIR, filename)

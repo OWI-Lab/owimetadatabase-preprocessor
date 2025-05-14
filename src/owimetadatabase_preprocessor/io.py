@@ -8,12 +8,12 @@ import numpy as np
 import pandas as pd
 import requests
 
-from owimetadatabase_preprocessor.utility.utils import deepcompare
 from owimetadatabase_preprocessor.utility.exceptions import (
     APIConnectionError,
     DataProcessingError,
     InvalidParameterError,
 )
+from owimetadatabase_preprocessor.utility.utils import deepcompare
 
 
 class API:

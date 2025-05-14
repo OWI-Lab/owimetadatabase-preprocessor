@@ -13,6 +13,4 @@ Plotly figures from soil data retrieved via the SoilAPI.
 
 from .soil_visualizer import SoilPlot
 
-__all__ = [
-    "SoilPlot"
-]
+__all__ = ["SoilPlot"]

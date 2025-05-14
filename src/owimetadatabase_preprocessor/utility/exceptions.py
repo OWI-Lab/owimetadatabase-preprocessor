@@ -4,6 +4,7 @@ common errors that can occur during API calls and data post-processing.
 """
 
 from typing import Optional
+
 import requests
 
 

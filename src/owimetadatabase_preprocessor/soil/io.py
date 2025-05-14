@@ -2,11 +2,13 @@
 API client Module for the soil data in the OWIMetadatabase.
 """
 
-import requests
 import warnings
+from typing import Callable, Dict, Union
+
 import numpy as np
 import pandas as pd
-from typing import Dict, Union, Callable
+import requests
+
 from owimetadatabase_preprocessor.io import API
 from owimetadatabase_preprocessor.soil.processing import SoilDataProcessor
 

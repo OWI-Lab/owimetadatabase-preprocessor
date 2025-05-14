@@ -23,14 +23,11 @@ __all__ = [
     "SoilDataProcessor",
     "SoilprofileProcessor",
     "SoilPlot",
-
     # Subpackages
     "io",
     "processing",
-    "visualization"
+    "visualization",
 ]
 
 # Import subpackages to make them available via soil.*
-from . import io
-from . import processing
-from . import visualization
+from . import io, processing, visualization
