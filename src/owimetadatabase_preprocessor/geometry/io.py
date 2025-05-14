@@ -4,6 +4,7 @@ from typing import Dict, List, Union
 
 import numpy as np
 import pandas as pd
+import plotly as plt
 from plotly.subplots import make_subplots
 
 from owimetadatabase_preprocessor.geometry.processing import OWT, OWTs
@@ -265,15 +266,13 @@ class GeometryAPI(API):
         self,
         turbines: Union[List[str], str],
         figures_per_line: int = 5,
-        return_fig: bool = True,
-        show_fig: bool = True,
-    ) -> None:
+        return_fig: bool = False,
+    ) -> Union[plt.graph_objects.Figure, None]:
         """Plot turbines' frontal geometry.
 
         :param turbines: Title(s) of the turbines.
         :param figures_per_line: Number of figures per line.
-        :param return_fig: Optional: whether to return the figure.
-        :param show_fig: Optional: whether to show the figure.
+        :param return_fig: Boolean indicating whether to return the figure.
         :return: Plotly figure object with selected turbines front profiles (if requested) or nothing.
         """
         materials_data = self.get_materials()
@@ -315,10 +314,7 @@ class GeometryAPI(API):
                 plotly_layout.pop("yaxis")
                 plotly_layout["yaxis" + str(i + 1)].pop("title")
             fig.update_layout(plotly_layout, autosize=autosize)
-        if return_fig and show_fig:
-            fig.show()
+        if return_fig:
             return fig
-        elif show_fig:
+        else:
             fig.show()
-        elif return_fig:
-            return fig

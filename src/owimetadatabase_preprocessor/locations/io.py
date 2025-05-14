@@ -136,12 +136,11 @@ class LocationsAPI(API):
         return {"id": df_add["id"], "data": df, "exists": df_add["existance"]}
 
     def plot_assetlocations(
-        self, return_fig: bool = True, show_fig: bool = True, **kwargs
-    ) -> Union[None, plt.graph_objects.Figure]:
+        self, return_fig: bool = False, **kwargs
+    ) -> Union[plt.graph_objects.Figure, None]:
         """Retrieve asset locations and generates a Plotly plot to show them.
 
-        :param return_fig: Boolean indicating whether the Plotly figure object needs to be returned.
-        :param show_fig: Boolean indicating whether the figure needs to be shown.
+        :param return_fig: Boolean indicating whether to return the figure.
         :param kwargs: Keyword arguments for the search (see ``get_assetlocations``).
         :return: Plotly figure object with selected asset locations plotted on OpenStreetMap tiles (if requested) or nothing.
         """
@@ -164,11 +163,7 @@ class LocationsAPI(API):
         )
         fig.update_layout(mapbox_style="open-street-map")
         fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
-        if return_fig and show_fig:
-            fig.show()
+        if return_fig:
             return fig
-        elif show_fig:
+        else:
             fig.show()
-        elif return_fig:
-            return fig
-        return None
