@@ -17,33 +17,17 @@ class GeometryAPI(API):
 
     def __init__(
         self,
-        api_root: str = "https://owimetadatabase.azurewebsites.net/api/v1",
         api_subdir: str = "/geometry/userroutes/",
-        token: Union[str, None] = None,
-        uname: Union[str, None] = None,
-        password: Union[str, None] = None,
         **kwargs,
     ) -> None:
         """Create an instance of the GeometryAPI class with the required parameters.
 
-        :param api_root: Optional: root URL of the API endpoint, the default working database url is provided.
         :param api_subdir: Optional: subdirectory of the API endpooint url for specific type of data.
-        :param token: Optional: token to access the API.
-        :param uname: Optional: username to access the API.
-        :param password: Optional: password to access the API.
-        :param kwargs: Additional parameters to pass to the API.
+        :param kwargs: Additional parameters to pass to the API (see the base class).
         :return: None
         """
-        super().__init__(api_root, token, uname, password, **kwargs)
-        if token:
-            credentials = {"token": token}
-        elif uname and password:
-            credentials = {"uname": uname, "password": password}
-        elif kwargs is not None:
-            credentials = {}
-        else:
-            raise ValueError("No credentials provided.")
-        self.loc_api = LocationsAPI(api_root=self.api_root, **credentials, **kwargs)
+        super().__init__(**kwargs)
+        self.loc_api = LocationsAPI(**kwargs)
         self.api_root = self.api_root + api_subdir
 
     def get_subassemblies(

@@ -24,24 +24,16 @@ class LocationsAPI(API):
 
     def __init__(
         self,
-        api_root: str = "https://owimetadatabase.azurewebsites.net/api/v1",
         api_subdir: str = "/locations/",
-        token: Union[str, None] = None,
-        uname: Union[str, None] = None,
-        password: Union[str, None] = None,
         **kwargs,
     ) -> None:
         """Create an instance of the LocationsAPI class with the required parameters.
 
-        :param api_root: Optional: root URL of the API endpoint, the default working database url is provided.
         :param api_subdir: Optional: subdirectory of the API endpooint url for specific type of data.
-        :param token: Optional: token to access the API.
-        :param uname: Optional: username to access the API.
-        :param password: Optional: password to access the API.
-        :param kwargs: Additional parameters to pass to the API.
+        :param kwargs: Additional parameters to pass to the API (see the base class).
         :return: None
         """
-        super().__init__(api_root, token, uname, password, **kwargs)
+        super().__init__(**kwargs)
         self.api_root = self.api_root + api_subdir
 
     def get_projectsites(
