@@ -123,7 +123,7 @@ class SoilDataProcessor:
         for key in processed_dfs:
             try:
                 processed_dfs[key] = processed_dfs[key].apply(
-                    lambda x: pd.to_numeric(x, errors="ignore")
+                    lambda x: pd.to_numeric(x)
                 )
             except Exception as err:
                 warnings.warn(f"Numeric conversion warning for {key}: {err}")
