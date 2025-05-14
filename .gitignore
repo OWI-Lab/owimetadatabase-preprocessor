@@ -25,3 +25,5 @@ docs/generated/
 
 # OS specific
 .DS_Store
+
+.vscode/
