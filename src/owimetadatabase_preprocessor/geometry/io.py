@@ -4,6 +4,7 @@ from typing import Dict, List, Union
 
 import numpy as np
 import pandas as pd
+import plotly as plt
 from plotly.subplots import make_subplots
 
 from owimetadatabase_preprocessor.geometry.processing import OWT, OWTs
@@ -17,33 +18,17 @@ class GeometryAPI(API):
 
     def __init__(
         self,
-        api_root: str = "https://owimetadatabase.azurewebsites.net/api/v1",
         api_subdir: str = "/geometry/userroutes/",
-        token: Union[str, None] = None,
-        uname: Union[str, None] = None,
-        password: Union[str, None] = None,
         **kwargs,
     ) -> None:
         """Create an instance of the GeometryAPI class with the required parameters.
 
-        :param api_root: Optional: root URL of the API endpoint, the default working database url is provided.
         :param api_subdir: Optional: subdirectory of the API endpooint url for specific type of data.
-        :param token: Optional: token to access the API.
-        :param uname: Optional: username to access the API.
-        :param password: Optional: password to access the API.
-        :param kwargs: Additional parameters to pass to the API.
+        :param kwargs: Additional parameters to pass to the API (see the base class).
         :return: None
         """
-        super().__init__(api_root, token, uname, password, **kwargs)
-        if token:
-            credentials = {"token": token}
-        elif uname and password:
-            credentials = {"uname": uname, "password": password}
-        elif kwargs is not None:
-            credentials = {}
-        else:
-            raise ValueError("No credentials provided.")
-        self.loc_api = LocationsAPI(api_root=self.api_root, **credentials, **kwargs)
+        super().__init__(**kwargs)
+        self.loc_api = LocationsAPI(**kwargs)
         self.api_root = self.api_root + api_subdir
 
     def get_subassemblies(
@@ -211,19 +196,83 @@ class GeometryAPI(API):
             )
         return OWTs(turbines, owts)
 
+    def get_monopile_pyles(self, projectsite, assetlocation, cutoff_point=np.nan):
+        """
+        Returns a dataframe with the monopile geometry with the mudline as reference
+
+        :param water_depth: Water depth in mLAT
+        :param projectsite: Name of the project site
+        :param assetlocation: Name of the wind turbine location
+        :param cutoff_point: Elevation of the load application point in (mLAT) above the mudline
+        :return:
+        """
+        # Retrieve the monopile cans
+        bbs = self.get_buildingblocks(
+            projectsite=projectsite, assetlocation=assetlocation, subassembly_type="MP"
+        )
+        # Retrieve the monopile subassembly
+        sas = self.get_subassemblies(
+            projectsite=projectsite, assetlocation=assetlocation, subassembly_type="MP"
+        )
+        # Water depth
+        location_data = self.loc_api.get_assetlocation_detail(
+            assetlocation=assetlocation, projectsite=projectsite
+        )
+        if location_data["exists"]:
+            location = location_data["data"]
+            water_depth = location["elevation"].values[0]
+        else:
+            raise ValueError(
+                f"No location found for turbine {assetlocation} and hence no water depth can be retrieved."
+            )
+
+        # Calculate the pile penetration
+        toe_depth_lat = sas["data"]["z_position"].iloc[0]
+        penetration = -((1e-3 * toe_depth_lat) - water_depth)
+
+        # Create the pile for subsequent response analysis
+        pile = pd.DataFrame()
+
+        for i, row in bbs["data"].iterrows():
+            if i != 0:
+                pile.loc[i, "Depth to [m]"] = (
+                    penetration - 1e-3 * bbs["data"].loc[i - 1, "z_position"]
+                )
+                pile.loc[i, "Depth from [m]"] = penetration - 1e-3 * row["z_position"]
+                pile.loc[i, "Pile material"] = row["material_name"]
+                pile.loc[i, "Pile material submerged unit weight [kN/m3]"] = (
+                    1e-2 * row["density"] - 10
+                )
+                pile.loc[i, "Wall thickness [mm]"] = row["wall_thickness"]
+                pile.loc[i, "Diameter [m]"] = (
+                    1e-3
+                    * 0.5
+                    * (row["bottom_outer_diameter"] + row["top_outer_diameter"])
+                )
+                pile.loc[i, "Youngs modulus [GPa]"] = row["youngs_modulus"]
+                pile.loc[i, "Poissons ratio [-]"] = row["poissons_ratio"]
+
+        pile.sort_values("Depth from [m]", inplace=True)
+        pile.reset_index(drop=True, inplace=True)
+
+        # Cut off at the mudline
+        if not np.math.isnan(cutoff_point):
+            pile = pile.loc[pile["Depth to [m]"] > cutoff_point].reset_index(drop=True)
+            pile.loc[0, "Depth from [m]"] = cutoff_point
+
+        return pile
+
     def plot_turbines(
         self,
         turbines: Union[List[str], str],
         figures_per_line: int = 5,
-        return_fig: bool = True,
-        show_fig: bool = True,
-    ) -> None:
+        return_fig: bool = False,
+    ) -> Union[plt.graph_objects.Figure, None]:
         """Plot turbines' frontal geometry.
 
         :param turbines: Title(s) of the turbines.
         :param figures_per_line: Number of figures per line.
-        :param return_fig: Optional: whether to return the figure.
-        :param show_fig: Optional: whether to show the figure.
+        :param return_fig: Boolean indicating whether to return the figure.
         :return: Plotly figure object with selected turbines front profiles (if requested) or nothing.
         """
         materials_data = self.get_materials()
@@ -265,10 +314,7 @@ class GeometryAPI(API):
                 plotly_layout.pop("yaxis")
                 plotly_layout["yaxis" + str(i + 1)].pop("title")
             fig.update_layout(plotly_layout, autosize=autosize)
-        if return_fig and show_fig:
-            fig.show()
+        if return_fig:
             return fig
-        elif show_fig:
+        else:
             fig.show()
-        elif return_fig:
-            return fig

@@ -1,6 +1,5 @@
 """Module defining API to retrieve/plot specific fatigue data from the owimetadatabase."""
 
-from time import sleep
 from typing import Dict, List, Union
 
 import numpy as np
@@ -31,33 +30,17 @@ class FatigueAPI(API):
 
     def __init__(
         self,
-        api_root: str = "https://owimetadatabase.azurewebsites.net/api/v1",
         api_subdir: str = "/fatigue/userroutes/",
-        token: Union[str, None] = None,
-        uname: Union[str, None] = None,
-        password: Union[str, None] = None,
         **kwargs,
     ) -> None:
         """Constructor for the FatigueAPI class.
 
-        :param api_root: Root URL for the API.
         :api_subdir: Subdirectory for the API.
-        :param token: Token for the API.
-        :param uname: Username for the API.
-        :param password: Password for the API.
-        :param kwargs: Additional keyword arguments.
+        :param kwargs: Additional keyword arguments (see the base class).
         """
-        super().__init__(api_root, token, uname, password, **kwargs)
-        if token:
-            credentials = {"token": token}
-        elif uname and password:
-            credentials = {"uname": uname, "password": password}
-        elif kwargs is not None:
-            credentials = {}
-        else:
-            raise ValueError("No credentials provided.")
-        self.geo_api = GeometryAPI(api_root=self.api_root, **credentials, **kwargs)
-        self.loc_api = LocationsAPI(api_root=self.api_root, **credentials, **kwargs)
+        super().__init__(**kwargs)
+        self.geo_api = GeometryAPI(**kwargs)
+        self.loc_api = LocationsAPI(**kwargs)
         self.api_root = self.api_root + api_subdir
 
     def get_sncurves(self, **kwargs) -> List[SNCurve]:
@@ -292,7 +275,6 @@ class FatigueAPI(API):
         }
         # * Loop through assets
         for asset in pbar:
-            sleep(0.25)
             pbar.set_description("Processing %s" % asset)
             # - generate frame
             frame = self._add_data_to_fatiguesubassembly(
@@ -397,7 +379,6 @@ class FatigueAPI(API):
         fig_dict["layout"]["autosize"] = True
         # * Loop through assets
         for nr, asset in enumerate(pbar):
-            sleep(0.25)
             pbar.set_description("Processing %s" % asset)
             # - generate frame
             fig_dict["data"].extend(

@@ -21,11 +21,7 @@ class SoilAPI(API):
 
     def __init__(
         self,
-        api_root: str = "https://owimetadatabase.azurewebsites.net/api/v1",
         api_subdir: str = "/soildata/",
-        token: Union[str, None] = None,
-        uname: Union[str, None] = None,
-        password: Union[str, None] = None,
         **kwargs,
     ) -> None:
         """
@@ -37,7 +33,7 @@ class SoilAPI(API):
         :param uname: Username for authentication.
         :param password: Password for authentication.
         """
-        super().__init__(api_root, token, uname, password, **kwargs)
+        super().__init__(**kwargs)
         self.api_root = self.api_root + api_subdir
 
     def get_proximity_entities_2d(
