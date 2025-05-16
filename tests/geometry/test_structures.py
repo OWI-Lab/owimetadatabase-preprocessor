@@ -9,7 +9,7 @@ from owimetadatabase_preprocessor.geometry.structures import (
     Position,
     SubAssembly,
 )
-from owimetadatabase_preprocessor.utils import deepcompare
+from owimetadatabase_preprocessor.utility.utils import deepcompare
 
 
 class TestBaseStructure:

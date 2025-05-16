@@ -22,7 +22,7 @@ from owimetadatabase_preprocessor.geometry.structures import (
     Position,
     SubAssembly,
 )
-from owimetadatabase_preprocessor.utils import hex_to_dec
+from owimetadatabase_preprocessor.utility.utils import hex_to_dec
 
 COLOR_LIST = [
     "#4e79a7",

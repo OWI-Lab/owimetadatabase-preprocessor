@@ -4,32 +4,28 @@ from unittest import mock
 import pandas as pd
 import pandas.testing as pd_testing
 import pytest
-import requests
 
-from owimetadatabase_preprocessor.soil.io import SoilAPI
-
-
-def test_init(soil_init: Dict[str, Any], header: Dict[str, str]) -> None:
-    api_soil = SoilAPI(header=header)
-    assert soil_init == api_soil
+from owimetadatabase_preprocessor.soil import SoilAPI, SoilDataProcessor
 
 
-def test_process_data(api_soil: SoilAPI, mock_requests_get_advanced: mock.Mock) -> None:
-    url_data_type = "/test/"
-    url_params = {"test": "test"}
-    output_type = "list"
-    df, df_add = api_soil.process_data(url_data_type, url_params, output_type)
-    assert isinstance(df, pd.DataFrame)
-    assert isinstance(df_add, dict)
-    assert isinstance(df_add["existance"], bool)
-    assert isinstance(df_add["response"], requests.Response)
+def test_init(header: Dict[str, str], soil_init: Dict[str, Any]) -> None:
+    """Test initialization of SoilAPI class."""
+    api_test = SoilAPI(header=header)
+    expected = soil_init
+    assert api_test.api_root == expected["api_root"]
+    assert api_test.header == expected["header"]
+    assert api_test.auth == expected["auth"]
+    assert api_test.uname == expected["uname"]
+    assert api_test.password == expected["password"]
 
 
 def test_get_proximity_entities_2d(
     api_soil: SoilAPI,
     mock_requests_get_proximity_entities_2d: mock.Mock,
 ) -> None:
-    data = api_soil.get_proximity_entities_2d(
+    """Test proximity entities retrieval in 2D."""
+    api_test = api_soil
+    data = api_test.get_proximity_entities_2d(
         api_url="test", latitude=50.1, longitude=2.22, radius=0.75
     )
     df = data["data"]
@@ -96,11 +92,10 @@ def test_search_any_entity_exception(
     indirect=["df_gathered_inp", "dict_gathered_true"],
 )
 def test_gather_data_entity(
-    api_soil: SoilAPI,
     df_gathered_inp: pd.DataFrame,
     dict_gathered_true: Dict[str, Union[str, float]],
 ) -> None:
-    dict_gathered = api_soil._gather_data_entity(df_gathered_inp)
+    dict_gathered = SoilDataProcessor.gather_data_entity(df_gathered_inp)
     for key in dict_gathered:
         if key != "data":
             assert dict_gathered[key] == dict_gathered_true[key]

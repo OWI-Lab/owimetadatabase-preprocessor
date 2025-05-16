@@ -6,6 +6,7 @@ import pytest
 import requests
 
 from owimetadatabase_preprocessor.io import API
+from owimetadatabase_preprocessor.utility.exceptions import InvalidParameterError
 
 
 class TestAPIAuth:
@@ -116,7 +117,7 @@ def test_output_to_df() -> None:
             ),
             "single",
             None,
-            ValueError,
+            InvalidParameterError,
         ),
         (pd.DataFrame([]), "list", {"existance": False}, None),
         (
@@ -137,7 +138,7 @@ def test_output_to_df() -> None:
             pd.DataFrame([{"id": 239, "col_test": "text test"}]),
             "multiple",
             None,
-            ValueError,
+            InvalidParameterError,
         ),
     ],
 )
@@ -149,7 +150,7 @@ def test_postprocess_data(
 ) -> None:
     if expected_exception is not None:
         with pytest.raises(expected_exception):
-            result = API.postprocess_data(df, output_type)
+            API.postprocess_data(df, output_type)
     else:
         result = API.postprocess_data(df, output_type)
         assert result == expected_result

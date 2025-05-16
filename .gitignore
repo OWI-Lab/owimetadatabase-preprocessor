@@ -19,6 +19,11 @@ __pycache__
 # To do
 .todo
 
+# Sphinx documentation
+docs/_build/
+docs/generated/
+
+# OS specific
 .DS_Store
 
 .vscode/

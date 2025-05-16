@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 
 import pytest
 
-from owimetadatabase_preprocessor.utils import fix_nan, fix_outline
+from owimetadatabase_preprocessor.utility.utils import fix_nan, fix_outline
 
 from .fixtures.io import *  # noqa: F403, F401
 from .fixtures.processing import *  # noqa: F403, F401
