@@ -13,9 +13,9 @@ module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
 sys.path.insert(0, module_path)
 
 project = "Owimetadatabase preprocessor"
-copyright = "2023, OWI-Lab"
+copyright = "2025, OWI-Lab"
 author = "OWI-Lab"
-version = "0.9.1"
+version = "0.9.2"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
