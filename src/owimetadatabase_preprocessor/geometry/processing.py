@@ -568,7 +568,11 @@ class OWT(object):
             self._init_spec_part = True
             self.tp_skirt = None
         if "TW" in self.sub_assemblies.keys():
-            self.assembly_full_structure()
+            self._init_spec_full = True
+            if self.substructure is not None:
+                self.assembly_full_structure()
+            else:
+                self.full_structure = None
         else:
             self.full_structure = None
             self._init_spec_full = True
@@ -769,18 +773,34 @@ class OWTs(object):
                     self.pile_toe[turb],  # type: ignore
                     self.pile_head[turb],
                     self.tower_base[turb],
-                    self.owts[turb].monopile["Height [m]"].sum(),
                     (
-                        self.owts[turb].monopile["Mass [t]"].sum()
-                        + self.owts[turb].mp_distributed_mass["Mass [t]"].sum()
-                        + self.owts[turb].mp_lumped_mass["Mass [t]"].sum()
+                        self.owts[turb].monopile["Height [m]"].sum()
+                        if self.owts[turb].monopile is not None
+                        else None
                     ),
-                    self.owts[turb].transition_piece["Height [m]"].sum(),
                     (
-                        self.owts[turb].transition_piece["Mass [t]"].sum()
-                        + self.owts[turb].tp_distributed_mass["Mass [t]"].sum()
-                        + self.owts[turb].tp_lumped_mass["Mass [t]"].sum()
-                        + self.owts[turb].grout["Mass [t]"].sum()
+                        (
+                            self.owts[turb].monopile["Mass [t]"].sum()
+                            + self.owts[turb].mp_distributed_mass["Mass [t]"].sum()
+                            + self.owts[turb].mp_lumped_mass["Mass [t]"].sum()
+                        )
+                        if self.owts[turb].monopile is not None
+                        else None
+                    ),
+                    (
+                        self.owts[turb].transition_piece["Height [m]"].sum()
+                        if self.owts[turb].transition_piece is not None
+                        else None
+                    ),
+                    (
+                        (
+                            self.owts[turb].transition_piece["Mass [t]"].sum()
+                            + self.owts[turb].tp_distributed_mass["Mass [t]"].sum()
+                            + self.owts[turb].tp_lumped_mass["Mass [t]"].sum()
+                            + self.owts[turb].grout["Mass [t]"].sum()
+                        )
+                        if self.owts[turb].transition_piece is not None
+                        else None
                     ),
                     (
                         self.owts[turb].tower["Height [m]"].sum()
