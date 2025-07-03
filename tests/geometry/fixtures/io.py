@@ -419,7 +419,7 @@ def mock_requests_for_proc(
         elif url == "https://test.api/test/geometry/userroutes/materials":
             data_ = materials_dicts_init
         elif url == "https://test.api/test/locations/assetlocations":
-            data_ = {"id": [1], "elevation": [30.0]}
+            data_ = {"id": [1], "elevation": [30.0], "projectsite_name": "test"}
         elif url == "https://test.api/test/geometry/userroutes/buildingblocks":
             if int(kwargs["params"]["sub_assembly__id"]) == 1:
                 data_ = [
