@@ -198,6 +198,8 @@ class API:
         sa_type = ["TW", "TP", "MP"]
         z = [z_sa_tw, z_sa_tp, z_sa_mp]
         if data_type == "subassemblies":
+            if df.__len__() == 0:
+                return df
             for i, sat in enumerate(sa_type):
                 cond_small_units = (df["subassembly_type"] == sat) & (
                     df["z_position"] < z[i]["min"]
