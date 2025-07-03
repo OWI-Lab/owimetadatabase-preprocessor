@@ -1,6 +1,7 @@
 """Module to connect to the database API to retrieve and operate on geometry data."""
 
 from typing import Dict, List, Union
+import warnings
 from contextlib import contextmanager
 
 import numpy as np
@@ -289,44 +290,53 @@ class GeometryAPI(API):
         else:
             raise ValueError("No materials found in the database.")
         owts = []
+        successful_turbines = []
+        errors = []
         turbines = [turbines] if isinstance(turbines, str) else turbines
         if not isinstance(tower_base, List) and not isinstance(monopile_head, List):
             tower_base = [tower_base] * len(turbines)  # type: ignore
             monopile_head = [monopile_head] * len(turbines)  # type: ignore
-        for i in range(len(turbines)):
-            location_data = self.loc_api.get_assetlocation_detail(
-                assetlocation=turbines[i]
-            )
-            if location_data["exists"]:
-                location = location_data["data"]
-            else:
-                raise ValueError(f"No location found for turbine {turbines[i]}.")
-            projectsite = location["projectsite_name"].loc[0]
-            subassemblies_data = self.get_subassemblies(
-                projectsite=projectsite,
-                assetlocation=turbines[i],
-                model_definition=model_definition,
-            )
-            if subassemblies_data["exists"]:
-                subassemblies = subassemblies_data["data"]
-                self._check_if_need_modeldef(subassemblies, turbines[i])
-            else:
-                raise ValueError(f"No subassemblies found for turbine {turbines[i]}. Please check model definition or database data.")
-            owts.append(
-                OWT(
-                    self,
-                    materials,
-                    subassemblies,
-                    location,
-                    tower_base[i] if isinstance(tower_base, List) else tower_base,
-                    (
-                        monopile_head[i]
-                        if isinstance(monopile_head, List)
-                        else monopile_head
-                    ),
+        for i, turbine in enumerate(turbines):
+            try:
+                location_data = self.loc_api.get_assetlocation_detail(
+                    assetlocation=turbine
                 )
-            )
-        return OWTs(turbines, owts)
+                if location_data["exists"]:
+                    location = location_data["data"]
+                else:
+                    raise ValueError(f"No location found for turbine {turbine}.")
+                projectsite = location["projectsite_name"].loc[0]
+                subassemblies_data = self.get_subassemblies(
+                    projectsite=projectsite,
+                    assetlocation=turbine,
+                    model_definition=model_definition,
+                )
+                if subassemblies_data["exists"]:
+                    subassemblies = subassemblies_data["data"]
+                    self._check_if_need_modeldef(subassemblies, turbine)
+                else:
+                    raise ValueError(f"No subassemblies found for turbine {turbine}. Please check model definition or database data.")
+                owts.append(
+                    OWT(
+                        self,
+                        materials,
+                        subassemblies,
+                        location,
+                        tower_base[i] if isinstance(tower_base, List) else tower_base,
+                        monopile_head[i] if isinstance(monopile_head, List) else monopile_head,
+                    )
+                )
+                successful_turbines.append(turbine)
+            except ValueError as e:
+                errors.append(str(e))
+        if errors:
+            if successful_turbines:
+                warnings.warn(
+                    f"There were some errors during processing the request. But some turbines were processed successfully: {', '.join(successful_turbines)}.\nErrors:\n" + "\n".join(errors),
+                )
+            else:
+                raise ValueError("\n".join(errors))
+        return OWTs(successful_turbines, owts)
 
     def get_monopile_pyles(self, projectsite, assetlocation, cutoff_point=np.nan, model_definition: Union[str, None] = None):
         """
