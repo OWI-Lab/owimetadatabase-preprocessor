@@ -1,6 +1,7 @@
 """Module to connect to the database API to retrieve and operate on geometry data."""
 
 from typing import Dict, List, Union
+from contextlib import contextmanager
 
 import numpy as np
 import pandas as pd
@@ -30,30 +31,137 @@ class GeometryAPI(API):
         super().__init__(**kwargs)
         self.loc_api = LocationsAPI(**kwargs)
         self.api_root = self.api_root + api_subdir
+    
+    @contextmanager
+    def _temp_api_root(self, new_api_root: str):
+        """Temporarily change the api_root."""
+        original_root = self.api_root
+        self.api_root = new_api_root
+        try:
+            yield
+        finally:
+            self.api_root = original_root
+
+    def get_model_definitions(
+        self,
+        projectsite: Union[str, None] = None,
+    ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
+        """Get all model definitions for a given projectsite.
+
+        :param projectsite: Title of the projectsite.
+        :return: Dictionary with the following keys:
+
+            - "data": Pandas dataframe with the model definitions
+            - "exists": Boolean indicating whether matching records are found
+        """
+        url_params = {}
+        if projectsite is not None:
+            url_params["site"] = projectsite
+        url_data_type = "modeldefinitions"
+        output_type = "list"
+        with self._temp_api_root(self.api_root.replace("userroutes", "routes")):
+            df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return {"data": df, "exists": df_add["existance"]}
+
+    def get_modeldefinition_id(
+        self,
+        assetlocation: Union[str, None] = None,
+        projectsite: Union[str, None] = None,
+        model_definition: Union[str, None] = None,
+    ) -> Dict[str, Union[int, np.int64, bool, None]]:
+        """Get the ID of a model definition for a given asset. 
+        Either the asset location or the project site must be specified.
+
+        :param assetlocation: Title of the asset location.
+        :param model_definition: Optional: Title of the model definition.
+        :param projectsite: Optional: Title of the projectsite.
+        :return: Dictionary with the following keys:
+
+            - "id": ID of the specified model definition
+            - "multiple_modeldef": Boolean indicating whether there are multiple model definitions for the asset location in general
+        """
+        if assetlocation is None and projectsite is None:
+            raise ValueError("At least either of the related `assetlocation` or `projectsite` must be specified!")
+
+        result = {}
+        if projectsite is None:
+            location_data = self.loc_api.get_assetlocation_detail(
+                assetlocation=assetlocation
+            )
+            if location_data["exists"]:
+                location = location_data["data"]
+            else:
+                raise ValueError(f"No location found for asset {assetlocation}.")
+            projectsite = location["projectsite_name"].loc[0]
+        model_definitions_data = self.get_model_definitions(projectsite=projectsite)
+        if model_definitions_data["exists"]:
+            model_definitions = model_definitions_data["data"]
+        else:
+            raise ValueError(f"No model definitions found for project site {projectsite}.")
+        if model_definition is None and len(model_definitions) > 1:
+            raise ValueError(f"Multiple model definitions found for project site {projectsite}. Please specify which one to use.")
+        if model_definition is None:
+            model_definition_id = model_definitions["id"].values[0]
+            result["id"] = model_definition_id
+            result["multiple_modeldef"] = False
+        else:
+            matching_definitions = model_definitions[
+                model_definitions["title"] == model_definition
+            ]
+            if matching_definitions.empty:
+                raise ValueError(f"Model definition '{model_definition}' not found for project site {projectsite}.")
+            if len(matching_definitions) > 1:
+                raise ValueError(
+                    f"Multiple model definitions found for '{model_definition}' in project site {projectsite}. Please check the data consistency."
+                )            
+            model_definition_id = matching_definitions["id"].values[0]
+            result["id"] = model_definition_id
+            result["multiple_modeldef"] = len(model_definitions) > 1
+        return result
 
     def get_subassemblies(
         self,
         projectsite: Union[str, None] = None,
         assetlocation: Union[str, None] = None,
         subassembly_type: Union[str, None] = None,
+        model_definition: Union[str, None] = None,
     ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
         """Get all structure subassemblies blocks for a given location.
+        If you specify a model definition, you also must specify either the projectsite or the asset location.
 
         :param projectsite: Title of the projectsite.
         :param assetlocation: Title of the asset location.
         :param subassembly_type: Type of the subassembly.
+        :param model_definition_id: ID of the model definition.
         :return: Dictionary with the following keys:
 
             - "data": Pandas dataframe with the location data for each project
             - "exists": Boolean indicating whether matching records are found
         """
         url_params = {}
+        func_args = {}
         if projectsite is not None:
             url_params["asset__projectsite__title"] = projectsite
+            func_args["projectsite"] = projectsite
         if assetlocation is not None:
             url_params["asset__title"] = assetlocation
+            func_args["assetlocation"] = assetlocation
         if subassembly_type is not None:
             url_params["subassembly_type"] = subassembly_type
+        if model_definition is not None:
+            if projectsite is not None or assetlocation is not None:
+                func_args["model_definition"] = model_definition
+                modeldef_data = self.get_modeldefinition_id(**func_args)
+                if modeldef_data["id"] is not None:
+                    url_params["model_definition"] = str(modeldef_data["id"])
+                else:
+                    raise ValueError(
+                        f"No model definition {model_definition} found for project site {projectsite} or asset location {assetlocation}."
+                    )
+            else:
+                raise ValueError(
+                    "If you specify a model definition, you also must specify either the projectsite or the asset location!"
+                )
         url_data_type = "subassemblies"
         output_type = "list"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
@@ -64,7 +172,7 @@ class GeometryAPI(API):
         projectsite: Union[str, None] = None,
         assetlocation: Union[str, None] = None,
         subassembly_type: Union[str, None] = None,
-        subassembly_id: Union[str, None] = None,
+        subassembly_id: Union[int, np.int64, None] = None,
     ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
         """Get all building blocks for a given location.
 
@@ -106,12 +214,16 @@ class GeometryAPI(API):
         return {"data": df, "exists": df_add["existance"]}
 
     def get_subassembly_objects(
-        self, turbine: str, subassembly: str = None
+        self,
+        turbine: str,
+        subassembly: Union[str, None] = None,
+        model_definition_id: Union[int, np.int64, None] = None
     ) -> Dict[str, SubAssembly]:
         """Get all subassemblies for a given turbine, divided by type.
 
         :param turbine: Turbine title (e.g. 'BBC01')
         :param subassembly: Sub-assembly type (e.g. 'MP', 'TW', 'TP')
+        :param model_definition_id: ID of the model definition to filter the subassemblies.
         :return: Dictionary with the following keys:
 
             - "TW": SubAssembly object for the tower
@@ -119,10 +231,11 @@ class GeometryAPI(API):
             - "MP": SubAssembly object for the monopile
         """
         url_data_type = "subassemblies"
+        url_params = {"asset__title": turbine}
         if subassembly is not None:
-            url_params = {"asset__title": turbine, "subassembly_type": subassembly}
-        else:
-            url_params = {"asset__title": turbine}
+            url_params["subassembly_type"] = subassembly
+        if model_definition_id is not None:
+            url_params["model_definition"] = str(model_definition_id)
         resp = self.send_request(url_data_type, url_params)
         self.check_request_health(resp)
         if not resp.json():
@@ -134,14 +247,32 @@ class GeometryAPI(API):
         else:
             raise ValueError("No materials found in the database.")
 
-        sas = [SubAssembly(materials, item, api_object=self) for item in resp.json()]
-        sas_types = [j["subassembly_type"] for j in resp.json()]
-        subassemblies = {k: v for (k, v) in zip(sas_types, sas)}
+        subassemblies = {}
+        for item in resp.json():
+            subassembly_type = item["subassembly_type"]
+            subassembly_obj = SubAssembly(materials, item, api_object=self)
+            if subassembly_type in subassemblies:
+                if not isinstance(subassemblies[subassembly_type], list):
+                    subassemblies[subassembly_type] = [subassemblies[subassembly_type]]
+                subassemblies[subassembly_type].append(subassembly_obj)
+            else:
+                subassemblies[subassembly_type] = subassembly_obj
+        
         return subassemblies
+
+    def _check_if_need_modeldef(self, subassemblies, turbine):
+        """Helper function for some public methods to check if the user needs to specify a model definition."""
+        sa_list_length = len(list(subassemblies["subassembly_type"].values))
+        sa_unique_list_length = len(set(list(subassemblies["subassembly_type"].values)))
+        if sa_list_length > sa_unique_list_length:
+            raise ValueError(
+                f"Multiple model definitions found for turbine {turbine}. Please specify which one to use."
+            )
 
     def get_owt_geometry_processor(
         self,
         turbines: Union[str, List[str]],
+        model_definition: Union[str, None] = None,
         tower_base: Union[float, List[float], None] = None,
         monopile_head: Union[float, List[float], None] = None,
     ) -> OWTs:
@@ -163,23 +294,24 @@ class GeometryAPI(API):
             tower_base = [tower_base] * len(turbines)  # type: ignore
             monopile_head = [monopile_head] * len(turbines)  # type: ignore
         for i in range(len(turbines)):
-            subassemblies_data = self.get_subassemblies(assetlocation=turbines[i])
             location_data = self.loc_api.get_assetlocation_detail(
                 assetlocation=turbines[i]
             )
-            if subassemblies_data["exists"] and location_data["exists"]:
-                subassemblies = subassemblies_data["data"]
+            if location_data["exists"]:
                 location = location_data["data"]
-            elif not subassemblies_data["exists"] and not location_data["exists"]:
-                raise ValueError(
-                    f"No subassemblies and location found for turbine {turbines[i]}."
-                )
-            elif not subassemblies_data["exists"]:
-                raise ValueError(f"No subassemblies found for turbine {turbines[i]}.")
-            elif not location_data["exists"]:
-                raise ValueError(f"No location found for turbine {turbines[i]}.")
             else:
-                raise ValueError("Unexpected error.")
+                raise ValueError(f"No location found for turbine {turbines[i]}.")
+            projectsite = location["projectsite_name"].loc[0]
+            subassemblies_data = self.get_subassemblies(
+                projectsite=projectsite,
+                assetlocation=turbines[i],
+                model_definition=model_definition,
+            )
+            if subassemblies_data["exists"]:
+                subassemblies = subassemblies_data["data"]
+                self._check_if_need_modeldef(subassemblies, turbines[i])
+            else:
+                raise ValueError(f"No subassemblies found for turbine {turbines[i]}. Please check model definition or database data.")
             owts.append(
                 OWT(
                     self,
@@ -196,15 +328,15 @@ class GeometryAPI(API):
             )
         return OWTs(turbines, owts)
 
-    def get_monopile_pyles(self, projectsite, assetlocation, cutoff_point=np.nan):
+    def get_monopile_pyles(self, projectsite, assetlocation, cutoff_point=np.nan, model_definition: Union[str, None] = None):
         """
         Returns a dataframe with the monopile geometry with the mudline as reference
 
-        :param water_depth: Water depth in mLAT
         :param projectsite: Name of the project site
         :param assetlocation: Name of the wind turbine location
         :param cutoff_point: Elevation of the load application point in (mLAT) above the mudline
-        :return:
+        :param model_definition: Optional: model definition.
+        :return: DataFrame with the monopile geometry.
         """
         # Retrieve the monopile cans
         bbs = self.get_buildingblocks(
@@ -212,8 +344,13 @@ class GeometryAPI(API):
         )
         # Retrieve the monopile subassembly
         sas = self.get_subassemblies(
-            projectsite=projectsite, assetlocation=assetlocation, subassembly_type="MP"
+            projectsite=projectsite, assetlocation=assetlocation, subassembly_type="MP", model_definition=model_definition
         )
+        if sas["exists"]:
+            subassemblies = sas["data"]
+            self._check_if_need_modeldef(subassemblies, assetlocation)
+        else:
+            raise ValueError(f"No subassemblies found for turbine {assetlocation}. Please check model definition or database data.")
         # Water depth
         location_data = self.loc_api.get_assetlocation_detail(
             assetlocation=assetlocation, projectsite=projectsite
@@ -267,6 +404,7 @@ class GeometryAPI(API):
         turbines: Union[List[str], str],
         figures_per_line: int = 5,
         return_fig: bool = False,
+        model_definition: Union[str, None] = None,
     ) -> Union[plt.graph_objects.Figure, None]:
         """Plot turbines' frontal geometry.
 
@@ -294,11 +432,15 @@ class GeometryAPI(API):
         autosize = False if len(turbines) < 3 else True
         fig = make_subplots(n_rows, n_cols, subplot_titles=turbines)
         for i, turbine in enumerate(turbines):
-            subassemblies_data = self.get_subassemblies(assetlocation=turbine)
+            subassemblies_data = self.get_subassemblies(
+                assetlocation=turbine,
+                model_definition=model_definition,
+            )
             if subassemblies_data["exists"]:
                 subassemblies = subassemblies_data["data"]
+                self._check_if_need_modeldef(subassemblies, turbine)
             else:
-                raise ValueError(f"No subassemblies found for turbine {turbine}.")
+                raise ValueError(f"No subassemblies found for turbine {turbine}. Please check model definition or database data.")
             for j, sa in subassemblies.iterrows():
                 subassembly = SubAssembly(materials, sa.to_dict(), api_object=self)
                 subassembly.building_blocks
