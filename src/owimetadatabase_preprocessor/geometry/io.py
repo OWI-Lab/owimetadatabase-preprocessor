@@ -47,9 +47,9 @@ class GeometryAPI(API):
         self,
         projectsite: Union[str, None] = None,
     ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
-        """Get all model definitions for a given projectsite.
+        """Get all relevant model definitions.
 
-        :param projectsite: Title of the projectsite.
+        :param projectsite: Optional: Title of the projectsite.
         :return: Dictionary with the following keys:
 
             - "data": Pandas dataframe with the model definitions
@@ -70,12 +70,12 @@ class GeometryAPI(API):
         projectsite: Union[str, None] = None,
         model_definition: Union[str, None] = None,
     ) -> Dict[str, Union[int, np.int64, bool, None]]:
-        """Get the ID of a model definition for a given asset.
+        """Get the ID of a model definition.
         Either the asset location or the project site must be specified.
 
-        :param assetlocation: Title of the asset location.
-        :param model_definition: Optional: Title of the model definition.
+        :param assetlocation: Optional: Title of the asset location.
         :param projectsite: Optional: Title of the projectsite.
+        :param model_definition: Optional: Title of the model definition.
         :return: Dictionary with the following keys:
 
             - "id": ID of the specified model definition
@@ -137,13 +137,13 @@ class GeometryAPI(API):
         subassembly_type: Union[str, None] = None,
         model_definition: Union[str, None] = None,
     ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
-        """Get all structure subassemblies blocks for a given location.
+        """Get all relevant structure subassemblies.
         If you specify a model definition, you also must specify either the projectsite or the asset location.
 
-        :param projectsite: Title of the projectsite.
-        :param assetlocation: Title of the asset location.
-        :param subassembly_type: Type of the subassembly.
-        :param model_definition_id: ID of the model definition.
+        :param projectsite: Optional: Title of the projectsite.
+        :param assetlocation: Optional: Title of the asset location.
+        :param subassembly_type: Optional: Type of the subassembly.
+        :param model_definition: Optional: Title of the model definition.
         :return: Dictionary with the following keys:
 
             - "data": Pandas dataframe with the location data for each project
@@ -186,12 +186,12 @@ class GeometryAPI(API):
         subassembly_type: Union[str, None] = None,
         subassembly_id: Union[int, np.int64, None] = None,
     ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
-        """Get all building blocks for a given location.
+        """Get all relevant building blocks.
 
-        :param projectsite: Title of the projectsite.
-        :param assetlocation: Title of the asset location.
-        :param subassembly_type: Type of the subassemblies.
-        :param subassembly_id: ID of the subassembly.
+        :param projectsite: Optional: Title of the projectsite.
+        :param assetlocation: Optional: Title of the asset location.
+        :param subassembly_type: Optional: Type of the subassemblies (e.g. 'MP', 'TW', 'TP').
+        :param subassembly_id: Optional: ID of the subassembly.
         :return: Dictionary with the following keys:
 
             - "data": Pandas dataframe with the location data for each project
@@ -233,7 +233,7 @@ class GeometryAPI(API):
     ) -> Dict[str, SubAssembly]:
         """Get all subassemblies for a given turbine, divided by type.
 
-        :param turbine: Turbine title (e.g. 'BBC01')
+        :param turbine: Turbine title
         :param subassembly: Sub-assembly type (e.g. 'MP', 'TW', 'TP')
         :param model_definition_id: ID of the model definition to filter the subassemblies.
         :return: Dictionary with the following keys:
@@ -289,10 +289,12 @@ class GeometryAPI(API):
         monopile_head: Union[float, List[float], None] = None,
     ) -> OWTs:
         """Return the required processing class.
+        Will return data even if some turbines have issues given that at least one is fully OK.
 
         :param turbines: Title(s) of the turbines.
-        :param tower_base: Optional: height(s) of the tower base.
-        :param monopile_head: Optional: height(s) of the monopile head.
+        :param model_definition: Optional: Title of the model definition.
+        :param tower_base: Optional: Height(s) of the tower base.
+        :param monopile_head: Optional: Height(s) of the monopile head.
         :return: OWTs object: containing information about all the requested turbines.
         """
         materials_data = self.get_materials()
@@ -370,7 +372,7 @@ class GeometryAPI(API):
         :param projectsite: Name of the project site
         :param assetlocation: Name of the wind turbine location
         :param cutoff_point: Elevation of the load application point in (mLAT) above the mudline
-        :param model_definition: Optional: model definition.
+        :param model_definition: Optional: Title of the model definition.
         :return: DataFrame with the monopile geometry.
         """
         # Retrieve the monopile cans
@@ -451,6 +453,7 @@ class GeometryAPI(API):
         :param turbines: Title(s) of the turbines.
         :param figures_per_line: Number of figures per line.
         :param return_fig: Boolean indicating whether to return the figure.
+        :param model_definition: Optional: Title of the model definition.
         :return: Plotly figure object with selected turbines front profiles (if requested) or nothing.
         """
         materials_data = self.get_materials()
