@@ -196,6 +196,24 @@ class SoilDataProcessor:
                         soilprofile_df.loc[i, key] = value
                 except Exception:
                     pass
+            for col in soilprofile_df.columns:
+                is_numeric_col = True
+                for value in soilprofile_df[col]:
+                    if value is None or pd.isna(value) or value == "" or value == "None" or value == "null":
+                        continue
+                    if not isinstance(value, (int, float)):
+                        try:
+                            float(value)
+                        except (ValueError, TypeError):
+                            is_numeric_col = False
+                            break
+                if is_numeric_col:
+                    try:
+                        soilprofile_df[col] = pd.to_numeric(soilprofile_df[col])
+                    except Exception as err:
+                        warnings.warn(
+                            f"Error converting column '{col}' to numeric: {err}"
+                        )
             if profile_title is None:
                 profile_title = (
                     f"{df_sum['location_name'].iloc[0]} - {df_sum['title'].iloc[0]}"
