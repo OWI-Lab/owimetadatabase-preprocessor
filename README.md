@@ -1,5 +1,13 @@
 # Owimetadatabase preprocessor
 
+[![version](https://img.shields.io/pypi/v/owimetadatabase-preprocessor)](https://pypi.org/project/owimetadatabase-preprocessor/)
+[![python versions](https://img.shields.io/pypi/pyversions/owimetadatabase-preprocessor)](https://pypi.org/project/owimetadatabase-preprocessor/)
+[![license](https://img.shields.io/github/license/owi-lab/owimetadatabase-preprocessor)](https://github.com/OWI-Lab/owimetadatabase-preprocessor/blob/main/LICENSE)
+[![pytest](https://img.shields.io/github/actions/workflow/status/owi-lab/owimetadatabase-preprocessor/ci.yml?label=pytest)](https://github.com/OWI-Lab/owimetadatabase-preprocessor/actions/workflows/ci.yml)
+[![lint](https://img.shields.io/github/actions/workflow/status/owi-lab/owimetadatabase-preprocessor/ci.yml?label=lint)](https://github.com/OWI-Lab/owimetadatabase-preprocessor/actions/workflows/ci.yml)
+[![issues](https://img.shields.io/github/issues/owi-lab/owimetadatabase-preprocessor)](https://github.com/OWI-Lab/owimetadatabase-preprocessor/issues)
+[![DOI](https://zenodo.org/badge/716058202.svg)](https://doi.org/10.5281/zenodo.10620568)
+
 Tools for preprocessing geometries from the metadatabase. Read the documentation [here](https://owi-lab.github.io/owimetadatabase-preprocessor/).
 
 ## Installation
