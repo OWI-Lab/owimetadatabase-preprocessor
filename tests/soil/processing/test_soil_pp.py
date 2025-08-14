@@ -3,9 +3,9 @@ import os
 
 import pandas as pd
 import pytest
+from groundhog.general.soilprofile import profile_from_dataframe
 
 from owimetadatabase_preprocessor.soil import SoilDataProcessor, SoilprofileProcessor
-from groundhog.general.soilprofile import profile_from_dataframe
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
@@ -173,25 +173,29 @@ def test_convert_to_profile(filename_input: str, filename_output: str) -> None:
         data_input = json.load(f)
     with open(filepath_output, "r") as f:
         data_output = json.load(f)
-    
+
     df_input = pd.DataFrame(data_input)
     df_output = pd.DataFrame(data_output)
 
-    cols_not_numeric = {"Soil type",}
+    cols_not_numeric = {
+        "Soil type",
+    }
     cols_numeric = df_output.columns.difference(cols_not_numeric)
-    df_output[cols_numeric] = df_output[cols_numeric].apply(pd.to_numeric, errors="coerce")
+    df_output[cols_numeric] = df_output[cols_numeric].apply(
+        pd.to_numeric, errors="coerce"
+    )
 
     groundhog_profile = profile_from_dataframe(df_output)
-    
+
     df_temp = pd.DataFrame(
         {
-            "location_name": [df_input['location_name'].iloc[0]],
-            "title": [df_input['title'].iloc[0]],
+            "location_name": [df_input["location_name"].iloc[0]],
+            "title": [df_input["title"].iloc[0]],
         }
     )
-    
+
     result = SoilDataProcessor.convert_to_profile(
-        df_temp, df_input, None, True, loading='lateral', formulation='pisa'
+        df_temp, df_input, None, True, loading="lateral", formulation="pisa"
     )
-    
+
     pd.testing.assert_frame_equal(result, groundhog_profile, check_like=True)

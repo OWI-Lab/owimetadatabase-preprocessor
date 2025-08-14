@@ -4,9 +4,9 @@ for processing soil data.  It is used to transform coordinates, combine raw
 and processed DataFrames, and extract/convert in-situ test detail data.
 """
 
-import warnings
 import re
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING, Union
+import warnings
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 from groundhog.general.soilprofile import profile_from_dataframe
@@ -202,14 +202,16 @@ class SoilDataProcessor:
         def has_trailing_unit(s: str) -> bool:
             return re.search(r"\[[^]]+\]\s*$", s) is not None
 
-        def process_keys(keys: List[Union[str, Tuple[str, str]]]) -> Tuple[List[str], List[Tuple[str, str]]]:
+        def process_keys(
+            keys: List[Union[str, Tuple[str, str]]],
+        ) -> Tuple[List[str], List[Tuple[str, str]]]:
             string_keys = [normalize(k) for k in keys if isinstance(k, str)]
             tuple_keys = []
             for k in keys:
                 if isinstance(k, tuple):
                     tuple_keys.append(tuple(normalize(elem) for elem in k))
             return string_keys, tuple_keys
-        
+
         string_keys_mandatory, tuple_keys_mandatory = process_keys(keys_mandatory)
         string_keys_optional, tuple_keys_optional = process_keys(keys_optional)
 
@@ -220,29 +222,38 @@ class SoilDataProcessor:
 
         def match_tuple_key(tuple_key: Tuple[str, ...]) -> List[str]:
             return [
-                col for col in df_processed.columns
+                col
+                for col in df_processed.columns
                 if all(elem in cols_norm[col] for elem in tuple_key)
             ]
 
         for string_key in string_keys_mandatory:
             matches = match_string_key(string_key)
             if not matches:
-                raise KeyError(f"Mandatory key '{string_key}' not found in DataFrame columns.")
+                raise KeyError(
+                    f"Mandatory key '{string_key}' not found in DataFrame columns."
+                )
             if has_trailing_unit(string_key):
                 for col in matches:
-                    df_processed[col] = pd.to_numeric(df_processed[col], errors="coerce")
+                    df_processed[col] = pd.to_numeric(
+                        df_processed[col], errors="coerce"
+                    )
 
         for tuple_key in tuple_keys_mandatory:
             matches = match_tuple_key(tuple_key)
             if not matches:
-                raise KeyError(f"Mandatory key '{tuple_key}' not found in DataFrame columns.")
+                raise KeyError(
+                    f"Mandatory key '{tuple_key}' not found in DataFrame columns."
+                )
             for col in matches:
                 df_processed[col] = pd.to_numeric(df_processed[col], errors="coerce")
 
         for string_key in string_keys_optional:
             if has_trailing_unit(string_key):
                 for col in match_string_key(string_key):
-                    df_processed[col] = pd.to_numeric(df_processed[col], errors="coerce")
+                    df_processed[col] = pd.to_numeric(
+                        df_processed[col], errors="coerce"
+                    )
 
         for tuple_key in tuple_keys_optional:
             for col in match_tuple_key(tuple_key):
@@ -251,7 +262,9 @@ class SoilDataProcessor:
         return df_processed
 
     @staticmethod
-    def _process_soilprofile_cols(df: pd.DataFrame, loading: str, formulation: str) -> pd.DataFrame:
+    def _process_soilprofile_cols(
+        df: pd.DataFrame, loading: str, formulation: str
+    ) -> pd.DataFrame:
         """Process soil profile DataFrame columns based on the specified loading type and option.
 
         :param df: DataFrame to process.
@@ -260,9 +273,13 @@ class SoilDataProcessor:
         :return: Processed DataFrame with enforced dtypes.
         """
         if loading is None:
-            raise ValueError("Loading type must be specified to properly convert soil profile to groundhog object.")
+            raise ValueError(
+                "Loading type must be specified to properly convert soil profile to groundhog object."
+            )
         if formulation is None:
-            raise ValueError("Formulation must be specified to properly convert soil profile to groundhog object.")
+            raise ValueError(
+                "Formulation must be specified to properly convert soil profile to groundhog object."
+            )
         formulations = SoilprofileProcessor.get_available_options(loading=loading)
         if formulation not in formulations:
             raise NotImplementedError(
@@ -270,16 +287,24 @@ class SoilDataProcessor:
                 f"Only '{formulations}' are available."
             )
         if loading.lower() == "lateral":
-            keys_mandatory = SoilprofileProcessor.LATERAL_SSI_KEYS[formulation]["mandatory"]
-            keys_optional = SoilprofileProcessor.LATERAL_SSI_KEYS[formulation]["optional"]
+            keys_mandatory = SoilprofileProcessor.LATERAL_SSI_KEYS[formulation][
+                "mandatory"
+            ]
+            keys_optional = SoilprofileProcessor.LATERAL_SSI_KEYS[formulation][
+                "optional"
+            ]
         elif loading.lower() == "axial":
-            keys_mandatory = SoilprofileProcessor.AXIAL_SSI_KEYS[formulation]["mandatory"]
+            keys_mandatory = SoilprofileProcessor.AXIAL_SSI_KEYS[formulation][
+                "mandatory"
+            ]
             keys_optional = SoilprofileProcessor.AXIAL_SSI_KEYS[formulation]["optional"]
         else:
             raise NotImplementedError(
                 f"Loading type '{loading}' not yet supported for 'dtype' enforcement."
             )
-        return SoilDataProcessor._coerce_columns_by_keys(df, keys_mandatory, keys_optional)
+        return SoilDataProcessor._coerce_columns_by_keys(
+            df, keys_mandatory, keys_optional
+        )
 
     @staticmethod
     def convert_to_profile(
@@ -288,8 +313,8 @@ class SoilDataProcessor:
         profile_title: Optional[str],
         drop_info_cols: bool,
         loading: Optional[str],
-        formulation: Optional[str]
-    ) -> Optional["groundhog.general.soilprofile.SoilProfile"]:
+        formulation: Optional[str],
+    ) -> Optional["SoilProfile"]:
         """Convert soil profile dataframe into a Groundhog soil profile representation.
 
         :param df_sum: Summary DataFrame containing general information about the soil profile.
@@ -320,7 +345,9 @@ class SoilDataProcessor:
                         soilprofile_df.loc[i, key] = value
                 except Exception:
                     pass
-            soilprofile_df = SoilDataProcessor._process_soilprofile_cols(soilprofile_df, loading, formulation)
+            soilprofile_df = SoilDataProcessor._process_soilprofile_cols(
+                soilprofile_df, loading, formulation
+            )
             if profile_title is None:
                 profile_title = (
                     f"{df_sum['location_name'].iloc[0]} - {df_sum['title'].iloc[0]}"
