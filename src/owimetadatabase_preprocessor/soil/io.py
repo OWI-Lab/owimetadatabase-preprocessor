@@ -3,7 +3,7 @@ API client Module for the soil data in the OWIMetadatabase.
 """
 
 import warnings
-from typing import Callable, Dict, Union, Optional
+from typing import Callable, Dict, Optional, Union
 
 import numpy as np
 import pandas as pd

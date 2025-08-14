@@ -6,12 +6,15 @@ and processed DataFrames, and extract/convert in-situ test detail data.
 
 import warnings
 import re
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple, TYPE_CHECKING, Union
 
 import pandas as pd
 from groundhog.general.soilprofile import profile_from_dataframe
 from groundhog.siteinvestigation.insitutests.pcpt_processing import PCPTProcessing
 from pyproj import Transformer
+
+if TYPE_CHECKING:
+    from groundhog.general.soilprofile import SoilProfile
 
 
 class SoilDataProcessor:
@@ -256,11 +259,15 @@ class SoilDataProcessor:
         :param formulation: Formulation used to define the soil profile.
         :return: Processed DataFrame with enforced dtypes.
         """
-        options = SoilprofileProcessor.get_available_options(loading=loading)
-        if formulation not in options:
+        if loading is None:
+            raise ValueError("Loading type must be specified to properly convert soil profile to groundhog object.")
+        if formulation is None:
+            raise ValueError("Formulation must be specified to properly convert soil profile to groundhog object.")
+        formulations = SoilprofileProcessor.get_available_options(loading=loading)
+        if formulation not in formulations:
             raise NotImplementedError(
                 f"Formulation '{formulation}' not yet supported for 'dtype' enforcement. "
-                f"Only '{options}' are available."
+                f"Only '{formulations}' are available."
             )
         if loading.lower() == "lateral":
             keys_mandatory = SoilprofileProcessor.LATERAL_SSI_KEYS[formulation]["mandatory"]
@@ -278,11 +285,11 @@ class SoilDataProcessor:
     def convert_to_profile(
         df_sum: pd.DataFrame,
         df_detail: pd.DataFrame,
-        profile_title: str,
+        profile_title: Optional[str],
         drop_info_cols: bool,
-        loading: str,
-        formulation: str
-    ) -> Union[groundhog.general.soilprofile.SoilProfile, None]:
+        loading: Optional[str],
+        formulation: Optional[str]
+    ) -> Optional["groundhog.general.soilprofile.SoilProfile"]:
         """Convert soil profile dataframe into a Groundhog soil profile representation.
 
         :param df_sum: Summary DataFrame containing general information about the soil profile.
