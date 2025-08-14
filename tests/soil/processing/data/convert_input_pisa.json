@@ -1,0 +1,93 @@
+[
+    {
+        "id": 1111,
+        "location_name": "TEST_LOC",
+        "title": "TEST_SP",
+        "soillayer_set": [
+            {
+                "id": 101,
+                "soilunit_name": "Generic SAND",
+                "soiltype_name": "SAND",
+                "soilprofile_name": "TEST_SP",
+                "start_depth": 0.0,
+                "end_depth": 15.0,
+                "description": "",
+                "totalunitweight": 20.0,
+                "soilparameters": {
+                    "Dr to [-]": 1.0,
+                    "Soil type": "SAND",
+                    "Dr from [-]": 1.0,
+                    "Su to [kPa]": null,
+                    "Gmax to [kPa]": 190000.05,
+                    "Su from [kPa]": null,
+                    "Gmax from [kPa]": 0.0
+                },
+                "profile": 1111,
+                "soilunit": 239
+            }, 
+            {
+                "id": 102,
+                "soilunit_name": "Generic SAND",
+                "soiltype_name": "SAND",
+                "soilprofile_name": "TEST_SP",
+                "start_depth": 15.0,
+                "end_depth": 17.5,
+                "description": "",
+                "totalunitweight": 20.0,
+                "soilparameters": {
+                    "Dr to [-]": 1.0,
+                    "Soil type": "SAND",
+                    "Dr from [-]": 1.0,
+                    "Su to [kPa]": null,
+                    "Gmax to [kPa]": 205000.9,
+                    "Su from [kPa]": null,
+                    "Gmax from [kPa]": 195000.1
+                },
+                "profile": 1111,
+                "soilunit": 239
+            }, 
+            {
+                "id": 103,
+                "soilunit_name": "Generic SAND",
+                "soiltype_name": "SAND",
+                "soilprofile_name": "TEST_SP",
+                "start_depth": 17.5,
+                "end_depth": 20.0,
+                "description": "",
+                "totalunitweight": 20.0,
+                "soilparameters": {
+                    "Dr to [-]": 0.9111,
+                    "Soil type": "SAND",
+                    "Dr from [-]": 0.7777,
+                    "Su to [kPa]": null,
+                    "Gmax to [kPa]": 225000.005,
+                    "Su from [kPa]": null,
+                    "Gmax from [kPa]": 175000.81
+                },
+                "profile": 1111,
+                "soilunit": 239
+            }, 
+            {
+                "id": 104,
+                "soilunit_name": "Generic CLAY",
+                "soiltype_name": "CLAY",
+                "soilprofile_name": "TEST_SP",
+                "start_depth": 20.0,
+                "end_depth": 30.0,
+                "description": "",
+                "totalunitweight": 20.0,
+                "soilparameters": {
+                    "Dr to [-]": null,
+                    "Soil type": "CLAY",
+                    "Dr from [-]": null,
+                    "Su to [kPa]": 125.666,
+                    "Gmax to [kPa]": 197500.11,
+                    "Su from [kPa]": 100.35,
+                    "Gmax from [kPa]": 115000.25
+                },
+                "profile": 1111,
+                "soilunit": 239
+            }
+        ]
+    }
+]

@@ -1,0 +1,50 @@
+[
+    {
+        "Depth from [m]": 0,
+        "Depth to [m]": 15.0,
+        "Soil type": "SAND",
+        "Gmax from [kPa]": 0.0,
+        "Gmax to [kPa]": 190000.05,
+        "Su from [kPa]": null,
+        "Su to [kPa]": null,
+        "Dr from [-]": 1.0,
+        "Dr to [-]": 1.0,
+        "Total unit weight [kN/m3]": 20.0
+    },
+    {
+        "Depth from [m]": 15.0,
+        "Depth to [m]": 17.5,
+        "Soil type": "SAND",
+        "Gmax from [kPa]": 195000.1,
+        "Gmax to [kPa]": 205000.9,
+        "Su from [kPa]": null,
+        "Su to [kPa]": null,
+        "Dr from [-]": 1.0,
+        "Dr to [-]": 1.0,
+        "Total unit weight [kN/m3]": 20.0
+    },
+    {
+        "Depth from [m]": 17.5,
+        "Depth to [m]": 20.0,
+        "Soil type": "SAND",
+        "Gmax from [kPa]": 175000.81,
+        "Gmax to [kPa]": 225000.005,
+        "Su from [kPa]": null,
+        "Su to [kPa]": null,
+        "Dr from [-]": 0.7777,
+        "Dr to [-]": 0.9111,
+        "Total unit weight [kN/m3]": 20.0
+    },
+    {
+        "Depth from [m]": 20.0,
+        "Depth to [m]": 30.0,
+        "Soil type": "CLAY",
+        "Gmax from [kPa]": 115000.25,
+        "Gmax to [kPa]": 197500.11,
+        "Su from [kPa]": 100.35,
+        "Su to [kPa]": 125.666,
+        "Dr from [-]": null,
+        "Dr to [-]": null,
+        "Total unit weight [kN/m3]": 20.0
+    }
+]
