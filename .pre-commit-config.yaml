@@ -1,11 +1,11 @@
-exclude: '^.*$'
+# exclude: '^.*$'
 fail_fast: true
 repos:
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.12.9
   hooks:
   - id: ruff-check
-    args: [ --fix ]
+    # args: [ --fix ]
     types: [python]
   - id: ruff-format
     types: [python]
