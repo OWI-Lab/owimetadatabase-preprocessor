@@ -3,7 +3,7 @@ API client Module for the soil data in the OWIMetadatabase.
 """
 
 import warnings
-from typing import Callable, Dict, Optional, Union
+from typing import Callable, Dict, Union
 
 import numpy as np
 import pandas as pd
@@ -877,8 +877,6 @@ class SoilAPI(API):
         convert_to_profile: bool = True,
         profile_title: Union[str, None] = None,
         drop_info_cols: bool = True,
-        loading: Optional[str] = None,
-        formulation: Optional[str] = None,
         **kwargs,
     ) -> Dict[str, Union[pd.DataFrame, int, str, bool, requests.Response, None]]:
         """
@@ -890,11 +888,8 @@ class SoilAPI(API):
         :param soilprofile: Title of the soil profile (e.g. "Borehole log")
         :param convert_to_profile: Boolean determining whether the soil profile
             needs to be converted to a groundhog SoilProfile object
-        :param profile_title: Title for the soil profile
         :param drop_info_cols: Boolean determining whether or not to drop the
             columns with additional info (e.g. soil description, ...)
-        :param loading: Optional type of loading
-        :param formulation: Optional name of the formulation used to define the soil profile
         :return: Dictionary with the following keys:
             - 'id': id for the selected soil profile
             - 'soilprofilesummary': Metadata for the soil profile
@@ -924,7 +919,7 @@ class SoilAPI(API):
         }
         if convert_to_profile:
             dsp = SoilDataProcessor.convert_to_profile(
-                df_sum, df_detail, profile_title, drop_info_cols, loading, formulation
+                df_sum, df_detail, profile_title, drop_info_cols
             )
             dict_["soilprofile"] = dsp
             return dict_

@@ -4,17 +4,13 @@ for processing soil data.  It is used to transform coordinates, combine raw
 and processed DataFrames, and extract/convert in-situ test detail data.
 """
 
-import re
 import warnings
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 import pandas as pd
 from groundhog.general.soilprofile import profile_from_dataframe
 from groundhog.siteinvestigation.insitutests.pcpt_processing import PCPTProcessing
 from pyproj import Transformer
-
-if TYPE_CHECKING:
-    from groundhog.general.soilprofile import SoilProfile
 
 
 class SoilDataProcessor:
@@ -177,153 +173,8 @@ class SoilDataProcessor:
             return None
 
     @staticmethod
-    def _coerce_columns_by_keys(
-        df: pd.DataFrame,
-        keys_mandatory: List[Union[str, Tuple[str, str]]],
-        keys_optional: List[Union[str, Tuple[str, str]]],
-    ) -> pd.DataFrame:
-        """Check names and enforce types for DataFrame columns based on a provided list of keys.
-
-        If the mandatory key is missing it will raise an error.
-        If the key ends with '[...]' (unit), then the matched column assumed numeric.
-        For tuple keys: ALL tuple elements must be present in at least one column name; treated as numeric always.
-        Extra DataFrame columns not matching any key are left unchanged.
-
-        :param df: DataFrame to process.
-        :param keys_mandatory: List of mandatory keys to match against DataFrame columns.
-        :param keys_optional: List of optional keys to match against DataFrame columns.
-        :return: DataFrame with coerced column types.
-        """
-        df_processed = df.copy()
-
-        def normalize(s: str) -> str:
-            return " ".join(s.split()).strip().lower()
-
-        def has_trailing_unit(s: str) -> bool:
-            return re.search(r"\[[^]]+\]\s*$", s) is not None
-
-        def process_keys(
-            keys: List[Union[str, Tuple[str, str]]],
-        ) -> Tuple[List[str], List[Tuple[str, str]]]:
-            string_keys = [normalize(k) for k in keys if isinstance(k, str)]
-            tuple_keys = []
-            for k in keys:
-                if isinstance(k, tuple):
-                    tuple_keys.append(tuple(normalize(elem) for elem in k))
-            return string_keys, tuple_keys
-
-        string_keys_mandatory, tuple_keys_mandatory = process_keys(keys_mandatory)
-        string_keys_optional, tuple_keys_optional = process_keys(keys_optional)
-
-        cols_norm = {col: normalize(col) for col in df_processed.columns}
-
-        def match_string_key(string_key: str) -> List[str]:
-            return [col for col in df_processed.columns if string_key in cols_norm[col]]
-
-        def match_tuple_key(tuple_key: Tuple[str, ...]) -> List[str]:
-            return [
-                col
-                for col in df_processed.columns
-                if all(elem in cols_norm[col] for elem in tuple_key)
-            ]
-
-        for string_key in string_keys_mandatory:
-            matches = match_string_key(string_key)
-            if not matches:
-                raise KeyError(
-                    f"Mandatory key '{string_key}' not found in DataFrame columns."
-                )
-            if has_trailing_unit(string_key):
-                for col in matches:
-                    df_processed[col] = pd.to_numeric(
-                        df_processed[col], errors="coerce"
-                    )
-
-        for tuple_key in tuple_keys_mandatory:
-            matches = match_tuple_key(tuple_key)
-            if not matches:
-                raise KeyError(
-                    f"Mandatory key '{tuple_key}' not found in DataFrame columns."
-                )
-            for col in matches:
-                df_processed[col] = pd.to_numeric(df_processed[col], errors="coerce")
-
-        for string_key in string_keys_optional:
-            if has_trailing_unit(string_key):
-                for col in match_string_key(string_key):
-                    df_processed[col] = pd.to_numeric(
-                        df_processed[col], errors="coerce"
-                    )
-
-        for tuple_key in tuple_keys_optional:
-            for col in match_tuple_key(tuple_key):
-                df_processed[col] = pd.to_numeric(df_processed[col], errors="coerce")
-
-        return df_processed
-
-    @staticmethod
-    def _process_soilprofile_cols(
-        df: pd.DataFrame, loading: str, formulation: str
-    ) -> pd.DataFrame:
-        """Process soil profile DataFrame columns based on the specified loading type and option.
-
-        :param df: DataFrame to process.
-        :param loading: Loading type (e.g., "lateral" or "axial").
-        :param formulation: Formulation used to define the soil profile.
-        :return: Processed DataFrame with enforced dtypes.
-        """
-        if loading is None:
-            raise ValueError(
-                "Loading type must be specified to properly convert soil profile to groundhog object."
-            )
-        if formulation is None:
-            raise ValueError(
-                "Formulation must be specified to properly convert soil profile to groundhog object."
-            )
-        formulations = SoilprofileProcessor.get_available_options(loading=loading)
-        if formulation not in formulations:
-            raise NotImplementedError(
-                f"Formulation '{formulation}' not yet supported for 'dtype' enforcement. "
-                f"Only '{formulations}' are available."
-            )
-        if loading.lower() == "lateral":
-            keys_mandatory = SoilprofileProcessor.LATERAL_SSI_KEYS[formulation][
-                "mandatory"
-            ]
-            keys_optional = SoilprofileProcessor.LATERAL_SSI_KEYS[formulation][
-                "optional"
-            ]
-        elif loading.lower() == "axial":
-            keys_mandatory = SoilprofileProcessor.AXIAL_SSI_KEYS[formulation][
-                "mandatory"
-            ]
-            keys_optional = SoilprofileProcessor.AXIAL_SSI_KEYS[formulation]["optional"]
-        else:
-            raise NotImplementedError(
-                f"Loading type '{loading}' not yet supported for 'dtype' enforcement."
-            )
-        return SoilDataProcessor._coerce_columns_by_keys(
-            df, keys_mandatory, keys_optional
-        )
-
-    @staticmethod
-    def convert_to_profile(
-        df_sum: pd.DataFrame,
-        df_detail: pd.DataFrame,
-        profile_title: Optional[str],
-        drop_info_cols: bool,
-        loading: Optional[str],
-        formulation: Optional[str],
-    ) -> Optional["SoilProfile"]:
-        """Convert soil profile dataframe into a Groundhog soil profile representation.
-
-        :param df_sum: Summary DataFrame containing general information about the soil profile.
-        :param df_detail: Detail DataFrame containing specific information about soil layers.
-        :param profile_title: Title for the soil profile.
-        :param drop_info_cols: Boolean indicating whether to drop informational columns.
-        :param loading: Optional type of loading.
-        :param formulation: Optional name of the formulation used to define the soil profile.
-        """
+    def convert_to_profile(df_sum, df_detail, profile_title, drop_info_cols):
+        # TODO: add docstring and type hints
         try:
             soilprofile_df = (
                 pd.DataFrame(df_detail["soillayer_set"].iloc[0])
@@ -345,9 +196,17 @@ class SoilDataProcessor:
                         soilprofile_df.loc[i, key] = value
                 except Exception:
                     pass
-            soilprofile_df = SoilDataProcessor._process_soilprofile_cols(
-                soilprofile_df, loading, formulation
-            )
+            
+            # Convert numeric columns, excluding "Soil type" (str)
+            for col in soilprofile_df.columns:
+                if col != "Soil type":
+                    try:
+                        soilprofile_df[col] = pd.to_numeric(soilprofile_df[col], errors='coerce')
+                    except Exception as err:
+                        warnings.warn(
+                            f"Error converting column '{col}' to numeric: {err}"
+                        )
+            
             if profile_title is None:
                 profile_title = (
                     f"{df_sum['location_name'].iloc[0]} - {df_sum['title'].iloc[0]}"
