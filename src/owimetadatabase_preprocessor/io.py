@@ -79,7 +79,7 @@ class API:
             comp = deepcompare(self.__dict__, other)
             assert comp[0], comp[1]
         else:
-            assert False, "Comparison is not possible due to incompatible types!"
+            raise AssertionError("Comparison is not possible due to incompatible types!")
         return comp[0]
 
     def send_request(self, url_data_type: str, url_params: dict[str, str]) -> requests.Response:
@@ -149,10 +149,7 @@ class API:
                 raise InvalidParameterError("More than one project site was returned, check search criteria.")
             data_add = {"existance": exists, "id": project_id}
         elif output_type == "list":
-            if df.__len__() == 0:
-                exists = False
-            else:
-                exists = True
+            exists = df.__len__() != 0
             data_add = {"existance": exists}
         else:
             raise InvalidParameterError("Output type must be either 'single' or 'list', not " + output_type + ".")
@@ -183,13 +180,13 @@ class API:
                     df.loc[cond_small_units, "z_position"] = df.loc[cond_small_units, "z_position"] / 1e3
                     warnings.warn(
                         f"The value of z location for {df.loc[cond_small_units | cond_big_units, 'title'].values} \
-                        might be wrong or in wrong units! There will be an attempt to correct the units."
+                        might be wrong or in wrong units! There will be an attempt to correct the units.", stacklevel=2
                     )
                 if df[cond_big_units].__len__() > 0:
                     df.loc[cond_big_units, "z_position"] = df.loc[cond_big_units, "z_position"] * 1e3
                     warnings.warn(
                         f"The value of z location for {df.loc[cond_small_units | cond_big_units, 'title'].values} \
-                        might be wrong or in wrong units! There will be an attempt to correct the units."
+                        might be wrong or in wrong units! There will be an attempt to correct the units.", stacklevel=2
                     )
         return df
 

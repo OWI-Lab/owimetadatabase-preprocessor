@@ -88,7 +88,7 @@ class LocationsAPI(API):
         if projectsite:
             url_params["projectsite__title"] = projectsite
         url_data_type = "assetlocations"
-        if "assetlocations" in url_params.keys() and isinstance(url_params["assetlocations"], list):
+        if "assetlocations" in url_params and isinstance(url_params["assetlocations"], list):
             df = []
             df_add = {"existance": []}
             for assetlocation in url_params["assetlocations"]:

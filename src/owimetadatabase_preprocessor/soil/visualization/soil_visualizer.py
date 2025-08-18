@@ -59,7 +59,7 @@ class SoilPlot:
         :raises ValueError: If no SoilAPI instance is provided
         """
         if general_layout is None:
-            general_layout = dict()
+            general_layout = {}
         if fillcolordict is None:
             fillcolordict = {
                 "SAND": "yellow",
@@ -131,7 +131,7 @@ class SoilPlot:
                 "SAND/CLAY": "orange",
             }
         if general_layout is None:
-            general_layout = dict()
+            general_layout = {}
         combined_fence_fig_1 = plot_combined_longitudinal_profile(
             cpts=cpts,
             profiles=profiles,
@@ -190,7 +190,7 @@ class SoilPlot:
         extend_profile: bool = True,
         plotmap: bool = False,
         show_annotations: bool = True,
-        general_layout: dict[Any, Any] = dict(),
+        general_layout: dict[Any, Any] = None,
         uniformcolor: Union[str, None] = None,
         **kwargs,
     ) -> dict[str, Union[list[pd.DataFrame], go.Figure]]:
@@ -213,6 +213,8 @@ class SoilPlot:
             - 'diagram': Plotly figure with the fence diagram
         :raises ValueError: If no SoilAPI instance is provided
         """
+        if general_layout is None:
+            general_layout = {}
         selected_cpts = cpt_df
         cpts = SoilDataProcessor.objects_to_list(selected_cpts, self.soil_api.get_cpttest_detail, "cpt")
         cpt_fence_fig_1 = plot_longitudinal_profile(

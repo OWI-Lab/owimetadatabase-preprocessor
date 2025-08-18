@@ -90,7 +90,7 @@ class BaseStructure:
             comp = deepcompare(self.__dict__, other)
             assert comp[0], comp[1]
         else:
-            assert False, "Comparison is not possible due to incompatible types!"
+            raise AssertionError("Comparison is not possible due to incompatible types!")
         return comp[0]
 
 
@@ -269,7 +269,7 @@ class BuildingBlock(BaseStructure):
 
                 def _calc_cone_volume(r_bottom, r_top, height):
                     """Calculate the volume of a cone frustum.
-                    Source: https://mathworld.wolfram.com/ConicalFrustum.html
+                    Source: https://mathworld.wolfram.com/ConicalFrustum.html.
 
                     :param r_bottom: Radius of the bottom circle, mm.
                     :param r_top: Radius of the top circle, mm.
@@ -467,7 +467,7 @@ class SubAssembly(BaseStructure):
 
     @property
     def building_blocks(self) -> Union[list[BuildingBlock], None]:
-        """Building blocks of the subassembly
+        """Building blocks of the subassembly.
 
         :return: List of instances of building block class.
         """
@@ -520,7 +520,7 @@ class SubAssembly(BaseStructure):
 
     @property
     def outline(self) -> tuple[list[np.float64], list[np.float64]]:
-        """Defines the traces of the outline of the subassembly
+        """Defines the traces of the outline of the subassembly.
 
         :return:  A tuple of two lists containing the x and corresponding z coordinates of the outline.
         """
@@ -598,17 +598,17 @@ class SubAssembly(BaseStructure):
                 y=z,
                 mode="lines",
                 name=self.title,
-                line=dict(color=self.color, width=1),
+                line={"color": self.color, "width": 1},
             )
         ]
         layout = go.Layout(
-            scene=dict(aspectmode="data"),
-            yaxis=dict(
-                title=go.layout.yaxis.Title(text="Height , mm"),
-                scaleanchor="x",
-                scaleratio=1,
-                type="linear",
-            ),
+            scene={"aspectmode": "data"},
+            yaxis={
+                "title": go.layout.yaxis.Title(text="Height , mm"),
+                "scaleanchor": "x",
+                "scaleratio": 1,
+                "type": "linear",
+            },
         )
         markers: list[dict[str, Union[str, np.float64, list[np.float64]]]] = []
         if self.bb:

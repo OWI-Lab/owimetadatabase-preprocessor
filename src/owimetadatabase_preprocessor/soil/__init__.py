@@ -1,5 +1,5 @@
 """
-OWI Meta Database Preprocessor - Soil Package
+OWI Meta Database Preprocessor - Soil Package.
 
 This package provides tools for processing, analyzing, and visualizing soil data
 from the OWI Meta Database. It includes functionality for:

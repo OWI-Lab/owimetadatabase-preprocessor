@@ -14,9 +14,7 @@ from pyproj import Transformer
 
 
 class SoilDataProcessor:
-    """
-    Helper class for processing soil data.
-    """
+    """Helper class for processing soil data."""
 
     @staticmethod
     def transform_coord(
@@ -44,7 +42,7 @@ class SoilDataProcessor:
             # Transform the easting and northing columns in the DataFrame
             df["easting [m]"], df["northing [m]"] = transformer.transform(df["easting"], df["northing"])
         except Exception as err:
-            warnings.warn(f"Error transforming DataFrame coordinates: {err}")
+            warnings.warn(f"Error transforming DataFrame coordinates: {err}", stacklevel=2)
         # Transform the reference central point
         point_east, point_north = transformer.transform(longitude, latitude)
         return df, point_east, point_north
@@ -73,7 +71,7 @@ class SoilDataProcessor:
             )
             return combined_df
         except Exception as err:
-            warnings.warn(f"Error combining raw and processed data: {err}")
+            warnings.warn(f"Error combining raw and processed data: {err}", stacklevel=2)
             return dfs.get("rawdata", pd.DataFrame())
 
     @staticmethod
@@ -106,11 +104,11 @@ class SoilDataProcessor:
 
                     Check that you entered correct parameters in your request
                     or contact database administrators.
-                    """
+                    """, stacklevel=2
                 )
                 processed_dfs[col] = pd.DataFrame()
             except Exception as e:
-                warnings.warn(f"Error processing column '{col}': {e}")
+                warnings.warn(f"Error processing column '{col}': {e}", stacklevel=2)
                 processed_dfs[col] = pd.DataFrame()
 
         # Attempt to convert values to numeric where applicable.
@@ -118,7 +116,7 @@ class SoilDataProcessor:
             try:
                 processed_dfs[key] = processed_dfs[key].apply(lambda x: pd.to_numeric(x))
             except Exception as err:
-                warnings.warn(f"Numeric conversion warning for {key}: {err}")
+                warnings.warn(f"Numeric conversion warning for {key}: {err}", stacklevel=2)
         return processed_dfs
 
     @staticmethod
@@ -152,14 +150,11 @@ class SoilDataProcessor:
         # TODO: add docstring and type hints
         try:
             cpt = PCPTProcessing(title=df_sum["title"].iloc[0])
-            if "Push" in df_raw.keys():
-                push_key = "Push"
-            else:
-                push_key = None
+            push_key = "Push" if "Push" in df_raw else None
             cpt.load_pandas(df_raw, push_key=push_key, **kwargs)
             return cpt
         except Exception as err:
-            warnings.warn(f"ERROR: PCPTProcessing object not created - {err}")
+            warnings.warn(f"ERROR: PCPTProcessing object not created - {err}", stacklevel=2)
             return None
 
     @staticmethod
@@ -197,7 +192,7 @@ class SoilDataProcessor:
                     try:
                         soilprofile_df[col] = pd.to_numeric(soilprofile_df[col])
                     except Exception as err:
-                        warnings.warn(f"Error converting column '{col}' to numeric: {err}")
+                        warnings.warn(f"Error converting column '{col}' to numeric: {err}", stacklevel=2)
             if profile_title is None:
                 profile_title = f"{df_sum['location_name'].iloc[0]} - {df_sum['title'].iloc[0]}"
             if drop_info_cols:
@@ -224,11 +219,11 @@ class SoilDataProcessor:
 
                 Check that you entered correct parameters in your request
                 or contact database administrators.
-                """
+                """, stacklevel=2
             )
             return None
         except Exception as err:
-            warnings.warn(f"Error during loading of soil layers and parameters: {err}")
+            warnings.warn(f"Error during loading of soil layers and parameters: {err}", stacklevel=2)
             return None
 
     @staticmethod
@@ -290,7 +285,7 @@ class SoilDataProcessor:
                 )
                 obj.append(_obj)
             except Exception:
-                warnings.warn(f"Error loading {row['projectsite_name']}-{row['location_name']}-{row['title']}")
+                warnings.warn(f"Error loading {row['projectsite_name']}-{row['location_name']}-{row['title']}", stacklevel=2)
         return obj
 
 

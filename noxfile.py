@@ -42,6 +42,13 @@ def format(session):
 
 
 @nox.session(python="3.12")
+def format_unsafe(session):
+    session.install("ruff")
+    session.run("ruff", "format", "./src", "./tests")
+    session.run("ruff", "check", "--fix", "--unsafe-fixes", "./src", "./tests")
+
+
+@nox.session(python="3.12")
 def check(session):
     """Run all code quality checks (lint + format)."""
     session.install("ruff")

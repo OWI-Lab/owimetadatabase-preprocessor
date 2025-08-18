@@ -12,7 +12,7 @@ def custom_formatwarning(message, category, filename, lineno, line=None):
     return f"{category.__name__}: {message}\n"
 
 
-def dict_generator(dict_: dict[str, Any], keys_: list[str] = [], method_: str = "exclude") -> dict[str, Any]:
+def dict_generator(dict_: dict[str, Any], keys_: list[str] = None, method_: str = "exclude") -> dict[str, Any]:
     """Generate a dictionary with the specified keys.
 
     :param dict_: Dictionary to be filtered.
@@ -20,6 +20,8 @@ def dict_generator(dict_: dict[str, Any], keys_: list[str] = [], method_: str = 
     :param method_: Method to be used for filtering. Options are "exclude" and "include".
     :return: Filtered dictionary.
     """
+    if keys_ is None:
+        keys_ = []
     if method_ == "exclude":
         return {k: dict_[k] for k in dict_ if k not in keys_}
     elif method_ == "include":
@@ -40,16 +42,10 @@ def compare_if_simple_close(a: Any, b: Any, tol: float = 1e-9) -> tuple[bool, Un
         if np.isnan(a) and np.isnan(b):
             return True, None
         assertion = math.isclose(a, b, rel_tol=tol)
-        if assertion:
-            messsage = None
-        else:
-            messsage = f"Values of {a} and {b} are different."
+        messsage = None if assertion else f"Values of {a} and {b} are different."
         return assertion, messsage
     assertion = a == b
-    if assertion:
-        messsage = None
-    else:
-        messsage = f"Values of {a} and {b} are different."
+    messsage = None if assertion else f"Values of {a} and {b} are different."
     return assertion, messsage
 
 
@@ -128,10 +124,7 @@ def deepcompare(a: Any, b: Any, tol: float = 1e-5) -> tuple[bool, Union[None, st
         return deepcompare(a.__dict__, b.__dict__, tol)
     elif isinstance(a, pd.DataFrame):
         assertion = check_df_eq(a, b, tol)
-        if assertion:
-            message = None
-        else:
-            message = f"Dataframes {a} and {b} are different for {a.compare(b)}."
+        message = None if assertion else f"Dataframes {a} and {b} are different for {a.compare(b)}."
         return assertion, message
     else:
         return compare_if_simple_close(a, b, tol)
@@ -163,10 +156,10 @@ def fix_outline(data: Any) -> Any:
     """
     if isinstance(data, list):
         for i in range(len(data)):
-            if "outline" in data[i].keys() and data[i]["outline"] is not None:
+            if "outline" in data[i] and data[i]["outline"] is not None:
                 data[i]["outline"] = tuple(data[i]["outline"])
     elif isinstance(data, dict):
-        if "outline" in data.keys() and data["outline"] is not None:
+        if "outline" in data and data["outline"] is not None:
             data["outline"] = tuple(data["outline"])
     else:
         raise ValueError("Not supported data type.")
@@ -178,16 +171,15 @@ def hex_to_dec(value):
 
     def _hex_to_dec(value):
         value = value.lstrip("#") if value.startswith("#") else value
-        if len(value) != 6:
-            if len(value) != 8:
-                raise ValueError("len(value) != 6 or 8 (excluding #)")
+        if len(value) != 6 and len(value) != 8:
+            raise ValueError("len(value) != 6 or 8 (excluding #)")
         col = value[0:6]
         alpha = value[6:] / 100 if len(value) == 8 else 1
         lv = len(col)
-        return list(
+        return [
             int(col[i : i + lv // 3], 16) / 255  # noqa: E203
             for i in range(0, lv, lv // 3)
-        ) + [alpha]
+        ] + [alpha]
 
     if isinstance(value, str):
         value = [value]

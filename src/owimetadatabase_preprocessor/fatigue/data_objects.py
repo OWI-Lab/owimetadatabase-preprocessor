@@ -5,6 +5,7 @@ try:
 except ImportError:
     from collections.abc import Iterable
 
+import contextlib
 import warnings
 from copy import deepcopy
 from itertools import cycle
@@ -144,7 +145,7 @@ class SNCurve:
 
     @property
     def name(self) -> str:
-        """Name of the SN-Curve"""
+        """Name of the SN-Curve."""
         if self.curve is not None:
             if self.environment is not None:
                 if self.norm is not None:
@@ -216,7 +217,7 @@ class SNCurve:
                 "\033[0m do not meet up at the knee-point. ",
                 "Check the SN curve definition.",
             ]
-            warnings.warn("".join(w))
+            warnings.warn("".join(w), stacklevel=2)
 
     def _sn_curve_data_points(
         self,
@@ -242,7 +243,7 @@ class SNCurve:
         sigma: Union[list[np.float64], np.ndarray, None] = None,
         show: bool = True,
     ) -> tuple[list[go.Scattergl], go.Layout]:
-        """Use plotly to plot the SN curve
+        """Use plotly to plot the SN curve.
 
         :param n: Number of cycles for which the stress ranges have to be calculated and the plot shown.
         :param sigma: Stress ranges for which the maximum number of cycles is to be calculated and the plot shown.
@@ -255,15 +256,15 @@ class SNCurve:
                 x=n,  # assign x as the dataframe column 'x'
                 y=sigma,
                 name=self.name,
-                line=dict(color=self.color_str, width=1),
+                line={"color": self.color_str, "width": 1},
             )
         ]
         layout = go.Layout(
-            xaxis=dict(title=go.layout.xaxis.Title(text="Number of cycles"), type="log"),
-            yaxis=dict(
-                title=go.layout.yaxis.Title(text="Stress range, " + self.unit_string),
-                type="log",
-            ),
+            xaxis={"title": go.layout.xaxis.Title(text="Number of cycles"), "type": "log"},
+            yaxis={
+                "title": go.layout.yaxis.Title(text="Stress range, " + self.unit_string),
+                "type": "log",
+            },
         )
         if show:
             fig = go.Figure(data=data, layout=layout)
@@ -350,8 +351,8 @@ class FatigueDetail:
         self.modeldefinition = json_file["modeldefinition"]
         self.fatiguelifein = json_file["fatiguelifein"]
         self.fatiguelifeout = json_file["fatiguelifeout"]
-        self.scfin = json_file["scfin"] if "scfin" in json_file else None
-        self.scfout = json_file["scfout"] if "scfout" in json_file else None
+        self.scfin = json_file.get("scfin")
+        self.scfout = json_file.get("scfout")
         self.materialsafetyfactor = json_file["materialsafetyfactor"]
         self.scaleeffect = json_file["scaleeffect"]
 
@@ -567,8 +568,8 @@ class FatigueDetail:
                 "subassembly": self.subassembly_name[-2:],
                 "fatiguelifein": self.fatiguelifein,
                 "fatiguelifeout": self.fatiguelifeout,
-                "sncurvein": (self.sncurves["sncurvein"] if "sncurvein" in self.sncurves else None),
-                "sncurveout": (self.sncurves["sncurveout"] if "sncurveout" in self.sncurves else None),
+                "sncurvein": (self.sncurves.get("sncurvein", None)),
+                "sncurveout": (self.sncurves.get("sncurveout", None)),
                 "description": self.description if self.description else "-",
                 "scfin": self.scfin,
                 "scfout": self.scfout,
@@ -587,8 +588,8 @@ class FatigueDetail:
                 "subassembly": self.subassembly_name[-2:],
                 "fatiguelifein": self.fatiguelifein,
                 "fatiguelifeout": self.fatiguelifeout,
-                "sncurvein": (self.json["sncurvein"] if "sncurvein" in self.json else None),
-                "sncurveout": (self.json["sncurveout"] if "sncurveout" in self.json else None),
+                "sncurvein": (self.json.get("sncurvein", None)),
+                "sncurveout": (self.json.get("sncurveout", None)),
                 "description": self.description if self.description else "-",
                 "scfin": self.scfin,
                 "scfout": self.scfout,

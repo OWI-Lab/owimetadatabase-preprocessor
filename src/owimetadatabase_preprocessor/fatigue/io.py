@@ -95,7 +95,7 @@ class FatigueAPI(API):
             raise ValueError("No subassemblies found for " + str(turbine))
         sas_types = [j["subassembly_type"] for j in resp.json()]
         sas = [FatigueSubAssembly(item, api_object=self) for item in resp.json()]
-        subassemblies = {k: v for (k, v) in zip(sas_types, sas)}
+        subassemblies = dict(zip(sas_types, sas))
         return subassemblies
 
     def fatiguedetails_df(
@@ -270,7 +270,7 @@ class FatigueAPI(API):
         }
         # * Loop through assets
         for asset in pbar:
-            pbar.set_description("Processing %s" % asset)
+            pbar.set_description(f"Processing {asset}")
             # - generate frame
             frame = self._add_data_to_fatiguesubassembly(
                 dataset,
@@ -374,7 +374,7 @@ class FatigueAPI(API):
         fig_dict["layout"]["autosize"] = True
         # * Loop through assets
         for nr, asset in enumerate(pbar):
-            pbar.set_description("Processing %s" % asset)
+            pbar.set_description(f"Processing {asset}")
             # - generate frame
             fig_dict["data"].extend(
                 self._add_data_to_fatiguesubassembly(
@@ -425,10 +425,7 @@ class FatigueAPI(API):
         marker_scaler: int = 8,
     ):
         """Helper internal method to add data to the fatigue subassembly plot."""
-        if is_frame:
-            f = {"data": [], "name": str(asset)}
-        else:
-            f = {"data": []}
+        f = {"data": [], "name": str(asset)} if is_frame else {"data": []}
         df_by_asset = df[df["asset_name"] == asset]
         subass = self.geo_api.get_subassembly_objects(asset)
 
@@ -465,7 +462,7 @@ class FatigueAPI(API):
         sub_col = {}
         sub_z = {}
         sub_h = {}
-        for sub_key, sub in subass.items():
+        for _sub_key, sub in subass.items():
             bod[sub.type] = []
             tod[sub.type] = []
             sub_col[sub.type] = []

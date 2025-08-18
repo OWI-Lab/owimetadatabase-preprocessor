@@ -1,6 +1,4 @@
-"""
-API client Module for the soil data in the OWIMetadatabase.
-"""
+"""API client Module for the soil data in the OWIMetadatabase."""
 
 import warnings
 from typing import Callable, Union
@@ -50,7 +48,7 @@ class SoilAPI(API):
             - "data": Pandas dataframe with the data according to the specified search criteria
             - "exists": Boolean indicating whether matching records are found
         """
-        geosearch_params = dict(latitude=latitude, longitude=longitude, offset=radius)
+        geosearch_params = {"latitude": latitude, "longitude": longitude, "offset": radius}
         url_params = {**geosearch_params, **kwargs}
         url_data_type = api_url
         output_type = "list"
@@ -84,7 +82,7 @@ class SoilAPI(API):
             if df_add["existance"]:
                 break
             radius *= 2
-            warnings.warn(f"Expanding search radius to {radius: .1f}km")
+            warnings.warn(f"Expanding search radius to {radius: .1f}km", stacklevel=2)
             if radius > radius_max:
                 raise ValueError(f"No locations found within {radius_max}km radius. Check your input information.")
         return df
@@ -118,7 +116,7 @@ class SoilAPI(API):
             - 'title': Title of the closest test location
             - 'offset [m]': Offset in meters from the specified point
         """
-        geosearch_params = dict(latitude=latitude, longitude=longitude)
+        geosearch_params = {"latitude": latitude, "longitude": longitude}
         url_params = {**geosearch_params, **kwargs}
         df = self._search_any_entity(api_url, radius_init, url_params)
         df, point_east, point_north = SoilDataProcessor.transform_coord(df, longitude, latitude, target_srid)
@@ -159,7 +157,7 @@ class SoilAPI(API):
             - 'title': Title of the closest test location
             - 'offset [m]': Offset in meters from the specified point
         """
-        geosearch_params = dict(latitude=latitude, longitude=longitude)
+        geosearch_params = {"latitude": latitude, "longitude": longitude}
         url_params = {**geosearch_params, **kwargs}
         df = self._search_any_entity(api_url, radius_init, url_params)
         df, point_east, point_north = SoilDataProcessor.transform_coord(df, longitude, latitude, target_srid)
@@ -639,10 +637,7 @@ class SoilAPI(API):
         df_detail, df_add_detail = self.process_data(url_data_type, url_params, output_type)
         cols = ["rawdata", "processeddata", "conditions"]
         dfs = SoilDataProcessor.process_insitutest_dfs(df_detail, cols)
-        if combine:
-            df_raw = SoilDataProcessor.combine_dfs(dfs)
-        else:
-            df_raw = dfs["rawdata"]
+        df_raw = SoilDataProcessor.combine_dfs(dfs) if combine else dfs["rawdata"]
         return {
             "id": df_add_detail["id"],
             "insitutestsummary": df_sum,
@@ -706,10 +701,7 @@ class SoilAPI(API):
         df_detail, df_add_detail = self.process_data(url_data_type, url_params, output_type)
         cols = ["rawdata", "processeddata", "conditions"]
         dfs = SoilDataProcessor.process_insitutest_dfs(df_detail, cols)
-        if combine:
-            df_raw = SoilDataProcessor.combine_dfs(dfs)
-        else:
-            df_raw = dfs["rawdata"]
+        df_raw = SoilDataProcessor.combine_dfs(dfs) if combine else dfs["rawdata"]
         dict_ = {
             "id": df_add_detail["id"],
             "insitutestsummary": df_sum,

@@ -129,13 +129,13 @@ class OWT:
             setattr(self, attr, None)
         self.water_depth = location["elevation"].values[0]
         if not tower_base or not pile_head:
-            if "TW" in self.sub_assemblies.keys():
+            if "TW" in self.sub_assemblies:
                 self.tower_base = self.sub_assemblies["TW"].absolute_bottom
-            elif "TP" in self.sub_assemblies.keys():
+            elif "TP" in self.sub_assemblies:
                 self.tower_base = self.sub_assemblies["TP"].absolute_top
             else:
                 self.tower_base = None
-            if "MP" in self.sub_assemblies.keys():
+            if "MP" in self.sub_assemblies:
                 self.pile_head = self.sub_assemblies["MP"].absolute_top
             else:
                 self.pile_head = None
@@ -153,7 +153,7 @@ class OWT:
         subassemblies_list = [
             SubAssembly(self.materials, cast(DataSA, sa.to_dict()), api_object=self.api) for _, sa in subassemblies.iterrows()
         ]
-        self.sub_assemblies = {k: v for (k, v) in zip(subassemblies_types, subassemblies_list)}
+        self.sub_assemblies = dict(zip(subassemblies_types, subassemblies_list))
 
     def _set_members(self) -> None:
         """Identify and stores in separate data frames each part of the support structure (tower=TW, transition piece=TP,
@@ -548,12 +548,12 @@ class OWT:
                 elif "mp_" in attr or "monopile" in attr:
                     df["Subassembly"] = "MP"
                     setattr(self, attr, df)
-        if "TP" in self.sub_assemblies.keys() and "MP" in self.sub_assemblies.keys():
+        if "TP" in self.sub_assemblies and "MP" in self.sub_assemblies:
             self.assembly_tp_mp()
         else:
             self._init_spec_part = True
             self.tp_skirt = None
-        if "TW" in self.sub_assemblies.keys():
+        if "TW" in self.sub_assemblies:
             self._init_spec_full = True
             if self.substructure is not None:
                 self.assembly_full_structure()
@@ -730,7 +730,7 @@ class OWTs:
             df = getattr(self, attr)
             # if df is None:
             #     raise ValueError(f"Attribute '{attr}' is None.")
-        for turb in self.owts.keys():
+        for turb in self.owts:
             df_list.append(
                 [
                     turb,
@@ -786,7 +786,7 @@ class OWTs:
             return
         self._init = True
         for owt in self.owts.values():
-            if not len(owt.sub_assemblies) == 3:
+            if len(owt.sub_assemblies) != 3:
                 for sa in owt.sub_assemblies.keys():
                     owt.process_structure(option=sa)
             else:
@@ -831,7 +831,7 @@ class OWTs:
                     owt_attr_val = getattr(owt, attr)
                     attr_val.append(owt_attr_val)
         attr_list.remove("pile_toe")
-        self.pile_toe = {k: v for k, v in zip(self.owts.keys(), self.pile_toe)}  # type: ignore
+        self.pile_toe = dict(zip(self.owts.keys(), self.pile_toe))  # type: ignore
         self._concat_list(attr_list)
         self._assembly_turbine()
 
@@ -859,13 +859,13 @@ class OWTs:
             comp = deepcompare(self.__dict__, other)
             assert comp[0], comp[1]
         else:
-            assert False, "Comparison is not possible due to incompatible types!"
+            raise AssertionError("Comparison is not possible due to incompatible types!")
         return comp[0]
 
     def __getattribute__(self, name):
         if name in ATTR_PROC + ATTR_SPEC + ATTR_FULL and not self._init:
             warnings.warn(
                 f"Attribute '{name}' accessed before processing. \
-                    Run process_structures() first if you want to process values."
+                    Run process_structures() first if you want to process values.", stacklevel=2
             )
         return object.__getattribute__(self, name)
