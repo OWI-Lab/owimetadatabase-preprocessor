@@ -1,6 +1,6 @@
 """Module defining API to retrieve/plot specific fatigue data from the owimetadatabase."""
 
-from typing import Dict, List, Union
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -43,7 +43,7 @@ class FatigueAPI(API):
         self.loc_api = LocationsAPI(**kwargs)
         self.api_root = self.api_root + api_subdir
 
-    def get_sncurves(self, **kwargs) -> List[SNCurve]:
+    def get_sncurves(self, **kwargs) -> list[SNCurve]:
         """Get all available SN curves requested by the user.
 
         :param kwargs: Any API filter, e.g. 'title__icontains=NRTA1'
@@ -60,7 +60,7 @@ class FatigueAPI(API):
         sncurves = [SNCurve(item, api_object=self) for item in resp.json()]
         return sncurves
 
-    def get_fatiguedetails(self, **kwargs) -> List[FatigueDetail]:
+    def get_fatiguedetails(self, **kwargs) -> list[FatigueDetail]:
         """Get all fatigue details according to the specified search parameters (see kwargs).
 
         :param kwargs: Any API filter, e.g. 'title__icontains': 'NW2F04_MP' for a specific turbine and subassembly
@@ -77,9 +77,7 @@ class FatigueAPI(API):
         fatigue_details = [FatigueDetail(item, api_object=self) for item in resp.json()]
         return fatigue_details
 
-    def get_fatiguesubassembly(
-        self, turbine: str, subassembly: str = None
-    ) -> List[FatigueSubAssembly]:
+    def get_fatiguesubassembly(self, turbine: str, subassembly: str = None) -> list[FatigueSubAssembly]:
         """Get all fatigue details for a given turbine/turbine subassembly.
 
         :param turbine: Turbine title (e.g. 'BBC01')
@@ -102,7 +100,7 @@ class FatigueAPI(API):
 
     def fatiguedetails_df(
         self,
-        turbines: Union[str, List[str], np.ndarray] = None,
+        turbines: Union[str, list[str], np.ndarray] = None,
         projectsite_name: str = None,
     ) -> pd.DataFrame:
         """Return a dataframe with all fatigue details for given turbine(s).
@@ -123,7 +121,7 @@ class FatigueAPI(API):
                 if resp.json():
                     df.append(pd.DataFrame(resp.json()))
                 else:
-                    raise ValueError("No fatigue details found for {}.".format(turbine))
+                    raise ValueError(f"No fatigue details found for {turbine}.")
         else:
             if projectsite_name is None:
                 raise ValueError("No projectsite_name defined.")
@@ -138,10 +136,7 @@ class FatigueAPI(API):
             else:
                 raise ValueError("No fatigue details found.")
         if resp.json():
-            fd_pos = [
-                FatigueDetail(item, api_object=self).buildingblock.position
-                for item in resp.json()
-            ]
+            fd_pos = [FatigueDetail(item, api_object=self).buildingblock.position for item in resp.json()]
             fd_pos_dict = {"x_position": [], "y_position": [], "z_position": []}
             for fd_p in fd_pos:
                 fd_pos_dict["x_position"].append(fd_p.x)
@@ -158,11 +153,11 @@ class FatigueAPI(API):
 
     def fatiguedetails_animatedquickview(
         self,
-        turbines: Union[str, List[str], np.ndarray] = None,
+        turbines: Union[str, list[str], np.ndarray] = None,
         projectsite_name: str = None,
         showmudline: bool = True,
         show: bool = True,
-    ) -> Dict[str, Union[go.Figure, pd.DataFrame]]:
+    ) -> dict[str, Union[go.Figure, pd.DataFrame]]:
         """Plot (animated) fatigue data information for given turbine(s).
 
         :param turbines: Turbine name(s)
@@ -328,13 +323,13 @@ class FatigueAPI(API):
 
     def fatiguedetails_serializedquickview(
         self,
-        turbines: Union[str, List[str], np.ndarray] = None,
+        turbines: Union[str, list[str], np.ndarray] = None,
         projectsite_name: str = None,
         showmudline: bool = True,
         x_step: float = 10000.0,
         show: bool = True,
         marker_scaler: int = 6,
-    ) -> Dict[str, Union[go.Figure, pd.DataFrame]]:
+    ) -> dict[str, Union[go.Figure, pd.DataFrame]]:
         """Plot (static) fatigue data information for given turbine(s).
 
         :param turbines: Turbine name(s)
@@ -421,8 +416,8 @@ class FatigueAPI(API):
         self,
         df: pd.DataFrame,
         asset: str,
-        subtypes: List[str],
-        polymorphic_ctypes: List[str],
+        subtypes: list[str],
+        polymorphic_ctypes: list[str],
         is_frame: bool = False,
         showmudline: bool = False,
         x_offset: float = 0.0,
@@ -449,10 +444,7 @@ class FatigueAPI(API):
                 "mode": "lines",
                 "name": "Mudline",
                 "hoverinfo": "text",
-                "hovertext": asset
-                + " mudline elevation: "
-                + str(np.round(elevation, 1))
-                + "m",
+                "hovertext": asset + " mudline elevation: " + str(np.round(elevation, 1)) + "m",
                 "line": {"color": "SaddleBrown", "width": 4},
             }
             f["data"].append(mudline_dict)
@@ -516,9 +508,7 @@ class FatigueAPI(API):
             f["data"].append(structure_dict)
 
             for polymorphic_ctype in polymorphic_ctypes:
-                df_by_ass_sub_and_res = df_by_ass_and_sub[
-                    df_by_ass_and_sub["polymorphic_ctype"] == polymorphic_ctype
-                ]
+                df_by_ass_sub_and_res = df_by_ass_and_sub[df_by_ass_and_sub["polymorphic_ctype"] == polymorphic_ctype]
                 if len(df_by_ass_sub_and_res) == 0:
                     continue
                 l_h = len(list(df_by_ass_sub_and_res["title"]))
@@ -552,39 +542,31 @@ class FatigueAPI(API):
                     list(df_by_ass_sub_and_res["scaleeffect"]),
                 ]
                 try:
-                    flout = [
-                        "{}<b>{}</b>{}".format(a_, int(b_), c_)
-                        for a_, b_, c_ in zip(*flout)
-                    ]
-                    snout = ["{}{}".format(a_, s_) for a_, s_ in zip(*snout)]
-                    scfout = ["{}{}".format(a_, s_) for a_, s_ in zip(*scfout)]
+                    flout = [f"{a_}<b>{int(b_)}</b>{c_}" for a_, b_, c_ in zip(*flout)]
+                    snout = [f"{a_}{s_}" for a_, s_ in zip(*snout)]
+                    scfout = [f"{a_}{s_}" for a_, s_ in zip(*scfout)]
                 except Exception:
                     flout = [""] * l_h
                     snout = [""] * l_h
                     scfout = [""] * l_h
                 try:
-                    flin = [
-                        "{}<b>{}</b>{}".format(a_, int(b_), c_)
-                        for a_, b_, c_ in zip(*flin)
-                    ]
-                    snin = ["{}{}".format(a_, s_) for a_, s_ in zip(*snin)]
-                    scfin = ["{}{}".format(a_, s_) for a_, s_ in zip(*scfin)]
+                    flin = [f"{a_}<b>{int(b_)}</b>{c_}" for a_, b_, c_ in zip(*flin)]
+                    snin = [f"{a_}{s_}" for a_, s_ in zip(*snin)]
+                    scfin = [f"{a_}{s_}" for a_, s_ in zip(*scfin)]
                 except Exception:
                     flin = [""] * l_h
                     snin = [""] * l_h
                     scfin = [""] * l_h
                 try:
-                    msf = ["{}{}".format(a_, m_) for a_, m_ in zip(*msf)]
+                    msf = [f"{a_}{m_}" for a_, m_ in zip(*msf)]
                 except Exception:
                     msf = [""] * l_h
                 try:
-                    se = ["{}{}".format(a_, e_) for a_, e_ in zip(*se)]
+                    se = [f"{a_}{e_}" for a_, e_ in zip(*se)]
                 except Exception:
                     se = [""] * l_h
                 fl = [
-                    "<br><i>{}</i></br>{}</br>{}</br>{}</br>{}</br>{}</br>{}</br>{}</br>{}".format(
-                        t_, a_, b_, si_, so_, scfi_, scfo_, e_, se_
-                    )
+                    f"<br><i>{t_}</i></br>{a_}</br>{b_}</br>{si_}</br>{so_}</br>{scfi_}</br>{scfo_}</br>{e_}</br>{se_}"
                     for t_, a_, b_, si_, so_, scfi_, scfo_, e_, se_ in zip(
                         df_by_ass_sub_and_res["title"],
                         flin,

@@ -1,5 +1,5 @@
 import json
-from typing import Dict, List, Union
+from typing import Union
 from unittest import mock
 
 import pandas as pd
@@ -22,7 +22,6 @@ def soil_init(header):
 
 @pytest.fixture(scope="function")
 def mock_requests_get_proximity_entities_2d(mocker: mock.Mock) -> mock.Mock:
-
     def custom_side_effect(*args, **kwargs) -> requests.Response:
         resp = requests.Response()
         if kwargs.get("params") == {
@@ -52,9 +51,7 @@ def mock_requests_get_proximity_entities_2d(mocker: mock.Mock) -> mock.Mock:
         else:
             data = []
             resp.status_code = 404
-            resp.reason = (
-                "The object corresponding to the specified parameters is not found"
-            )
+            resp.reason = "The object corresponding to the specified parameters is not found"
         resp._content = json.dumps(data).encode("utf-8")
         return resp
 
@@ -68,7 +65,7 @@ def api_soil(api_root, header):
 
 
 @pytest.fixture(scope="function")
-def data_search() -> List[Dict[str, Union[str, float]]]:
+def data_search() -> list[dict[str, Union[str, float]]]:
     return [
         {
             "id": 1,
@@ -92,7 +89,7 @@ def data_search() -> List[Dict[str, Union[str, float]]]:
 
 
 @pytest.fixture(scope="function")
-def data_gather() -> List[Dict[str, Union[str, float]]]:
+def data_gather() -> list[dict[str, Union[str, float]]]:
     return [
         {
             "id": 1,
@@ -125,7 +122,7 @@ def data_gather() -> List[Dict[str, Union[str, float]]]:
 
 
 @pytest.fixture(scope="function")
-def data_gather_sorted() -> List[Dict[str, Union[str, float]]]:
+def data_gather_sorted() -> list[dict[str, Union[str, float]]]:
     return [
         {
             "id": 1,
@@ -159,16 +156,11 @@ def data_gather_sorted() -> List[Dict[str, Union[str, float]]]:
 
 @pytest.fixture(scope="function")
 def mock_requests_search_any_entity(data_search, mocker: mock.Mock) -> mock.Mock:
-
     def custom_side_effect(*args, **kwargs) -> requests.Response:
         resp = requests.Response()
         # Convert offset string to float for comparison
         offset = float(kwargs.get("params")["offset"])
-        if (
-            kwargs.get("params")["latitude"] == 50.0
-            and kwargs.get("params")["longitude"] == 2.0
-            and offset >= 10.0
-        ):
+        if kwargs.get("params")["latitude"] == 50.0 and kwargs.get("params")["longitude"] == 2.0 and offset >= 10.0:
             data = data_search
             resp.status_code = 200
         elif (
@@ -179,19 +171,13 @@ def mock_requests_search_any_entity(data_search, mocker: mock.Mock) -> mock.Mock
         ):
             data = [data_search[i] for i in [0, 2]]
             resp.status_code = 200
-        elif (
-            kwargs.get("params")["latitude"] == 50.0
-            and kwargs.get("params")["longitude"] == 2.0
-            and offset <= 1.0
-        ):
+        elif kwargs.get("params")["latitude"] == 50.0 and kwargs.get("params")["longitude"] == 2.0 and offset <= 1.0:
             data = []
             resp.status_code = 200
         else:
             data = []
             resp.status_code = 404
-            resp.reason = (
-                "The object corresponding to the specified parameters is not found"
-            )
+            resp.reason = "The object corresponding to the specified parameters is not found"
         resp._content = json.dumps(data).encode("utf-8")
         return resp
 

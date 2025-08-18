@@ -1,5 +1,5 @@
 import json
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable
 from unittest import mock
 
 import pytest
@@ -9,7 +9,7 @@ from owimetadatabase_preprocessor.utility.utils import dict_generator
 
 
 @pytest.fixture
-def data_subassemblies(request) -> List[Dict[str, object]]:
+def data_subassemblies(request) -> list[dict[str, object]]:
     if request.param is not None:
         params = request.param
     data_original = [
@@ -150,7 +150,7 @@ def data_subassemblies_call() -> Callable[[str], Any]:
 
 
 @pytest.fixture
-def data_buildingblocks(request) -> List[Dict[str, object]]:
+def data_buildingblocks(request) -> list[dict[str, object]]:
     if request.param is not None:
         params = request.param
     data_original = [
@@ -262,9 +262,7 @@ def data_buildingblocks_call() -> Callable[[str], Any]:
 
 
 @pytest.fixture
-def mock_requests_get_subassemblies(
-    mocker: mock.Mock, data_subassemblies_call: Callable[[str], Any]
-) -> mock.Mock:
+def mock_requests_get_subassemblies(mocker: mock.Mock, data_subassemblies_call: Callable[[str], Any]) -> mock.Mock:
     def custom_side_effect(*args, **kwargs) -> requests.Response:
         resp = requests.Response()
         resp.status_code = 200
@@ -308,18 +306,14 @@ def mock_requests_get_subassemblies(
 
 
 @pytest.fixture
-def mock_requests_get_buildingblocks(
-    mocker: mock.Mock, data_buildingblocks_call: Callable[[str], Any]
-) -> mock.Mock:
+def mock_requests_get_buildingblocks(mocker: mock.Mock, data_buildingblocks_call: Callable[[str], Any]) -> mock.Mock:
     def custom_side_effect(*args, **kwargs) -> requests.Response:
         resp = requests.Response()
         resp.status_code = 200
         if not kwargs.get("params"):
             data = data_buildingblocks_call("empty")
         else:
-            if kwargs.get("params") == {
-                "sub_assembly__asset__projectsite__title": "Nobelwind"
-            }:
+            if kwargs.get("params") == {"sub_assembly__asset__projectsite__title": "Nobelwind"}:
                 data = data_buildingblocks_call("project")
             elif kwargs.get("params") == {"sub_assembly__asset__title": "BBK01"}:
                 data = data_buildingblocks_call("asset")
@@ -399,18 +393,11 @@ def mock_requests_get_buildingblocks(
 
 @pytest.fixture(scope="function")
 def sa_list(data):
-    return [
-        dict_generator(
-            data["sa"][i], keys_=["slug", "model_definition"], method_="exclude"
-        )
-        for i in range(3)
-    ]
+    return [dict_generator(data["sa"][i], keys_=["slug", "model_definition"], method_="exclude") for i in range(3)]
 
 
 @pytest.fixture(scope="function")
-def mock_requests_for_proc(
-    mocker: mock.Mock, materials_dicts_init, sa_list: List[Dict[str, Any]], data
-) -> mock.Mock:
+def mock_requests_for_proc(mocker: mock.Mock, materials_dicts_init, sa_list: list[dict[str, Any]], data) -> mock.Mock:
     def custom_side_effect(url, *args, **kwargs) -> requests.Response:
         resp = requests.Response()
         resp.status_code = 200

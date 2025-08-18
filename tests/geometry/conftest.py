@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import pytest
 
@@ -12,7 +12,7 @@ from .fixtures.structures import *  # noqa: F403, F401
 
 
 @pytest.fixture(scope="module")
-def data() -> Dict[str, List[Dict[str, Any]]]:
+def data() -> dict[str, list[dict[str, Any]]]:
     file_dir = Path(__file__).parent
     data_path = file_dir / "data"
     data_type = {
@@ -27,7 +27,7 @@ def data() -> Dict[str, List[Dict[str, Any]]]:
         "turb": "turbine",
     }
     data = {}
-    for d in data_type.keys():
+    for d in data_type:
         with open(data_path / (data_type[d] + ".json")) as f:
             data_ = json.load(f)
             data[d] = fix_nan(data_)

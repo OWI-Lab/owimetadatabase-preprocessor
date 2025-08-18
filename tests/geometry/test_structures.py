@@ -13,7 +13,6 @@ from owimetadatabase_preprocessor.utility.utils import deepcompare
 
 
 class TestBaseStructure:
-
     def test_eq_2_obj(self) -> None:
         obj_1 = BaseStructure()
         obj_2 = BaseStructure()
@@ -28,7 +27,7 @@ class TestBaseStructure:
         obj_1 = BaseStructure()
         obj_2 = "test"
         with pytest.raises(AssertionError):
-            obj_1 == obj_2
+            assert obj_1 == obj_2
 
 
 class TestMaterial:
@@ -83,9 +82,7 @@ class TestBuildingBlock:
     def test_building_block_properties(self, data, sa_mock, property):
         for i in range(len(data["bb_prop"])):
             bb = BuildingBlock(json=data["bb"][i], subassembly=sa_mock)
-            assertion, message = deepcompare(
-                getattr(bb, property), data["bb_prop"][i][property]
-            )
+            assertion, message = deepcompare(getattr(bb, property), data["bb_prop"][i][property])
             assert assertion, message
 
     def test_as_dict(self, data, sa_mock):
@@ -105,13 +102,11 @@ class TestSubAssembly:
         sa = SubAssembly(materials_df, sa_in, api_test)
         assert sa == sa_out
 
-    def test_subassemblies_bb(
-        self, data, bb_out_list, api_test, materials_df, mock_requests_sa_get_bb_bb
-    ):
+    def test_subassemblies_bb(self, data, bb_out_list, api_test, materials_df, mock_requests_sa_get_bb_bb):
         for i in range(len(data["sa_prop"])):
             sa = SubAssembly(materials_df, data["sa"][i], api_test)
-            sa.building_blocks
-            assert sa.bb == bb_out_list[i]
+            bbs = sa.building_blocks
+            assert bbs == bb_out_list[i]
 
     @pytest.mark.parametrize(
         "property",
@@ -125,9 +120,7 @@ class TestSubAssembly:
             "absolute_top",
         ],
     )
-    def test_subassemblies_properties(
-        self, data, api_test, materials_df, property, mock_requests_sa_get_bb
-    ):
+    def test_subassemblies_properties(self, data, api_test, materials_df, property, mock_requests_sa_get_bb):
         for i in range(len(data["sa_prop"])):
             sa = SubAssembly(materials_df, data["sa"][i], api_test)
             if property == "properties":
@@ -139,14 +132,10 @@ class TestSubAssembly:
                     },
                 )
             else:
-                assertion, message = deepcompare(
-                    getattr(sa, property), data["sa_prop"][i][property]
-                )
+                assertion, message = deepcompare(getattr(sa, property), data["sa_prop"][i][property])
             assert assertion, message
 
-    def test_subassemblies_as_df(
-        self, data, api_test, materials_df, mock_requests_sa_get_bb
-    ):
+    def test_subassemblies_as_df(self, data, api_test, materials_df, mock_requests_sa_get_bb):
         for i in range(len(data["sa_prop"])):
             sa = SubAssembly(materials_df, data["sa"][i], api_test)
             df = sa.as_df()
@@ -159,9 +148,7 @@ class TestSubAssembly:
             pd_testing.assert_frame_equal(df, df_expected)
             pd_testing.assert_frame_equal(df_abs, df_abs_expected)
 
-    def test_subassemblies_str(
-        self, data, api_test, materials_df, mock_requests_sa_get_bb
-    ):
+    def test_subassemblies_str(self, data, api_test, materials_df, mock_requests_sa_get_bb):
         for i in range(len(data["sa_prop"])):
             sa = SubAssembly(materials_df, data["sa"][i], api_test)
             assert str(sa) == data["sa_prop"][i]["str_"]

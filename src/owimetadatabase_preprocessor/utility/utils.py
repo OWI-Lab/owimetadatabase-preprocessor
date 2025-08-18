@@ -1,7 +1,7 @@
 """Utility functions for the owimetadatabase_preprocessor package."""
 
 import math
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Union
 
 import numpy as np
 import pandas as pd
@@ -12,27 +12,23 @@ def custom_formatwarning(message, category, filename, lineno, line=None):
     return f"{category.__name__}: {message}\n"
 
 
-def dict_generator(
-    dict_: Dict[str, Any], keys_: List[str] = [], method_: str = "exclude"
-) -> Dict[str, Any]:
+def dict_generator(dict_: dict[str, Any], keys_: list[str] = [], method_: str = "exclude") -> dict[str, Any]:
     """Generate a dictionary with the specified keys.
 
     :param dict_: Dictionary to be filtered.
-    :param keys_: List of keys to be included or excluded.
+    :param keys_: list of keys to be included or excluded.
     :param method_: Method to be used for filtering. Options are "exclude" and "include".
     :return: Filtered dictionary.
     """
     if method_ == "exclude":
-        return {k: dict_[k] for k in dict_.keys() if k not in keys_}
+        return {k: dict_[k] for k in dict_ if k not in keys_}
     elif method_ == "include":
-        return {k: dict_[k] for k in dict_.keys() if k in keys_}
+        return {k: dict_[k] for k in dict_ if k in keys_}
     else:
         raise ValueError("Method not recognized!")
 
 
-def compare_if_simple_close(
-    a: Any, b: Any, tol: float = 1e-9
-) -> Tuple[bool, Union[None, str]]:
+def compare_if_simple_close(a: Any, b: Any, tol: float = 1e-9) -> tuple[bool, Union[None, str]]:
     """Compare two values and return a boolean and a message.
 
     :param a: First value to be compared.
@@ -84,7 +80,7 @@ def check_df_eq(df1: pd.DataFrame, df2: pd.DataFrame, tol: float = 1e-9) -> bool
     return num_cols_eq and str_cols_eq
 
 
-def deepcompare(a: Any, b: Any, tol: float = 1e-5) -> Tuple[bool, Union[None, str]]:
+def deepcompare(a: Any, b: Any, tol: float = 1e-5) -> tuple[bool, Union[None, str]]:
     """Compare two complicated (potentailly nested) objects recursively and return a result and a message.
 
     :param a: First object to be compared.
@@ -97,9 +93,7 @@ def deepcompare(a: Any, b: Any, tol: float = 1e-5) -> Tuple[bool, Union[None, st
             return deepcompare(a.__dict__, b, tol)
         elif hasattr(b, "__dict__") and isinstance(a, dict):
             return deepcompare(a, b.__dict__, tol)
-        elif isinstance(a, (float, np.floating)) and isinstance(
-            b, (float, np.floating)
-        ):
+        elif isinstance(a, (float, np.floating)) and isinstance(b, (float, np.floating)):
             return deepcompare(np.float64(a), np.float64(b), tol)
         return (
             False,
@@ -114,9 +108,7 @@ def deepcompare(a: Any, b: Any, tol: float = 1e-5) -> Tuple[bool, Union[None, st
             message = None
         else:
             keys = [key for key, val in zip(a.keys(), compare) if val is False]
-            message = (
-                f"Dictionary values are different for {a} and {b}, for keys: {keys}."
-            )
+            message = f"Dictionary values are different for {a} and {b}, for keys: {keys}."
         return assertion, message
     elif isinstance(a, (list, tuple)):
         if len(a) != len(b):
@@ -129,12 +121,8 @@ def deepcompare(a: Any, b: Any, tol: float = 1e-5) -> Tuple[bool, Union[None, st
         if assertion:
             message = None
         else:
-            inds = [
-                ind for ind, val in zip(range(len(compare)), compare) if val is False
-            ]
-            message = (
-                f"Lists/tuples are different for {a} and {b}, for indices: {inds}."
-            )
+            inds = [ind for ind, val in zip(range(len(compare)), compare) if val is False]
+            message = f"Lists/tuples are different for {a} and {b}, for indices: {inds}."
         return assertion, message
     elif hasattr(a, "__dict__") and not isinstance(a, pd.DataFrame):
         return deepcompare(a.__dict__, b.__dict__, tol)
