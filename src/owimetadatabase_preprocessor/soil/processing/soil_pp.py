@@ -196,21 +196,6 @@ class SoilDataProcessor:
                         soilprofile_df.loc[i, key] = value
                 except Exception:
                     pass
-
-            # Convert numeric columns, excluding "Soil type" (str)
-            for col in soilprofile_df.columns:
-                if col != "Soil type":
-                    try:
-                        soilprofile_df[col] = pd.to_numeric(soilprofile_df[col], errors='coerce')
-                    except Exception as err:
-                        warnings.warn(
-                            f"Error converting column '{col}' to numeric: {err}"
-                        )
-
-            if profile_title is None:
-                profile_title = (
-                    f"{df_sum['location_name'].iloc[0]} - {df_sum['title'].iloc[0]}"
-                )
             if drop_info_cols:
                 soilprofile_df.drop(
                     [
@@ -224,6 +209,20 @@ class SoilDataProcessor:
                     ],
                     axis=1,
                     inplace=True,
+                )            
+            # Convert numeric columns, excluding "Soil type" (str)
+            for col in soilprofile_df.columns:
+                if col != "Soil type":
+                    try:
+                        soilprofile_df[col] = pd.to_numeric(soilprofile_df[col], errors='coerce')
+                    except Exception as err:
+                        warnings.warn(
+                            f"Error converting column '{col}' to numeric: {err}"
+                        )
+
+            if profile_title is None:
+                profile_title = (
+                    f"{df_sum['location_name'].iloc[0]} - {df_sum['title'].iloc[0]}"
                 )
             dsp = profile_from_dataframe(soilprofile_df, title=profile_title)
             return dsp
