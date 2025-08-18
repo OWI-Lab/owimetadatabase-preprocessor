@@ -196,7 +196,7 @@ class SoilDataProcessor:
                         soilprofile_df.loc[i, key] = value
                 except Exception:
                     pass
-            
+
             # Convert numeric columns, excluding "Soil type" (str)
             for col in soilprofile_df.columns:
                 if col != "Soil type":
@@ -206,7 +206,7 @@ class SoilDataProcessor:
                         warnings.warn(
                             f"Error converting column '{col}' to numeric: {err}"
                         )
-            
+
             if profile_title is None:
                 profile_title = (
                     f"{df_sum['location_name'].iloc[0]} - {df_sum['title'].iloc[0]}"
