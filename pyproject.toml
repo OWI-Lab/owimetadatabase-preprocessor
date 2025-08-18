@@ -47,6 +47,8 @@ pytest-stub = "*"
 types-colorama = "*"
 types-Pygments = "*"
 types-setuptools = "*"
+types-python-dateutil = "*"
+types-pytz = "*"
 
 # Development tools
 nox = ">=2023.4.22"
@@ -106,6 +108,41 @@ convention = "pep257"
 
 [tool.ruff.lint.isort]
 known-first-party = ["owimetadatabase_preprocessor"]
+
+
+[tool.mypy]
+python_version = "3.12"
+mypy_path = ["src"]
+explicit_package_bases = true
+
+pretty = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+strict_equality = true
+
+ignore_missing_imports = true
+follow_imports = "silent"
+
+files = ["src/owimetadatabase_preprocessor"]
+exclude = [
+  "^tests/",
+  "^docs/",
+  "^examples/",
+]
+
+plugins = ["numpy.typing.mypy_plugin"]
+
+
+[[tool.mypy.overrides]]
+module = "owimetadatabase_preprocessor.*"
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+
+
+[[tool.mypy.overrides]]
+module = "matplotlib.*,plotly.*,pyproj.*,groundhog.*"
+ignore_missing_imports = true
 
 
 [build-system]

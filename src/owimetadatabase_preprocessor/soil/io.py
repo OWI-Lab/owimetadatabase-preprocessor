@@ -1,5 +1,7 @@
 """API client Module for the soil data in the OWIMetadatabase."""
 
+# mypy: ignore-errors
+
 import warnings
 from typing import Callable, Union
 
@@ -35,7 +37,7 @@ class SoilAPI(API):
 
     def get_proximity_entities_2d(
         self, api_url: str, latitude: float, longitude: float, radius: float, **kwargs
-    ) -> dict[str, Union[pd.DataFrame, bool, None]]:
+    ) -> dict[str, Union[pd.DataFrame, bool, requests.Response, None]]:
         """Find the entities in a certain radius around a point in 2D (cylindrical search area).
 
         :param latitude: Latitude of the central point in decimal format

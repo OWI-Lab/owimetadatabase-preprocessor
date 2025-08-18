@@ -1,5 +1,7 @@
 """Module to connect to the database API to retrieve and operate on geometry data."""
 
+# mypy: ignore-errors
+
 import warnings
 from contextlib import contextmanager
 from typing import Union

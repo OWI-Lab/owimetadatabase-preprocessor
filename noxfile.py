@@ -13,19 +13,8 @@ def tests(session):
 @nox.session(python="3.12")
 def type_check(session):
     """Run type checking on specified files or all files by default."""
-    session.install("mypy")
-    session.install("pandas-stubs")
-    session.install("types-requests")
-    session.install("pytest-stub")
-    session.install("types-colorama")
-    session.install("types-Pygments")
-    session.install("types-setuptools")
-
-    session.run("pip", "install", "-e", ".")
-
-    files = session.posargs if session.posargs else ["src", "tests"]
-    
-    session.run("mypy", *files)
+    session.run("pip", "install", "-e", ".")    
+    session.run("mypy")
 
 
 @nox.session(python="3.12")

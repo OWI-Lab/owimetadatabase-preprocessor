@@ -9,3 +9,10 @@ repos:
     types: [python]
   - id: ruff-format
     types: [python]
+- repo: https://github.com/pre-commit/mirrors-mypy
+  hooks:
+  -  id: mypy
+  -  additional_dependencies: [pandas-stubs, 
+      types-requests, pytest-stub, types-colorama, 
+      types-Pygments, types-setuptools, types-python-dateutil, 
+      types-pytz]

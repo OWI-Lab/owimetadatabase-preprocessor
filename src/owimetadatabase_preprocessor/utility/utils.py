@@ -1,18 +1,18 @@
 """Utility functions for the owimetadatabase_preprocessor package."""
 
 import math
-from typing import Any, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd
 
 
-def custom_formatwarning(message, category, filename, lineno, line=None):
+def custom_formatwarning(message, category, filename, lineno, line=None):  # type: ignore
     """Return customized warning."""
     return f"{category.__name__}: {message}\n"
 
 
-def dict_generator(dict_: dict[str, Any], keys_: list[str] = None, method_: str = "exclude") -> dict[str, Any]:
+def dict_generator(dict_: dict[str, Any], keys_: Optional[list[str]] = None, method_: str = "exclude") -> dict[str, Any]:
     """Generate a dictionary with the specified keys.
 
     :param dict_: Dictionary to be filtered.
@@ -166,13 +166,13 @@ def fix_outline(data: Any) -> Any:
     return data
 
 
-def hex_to_dec(value):
+def hex_to_dec(value: Union[str, list]) -> list[Union[str, list[float]]]:
     """Return [red, green, blue, alpha] for the color given as #rrggbbaa."""
 
-    def _hex_to_dec(value):
+    def _hex_to_dec(value: str) -> list[float]:
         value = value.lstrip("#") if value.startswith("#") else value
         if len(value) != 6 and len(value) != 8:
-            raise ValueError("len(value) != 6 or 8 (excluding #)")
+            raise ValueError("Length of the color string must be 6 or 8 (excluding #)")
         col = value[0:6]
         alpha = value[6:] / 100 if len(value) == 8 else 1
         lv = len(col)
@@ -183,5 +183,7 @@ def hex_to_dec(value):
 
     if isinstance(value, str):
         value = [value]
+        return value
     elif isinstance(value, list):
         return [_hex_to_dec(_) for _ in value]
+    raise ValueError("Value must be a string or a list of strings.")

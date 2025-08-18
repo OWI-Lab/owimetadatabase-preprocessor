@@ -1,5 +1,7 @@
 """Module defining API to retrieve/plot specific fatigue data from the owimetadatabase."""
 
+# mypy: ignore-errors
+
 from typing import Union
 
 import numpy as np

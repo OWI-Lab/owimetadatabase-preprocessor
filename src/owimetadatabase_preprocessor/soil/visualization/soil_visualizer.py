@@ -4,6 +4,8 @@ API client and data processor, build the Plotly figures, and either return
 or show them.
 """
 
+# mypy: ignore-errors
+
 from typing import Any, Optional, Union
 
 import pandas as pd

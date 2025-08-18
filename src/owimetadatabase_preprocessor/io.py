@@ -25,7 +25,7 @@ class API:
         token: Union[str, None] = None,
         uname: Union[str, None] = None,
         password: Union[str, None] = None,
-        **kwargs,
+        **kwargs: Union[str, dict[str, str], None],
     ) -> None:
         """Create an instance of the API class with the required parameters.
 
@@ -65,13 +65,15 @@ class API:
         else:
             raise InvalidParameterError("Either header, token or user name and password must be defined.")
 
-    def __eq__(self, other: Union["API", dict]) -> bool:
+    def __eq__(self, other: object) -> bool:
         """
         Compare two instances of the API class.
 
         :param other: Another instance of the API class or a dictionary.
         :return: True if the instances are equal, False otherwise.
         """
+        if not isinstance(other, (API, dict)):
+            return NotImplemented
         if isinstance(other, type(self)):
             comp = deepcompare(self, other)
             assert comp[0], comp[1]
@@ -194,7 +196,7 @@ class API:
 
     def process_data(
         self, url_data_type: str, url_params: dict[str, str], output_type: str
-    ) -> tuple[pd.DataFrame, dict[str, Union[bool, np.int64, None]]]:
+    ) -> tuple[pd.DataFrame, dict[str, Union[pd.DataFrame, bool, np.int64, requests.Response, None]]]:
         """Process output data according to specified request parameters.
 
         :param url_data_type: Type of the data we want to request (according to
