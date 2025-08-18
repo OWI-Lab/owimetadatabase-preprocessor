@@ -17,6 +17,8 @@ PLOT_SETTINGS_SUBASSEMBLY = {
     "TW": {"color": "grey"},
 }
 
+DEFAULT_NP_FLOAT64_VALUE = np.float64(0.0)
+
 
 class DataMat(TypedDict):
     title: str
@@ -133,12 +135,12 @@ class Position(BaseStructure):
 
     def __init__(
         self,
-        x: np.float64 = np.float64(0.0),
-        y: np.float64 = np.float64(0.0),
-        z: np.float64 = np.float64(0.0),
-        alpha: np.float64 = np.float64(0.0),
-        beta: np.float64 = np.float64(0.0),
-        gamma: np.float64 = np.float64(0.0),
+        x: np.float64 = DEFAULT_NP_FLOAT64_VALUE,
+        y: np.float64 = DEFAULT_NP_FLOAT64_VALUE,
+        z: np.float64 = DEFAULT_NP_FLOAT64_VALUE,
+        alpha: np.float64 = DEFAULT_NP_FLOAT64_VALUE,
+        beta: np.float64 = DEFAULT_NP_FLOAT64_VALUE,
+        gamma: np.float64 = DEFAULT_NP_FLOAT64_VALUE,
         reference_system: str = "LAT",
     ) -> None:
         """Create an instance of the Position class with the required parameters.
@@ -547,7 +549,7 @@ class SubAssembly(BaseStructure):
         z_absolute = [z + self.position.z for z in z_all]
         return x_all, z_absolute
 
-    def plot(self, x_offset: np.float64 = np.float64(0.0)) -> None:
+    def plot(self, x_offset: np.float64 = DEFAULT_NP_FLOAT64_VALUE) -> None:
         """Plot the subassembly."""
         x0, z = self.outline
         plt.plot(
@@ -582,8 +584,8 @@ class SubAssembly(BaseStructure):
 
     def plotly(
         self,
-        x_offset: np.float64 = np.float64(0.0),
-        y_offset: np.float64 = np.float64(0.0),
+        x_offset: np.float64 = DEFAULT_NP_FLOAT64_VALUE,
+        y_offset: np.float64 = DEFAULT_NP_FLOAT64_VALUE,
     ):
         """Plot the subassembly.
 
@@ -672,6 +674,6 @@ class SubAssembly(BaseStructure):
         return html_str
 
     def __str__(self) -> str:
-        """Returns a string representation of the subassembly."""
+        """Return a string representation of the subassembly."""
         s = str(self.title) + " subassembly"
         return s

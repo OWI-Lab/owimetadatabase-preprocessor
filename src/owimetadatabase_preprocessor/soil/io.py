@@ -22,8 +22,7 @@ class SoilAPI(API):
         api_subdir: str = "/soildata/",
         **kwargs,
     ) -> None:
-        """
-        Constructor for the SoilAPI.
+        """Initialize an instance of the SoilAPI class.
 
         :param api_root: Base URL for the API.
         :param api_subdir: Sub-directory for soil data endpoints.

@@ -707,7 +707,7 @@ class OWTs:
             setattr(self, attr, df)
 
     def _assembly_turbine(self) -> None:
-        """Method to assemble general geometry data of all specified turbines.
+        """Assemble general geometry data of all specified turbines.
 
         :return: None
         """
@@ -787,7 +787,7 @@ class OWTs:
         self._init = True
         for owt in self.owts.values():
             if len(owt.sub_assemblies) != 3:
-                for sa in owt.sub_assemblies.keys():
+                for sa in owt.sub_assemblies.keys():  # noqa: SIM118
                     owt.process_structure(option=sa)
             else:
                 owt.process_structure()
@@ -866,6 +866,7 @@ class OWTs:
         if name in ATTR_PROC + ATTR_SPEC + ATTR_FULL and not self._init:
             warnings.warn(
                 f"Attribute '{name}' accessed before processing. \
-                    Run process_structures() first if you want to process values.", stacklevel=2
+                    Run process_structures() first if you want to process values.",
+                stacklevel=2,
             )
         return object.__getattribute__(self, name)

@@ -8,7 +8,7 @@ import pandas as pd
 
 
 def custom_formatwarning(message, category, filename, lineno, line=None):
-    """Custom format for warnings."""
+    """Return customized warning."""
     return f"{category.__name__}: {message}\n"
 
 

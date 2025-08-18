@@ -5,7 +5,6 @@ try:
 except ImportError:
     from collections.abc import Iterable
 
-import contextlib
 import warnings
 from copy import deepcopy
 from itertools import cycle
@@ -76,7 +75,7 @@ class SNCurve:
         json_file: dict[str, Union[None, str, np.int64, np.float64]],
         api_object=None,
     ) -> None:
-        """Constructor for the SNCurve class.
+        """Initialize an instance of the SNCurve class.
 
         :param json_file: The JSON object containing the SN curve data.
         :param api_object: The FatigueAPI instance that created the SNCurve instance.
@@ -272,7 +271,7 @@ class SNCurve:
         return data, layout
 
     def as_dict(self) -> dict[str, Any]:
-        """Returns the SN curve description as a dictionary."""
+        """Return the SN curve description as a dictionary."""
         return {
             "name": self.name,
             "units": self.unit_string,
@@ -282,9 +281,9 @@ class SNCurve:
         }
 
     def as_df(self) -> DataFrame:
-        """Returns the SN curve description as a DataFrame."""
+        """Return the SN curve description as a DataFrame."""
         d = self.as_dict()
-        try:
+        try:  # noqa: SIM105
             del d["title"]
         except Exception:
             pass
@@ -332,7 +331,7 @@ class FatigueDetail:
         api_object=None,
         subassembly: SubAssembly = None,
     ) -> None:
-        """Constructor for the FatigueDetail class.
+        """Initialize an instance of the FatigueDetail class.
 
         :param json: The JSON object containing the fatigue data.
         :param api_object: The FatigueAPI instance that created the FatigueDetail instance.
@@ -554,7 +553,7 @@ class FatigueDetail:
             return None
 
     def as_dict(self, identify_sncurves: bool = False) -> dict[str, Any]:
-        """Returns the fatigue detail description as a dictionary."""
+        """Return the fatigue detail description as a dictionary."""
         if identify_sncurves:
             _as_dict = {
                 "detailtype": self.fd_type,
@@ -599,7 +598,7 @@ class FatigueDetail:
         return _as_dict
 
     def as_df(self) -> DataFrame:
-        """Returns the fatigue detail description as a DataFrame."""
+        """Return the fatigue detail description as a DataFrame."""
         d = self.as_dict()
         del d["title"]
         df = DataFrame.from_dict(d, orient="index", columns=[self.title])
@@ -649,7 +648,7 @@ class FatigueSubAssembly:
         json: dict[str, Union[None, str, np.int64, np.float64]],
         api_object=None,
     ) -> None:
-        """Constructor for the FatigueSubAssembly class.
+        """Initialize an instance of the FatigueSubAssembly class.
 
         :param json: The JSON object containing the geometry data of the subassembly.
         :param api_object: The FatigueAPI instance that created the FatigueSubAssembly instance.
@@ -714,9 +713,8 @@ class FatigueSubAssembly:
         """Height of the subassembly."""
         height = 0
         for fd in self.fatiguedetails:
-            if fd.fd_type == 45:  # CircumferentialWeld type
-                if fd.buildingblock.height:
-                    height += fd.buildingblock.height
+            if fd.fd_type == 45 and fd.buildingblock.height:  # CircumferentialWeld type
+                height += fd.buildingblock.height
         return height
 
     @property
@@ -843,7 +841,7 @@ class FatigueSubAssembly:
         return fig_dict
 
     def as_df(self, include_absolute_postion: bool = True, identify_sncurves: bool = False) -> DataFrame:
-        """Returns the subassembly fatigue data as a DataFrame."""
+        """Return the subassembly fatigue data as a DataFrame."""
         df = DataFrame()
         out = []
         for fd in self.fatiguedetails:

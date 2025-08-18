@@ -33,7 +33,7 @@ class FatigueAPI(API):
         api_subdir: str = "/fatigue/userroutes/",
         **kwargs,
     ) -> None:
-        """Constructor for the FatigueAPI class.
+        """Initialize an instance of the FatigueAPI class.
 
         :api_subdir: Subdirectory for the API.
         :param kwargs: Additional keyword arguments (see the base class).
@@ -424,7 +424,7 @@ class FatigueAPI(API):
         x_step: float = 10000,
         marker_scaler: int = 8,
     ):
-        """Helper internal method to add data to the fatigue subassembly plot."""
+        """Add data to the fatigue subassembly plot."""
         f = {"data": [], "name": str(asset)} if is_frame else {"data": []}
         df_by_asset = df[df["asset_name"] == asset]
         subass = self.geo_api.get_subassembly_objects(asset)

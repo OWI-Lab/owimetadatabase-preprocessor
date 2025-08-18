@@ -104,7 +104,8 @@ class SoilDataProcessor:
 
                     Check that you entered correct parameters in your request
                     or contact database administrators.
-                    """, stacklevel=2
+                    """,
+                    stacklevel=2,
                 )
                 processed_dfs[col] = pd.DataFrame()
             except Exception as e:
@@ -219,7 +220,8 @@ class SoilDataProcessor:
 
                 Check that you entered correct parameters in your request
                 or contact database administrators.
-                """, stacklevel=2
+                """,
+                stacklevel=2,
             )
             return None
         except Exception as err:

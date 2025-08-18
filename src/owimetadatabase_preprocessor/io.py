@@ -180,13 +180,15 @@ class API:
                     df.loc[cond_small_units, "z_position"] = df.loc[cond_small_units, "z_position"] / 1e3
                     warnings.warn(
                         f"The value of z location for {df.loc[cond_small_units | cond_big_units, 'title'].values} \
-                        might be wrong or in wrong units! There will be an attempt to correct the units.", stacklevel=2
+                        might be wrong or in wrong units! There will be an attempt to correct the units.",
+                        stacklevel=2,
                     )
                 if df[cond_big_units].__len__() > 0:
                     df.loc[cond_big_units, "z_position"] = df.loc[cond_big_units, "z_position"] * 1e3
                     warnings.warn(
                         f"The value of z location for {df.loc[cond_small_units | cond_big_units, 'title'].values} \
-                        might be wrong or in wrong units! There will be an attempt to correct the units.", stacklevel=2
+                        might be wrong or in wrong units! There will be an attempt to correct the units.",
+                        stacklevel=2,
                     )
         return df
 
