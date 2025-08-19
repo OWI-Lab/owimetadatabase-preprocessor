@@ -130,8 +130,6 @@ exclude = [
   "^examples/",
 ]
 
-plugins = ["numpy.typing.mypy_plugin"]
-
 
 [[tool.mypy.overrides]]
 module = "owimetadatabase_preprocessor.*"
