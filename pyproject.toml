@@ -117,7 +117,7 @@ known-first-party = ["owimetadatabase_preprocessor"]
 
 [tool.mypy]
 python_version = "3.12"
-mypy_path = ["src"]
+mypy_path = ["src/", "tests/"]
 explicit_package_bases = true
 
 pretty = true
@@ -128,12 +128,7 @@ strict_equality = true
 ignore_missing_imports = true
 follow_imports = "silent"
 
-files = ["src/owimetadatabase_preprocessor"]
-exclude = [
-  "^tests/",
-  "^docs/",
-  "^examples/",
-]
+files = ["src/", "tests/"]
 
 
 [[tool.mypy.overrides]]
