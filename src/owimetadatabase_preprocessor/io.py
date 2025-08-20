@@ -19,8 +19,8 @@ from owimetadatabase_preprocessor.utility.utils import deepcompare
 
 class PostprocessData(TypedDict):
     existance: bool
-    id: np.int64 | None
-    response: requests.Response | None
+    id: Union[np.int64, None]
+    response: Union[requests.Response, None]
 
 
 class API:
