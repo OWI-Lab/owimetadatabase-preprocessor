@@ -13,17 +13,22 @@ keywords = ["owimetadatabase"]
 [tool.poetry.dependencies]
 # Main dependencies only
 python = ">=3.9, <3.13"
+setuptools = ">=78.1.1"
+virtualenv = ">=20.26.6"
 plotly = ">=5.19.0, < 6.0.0"
-requests = ">=2.30.0, <3.0.0"
+requests = "^2.32.0"
 matplotlib = "^3.8.0"
 numpy = "^1.26.0"
 pandas = "^2.0.0"
 groundhog = ">=0.11.0"
 pyproj = ">=3.6.0, <4.0.0"
 scipy = "^1.12.0"
-tqdm = ">=4.66.2"
+tqdm = ">=4.66.3"
 python-dotenv = "^1.0.0"
-jinja2 = "^3.1.5"
+jinja2 = "^3.1.0"
+urllib3 = "^2.5.0"
+zipp = ">=3.19.1"
+certifi = ">=2025.8.3"
 
 
 [tool.poetry.group.dev.dependencies]
