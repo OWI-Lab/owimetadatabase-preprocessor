@@ -28,9 +28,9 @@ jobs:
     - name: Install dependencies
       run: |
         poetry install --all-extras
-    # - name: Type checking with mypy
-    #   run: | #  poetry run mypy --install-types --non-interactive
-    #     poetry run mypy ./src ./tests
+    - name: Type checking with mypy
+      run: | #  poetry run mypy --install-types --non-interactive
+        poetry run mypy ./src ./tests
     - name: Lint and format check with ruff
       run: |
         poetry run ruff check ./src ./tests
