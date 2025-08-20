@@ -1,9 +1,11 @@
-"Module containing the processing functions for the geometry data."
+"""Module containing the processing functions for the geometry data."""
+
+# mypy: ignore-errors
 
 import typing
 import warnings
 from copy import deepcopy
-from typing import Any, Dict, List, Union, cast
+from typing import Any, Union, cast
 
 import numpy as np
 import pandas as pd
@@ -39,7 +41,7 @@ ATTR_FULL = [
 ]
 
 
-class OWT(object):
+class OWT:
     """Class to process the geometry data of a single OWT.
 
     :param api: API object used to call get_* methods.
@@ -72,7 +74,7 @@ class OWT(object):
     _init_spec_full: bool
     api: Any
     materials: pd.DataFrame
-    sub_assemblies: Dict[str, SubAssembly]
+    sub_assemblies: dict[str, SubAssembly]
     tw_sub_assemblies: Union[pd.DataFrame, None]
     tp_sub_assemblies: Union[pd.DataFrame, None]
     mp_sub_assemblies: Union[pd.DataFrame, None]
@@ -129,13 +131,13 @@ class OWT(object):
             setattr(self, attr, None)
         self.water_depth = location["elevation"].values[0]
         if not tower_base or not pile_head:
-            if "TW" in self.sub_assemblies.keys():
+            if "TW" in self.sub_assemblies:
                 self.tower_base = self.sub_assemblies["TW"].absolute_bottom
-            elif "TP" in self.sub_assemblies.keys():
+            elif "TP" in self.sub_assemblies:
                 self.tower_base = self.sub_assemblies["TP"].absolute_top
             else:
                 self.tower_base = None
-            if "MP" in self.sub_assemblies.keys():
+            if "MP" in self.sub_assemblies:
                 self.pile_head = self.sub_assemblies["MP"].absolute_top
             else:
                 self.pile_head = None
@@ -149,16 +151,11 @@ class OWT(object):
         :param subassemblies: Pandas dataframe with the subassemblies data for a given turbine.
         :return: None
         """
-        subassemblies_types = [
-            sa["subassembly_type"] for _, sa in subassemblies.iterrows()
-        ]
+        subassemblies_types = [sa["subassembly_type"] for _, sa in subassemblies.iterrows()]
         subassemblies_list = [
-            SubAssembly(self.materials, cast(DataSA, sa.to_dict()), api_object=self.api)
-            for _, sa in subassemblies.iterrows()
+            SubAssembly(self.materials, cast(DataSA, sa.to_dict()), api_object=self.api) for _, sa in subassemblies.iterrows()
         ]
-        self.sub_assemblies = {
-            k: v for (k, v) in zip(subassemblies_types, subassemblies_list)
-        }
+        self.sub_assemblies = dict(zip(subassemblies_types, subassemblies_list))
 
     def _set_members(self) -> None:
         """Identify and stores in separate data frames each part of the support structure (tower=TW, transition piece=TP,
@@ -192,9 +189,7 @@ class OWT(object):
             if self.tp_sub_assemblies is None:
                 raise ValueError("Transition piece subassembly data not found.")
             # We don't take into account the grout, this element will be modelled as a distributed lumped mass.
-            df_index = (self.tp_sub_assemblies.index.str.contains(idx)) & (
-                ~self.tp_sub_assemblies.index.str.contains("grout")
-            )
+            df_index = (self.tp_sub_assemblies.index.str.contains(idx)) & (~self.tp_sub_assemblies.index.str.contains("grout"))
             df = deepcopy(self.tp_sub_assemblies.loc[df_index, cols])
             bottom_tp = self.tower_base - df["height"].sum() * 1e-3
             depth_to = bottom_tp + df.z * 1e-3
@@ -228,10 +223,7 @@ class OWT(object):
         df.rename(columns={"wall_thickness": "Wall thickness [mm]"}, inplace=True)
         df.rename(columns={"volume": "Volume [m3]"}, inplace=True)
         d_to = [d.split("/", 1)[0] for d in df["OD"].values]
-        d_from = [
-            d.split("/", 1)[1] if len(d.split("/", 1)) > 1 else d.split("/", 1)[0]
-            for d in df["OD"].values
-        ]
+        d_from = [d.split("/", 1)[1] if len(d.split("/", 1)) > 1 else d.split("/", 1)[0] for d in df["OD"].values]
         df["Diameter from [m]"] = np.array(d_from, dtype=float) * 1e-3
         df["Diameter to [m]"] = np.array(d_to, dtype=float) * 1e-3
         df["rho [t/m]"] = df["mass"] / df["height"]
@@ -262,11 +254,7 @@ class OWT(object):
         if self.tw_sub_assemblies is None:
             raise ValueError("Tower subassembly data not found.")
         rna_index = self.tw_sub_assemblies.index.str.contains("RNA")
-        rna = deepcopy(
-            self.tw_sub_assemblies.loc[
-                rna_index, ["mass", "moment_of_inertia", "x", "y", "z", "description"]
-            ]
-        )
+        rna = deepcopy(self.tw_sub_assemblies.loc[rna_index, ["mass", "moment_of_inertia", "x", "y", "z", "description"]])
         mi = rna["moment_of_inertia"].values
         i_xx, i_yy, i_zz = [], [], []
         for m in mi:
@@ -383,9 +371,7 @@ class OWT(object):
             bottom_tp = self.tower_base - self.tp_sub_assemblies.iloc[0]["z"] * 1e-3
             df["Z [mLAT]"] = bottom_tp + df["z"] * 1e-3
         else:
-            raise ValueError(
-                "Unknown index or non distributed lumped masses located outside the transition piece."
-            )
+            raise ValueError("Unknown index or non distributed lumped masses located outside the transition piece.")
         return df
 
     def process_distributed_lumped_masses(self, idx: str) -> pd.DataFrame:
@@ -502,7 +488,9 @@ class OWT(object):
         ]
         diameters = [df.iloc[ind]["Diameter from [m]"], df.iloc[ind]["Diameter to [m]"]]
         df.loc[df.index[ind], "Diameter" + _col + "[m]"] = np.interp(
-            [altitude], elevation, diameters  # type: ignore
+            [altitude],
+            elevation,
+            diameters,  # type: ignore
         )[0]
         cols = ["Height [m]", "Volume [m3]", "Mass [t]", "rho [t/m]"]
         df.loc[df.index[ind], cols] = self.can_adjust_properties(df.iloc[ind])
@@ -562,12 +550,12 @@ class OWT(object):
                 elif "mp_" in attr or "monopile" in attr:
                     df["Subassembly"] = "MP"
                     setattr(self, attr, df)
-        if "TP" in self.sub_assemblies.keys() and "MP" in self.sub_assemblies.keys():
+        if "TP" in self.sub_assemblies and "MP" in self.sub_assemblies:
             self.assembly_tp_mp()
         else:
             self._init_spec_part = True
             self.tp_skirt = None
-        if "TW" in self.sub_assemblies.keys():
+        if "TW" in self.sub_assemblies:
             self._init_spec_full = True
             if self.substructure is not None:
                 self.assembly_full_structure()
@@ -582,7 +570,7 @@ class OWT(object):
         self,
         cutoff_point: np.floating = np.nan,
     ) -> pd.DataFrame:
-        """Returns a dataframe with the monopile geometry with the mudline as reference
+        """Return a dataframe with the monopile geometry with the mudline as reference.
 
         :param cutoff_point: Depth from the mudline to cut the monopile geometry.
         :return: Dataframe with the monopile geometry.
@@ -597,32 +585,20 @@ class OWT(object):
         df.reset_index(inplace=True)
         for i, row in df.iterrows():
             if i != 0:
-                pile.loc[i, "Elevation from [m]"] = (
-                    penetration - 1e-3 * df["z"].iloc[i - 1]
-                )
+                pile.loc[i, "Elevation from [m]"] = penetration - 1e-3 * df["z"].iloc[i - 1]
                 pile.loc[i, "Elevation to [m]"] = penetration - 1e-3 * row["z"]
-                pile.loc[i, "Pile material"] = (
-                    self.sub_assemblies["MP"].bb[0].material.title
-                )
+                pile.loc[i, "Pile material"] = self.sub_assemblies["MP"].bb[0].material.title
                 pile.loc[i, "Pile material submerged unit weight [kN/m3]"] = (
                     1e-2 * self.sub_assemblies["MP"].bb[0].material.density - 10
                 )
                 pile.loc[i, "Wall thickness [mm]"] = row["wall_thickness"]
                 bot_od = row["OD"].split("/")[0] if "/" in row["OD"] else row["OD"]
                 top_od = row["OD"].split("/")[1] if "/" in row["OD"] else row["OD"]
-                pile.loc[i, "Diameter [m]"] = (
-                    1e-3 * 0.5 * (float(bot_od) + float(top_od))
-                )
-                pile.loc[i, "Youngs modulus [GPa]"] = (
-                    self.sub_assemblies["MP"].bb[0].material.young_modulus
-                )
-                pile.loc[i, "Poissons ratio [-]"] = (
-                    self.sub_assemblies["MP"].bb[0].material.poisson_ratio
-                )
+                pile.loc[i, "Diameter [m]"] = 1e-3 * 0.5 * (float(bot_od) + float(top_od))
+                pile.loc[i, "Youngs modulus [GPa]"] = self.sub_assemblies["MP"].bb[0].material.young_modulus
+                pile.loc[i, "Poissons ratio [-]"] = self.sub_assemblies["MP"].bb[0].material.poisson_ratio
         if not np.math.isnan(cutoff_point):
-            pile = pile.loc[pile["Elevation to [m]"] > cutoff_point].reset_index(
-                drop=True
-            )
+            pile = pile.loc[pile["Elevation to [m]"] > cutoff_point].reset_index(drop=True)
             pile.loc[0, "Elevation from [m]"] = cutoff_point
         return pile
 
@@ -634,29 +610,32 @@ class OWT(object):
             comp = deepcompare(self.__dict__, other)
             assert comp[0], comp[1]
         else:
-            assert False, "Comparison is not possible due to incompatible types!"
+            raise AssertionError("Comparison is not possible due to incompatible types!")
         return comp[0]
 
     def __getattribute__(self, name: str) -> object:
         if name in ATTR_PROC and not self._init_proc:
             warnings.warn(
                 f"Attribute '{name}' accessed before processing. \
-                    Run process_structure() first if you want to process values."
+                    Run process_structure() first if you want to process values.",
+                stacklevel=2,
             )
         elif name in ATTR_SPEC and not self._init_spec_part:
             warnings.warn(
                 f"Attribute '{name}' accessed before processing. \
-                    Run assembly_tp_mp() first if you want to process values."
+                    Run assembly_tp_mp() first if you want to process values.",
+                stacklevel=2,
             )
         elif name in ATTR_SPEC and not self._init_spec_full:
             warnings.warn(
                 f"Attribute '{name}' accessed before processing. \
-                    Run assembly_full_structure() first if you want to process values."
+                    Run assembly_full_structure() first if you want to process values.",
+                stacklevel=2,
             )
         return object.__getattribute__(self, name)
 
 
-class OWTs(object):
+class OWTs:
     """Class to process the geometry data of multiple OWTs.
 
     :param owts: List of OWT objects.
@@ -691,8 +670,8 @@ class OWTs(object):
 
     def __init__(
         self,
-        turbines: List[str],
-        owts: List[OWT],
+        turbines: list[str],
+        owts: list[OWT],
     ) -> None:
         """Create an instance of the OWTs class with the required parameters.
 
@@ -700,24 +679,15 @@ class OWTs(object):
         :param owts: List of OWT objects.
         :return:
         """
-        self.owts = {k: v for k, v in zip(turbines, owts)}
+        self.owts = dict(zip(turbines, owts))
         self.api = self.owts[turbines[0]].api
         self.materials = self.owts[turbines[0]].materials
         for attr in ["sub_assemblies", "tower_base", "pile_head", "water_depth"]:
-            dict_ = {
-                k: getattr(owt, attr) for k, owt in zip(turbines, self.owts.values())
-            }
+            dict_ = {k: getattr(owt, attr) for k, owt in zip(turbines, self.owts.values())}
             setattr(self, attr, dict_)
         for attr in ["tw_sub_assemblies", "tp_sub_assemblies", "mp_sub_assemblies"]:
-            sa_turb_list = [
-                getattr(owt, attr)
-                for owt in self.owts.values()
-                if getattr(owt, attr) is not None
-            ]
-            if sa_turb_list == []:
-                df = None
-            else:
-                df = pd.concat(sa_turb_list)
+            sa_turb_list = [getattr(owt, attr) for owt in self.owts.values() if getattr(owt, attr) is not None]
+            df = None if sa_turb_list == [] else pd.concat(sa_turb_list)
             setattr(self, attr, df)
         for attr in ATTR_PROC:
             setattr(self, attr, [])
@@ -727,22 +697,19 @@ class OWTs(object):
             setattr(self, attr, [])
         self._init = False
 
-    def _concat_list(self, attr_list: List[str]) -> None:
-        """Internal method to concatenate lists of dataframes for attributes.
+    def _concat_list(self, attr_list: list[str]) -> None:
+        """Concatenate lists of dataframes for attributes.
 
         :param attr_list: List of attributes to concatenate.
         :return: None
         """
         for attr in attr_list:
             attr_val = getattr(self, attr)
-            if attr_val is None or attr_val == [] or all(v is None for v in attr_val):
-                df = None
-            else:
-                df = pd.concat(attr_val)
+            df = None if attr_val is None or attr_val == [] or all(v is None for v in attr_val) else pd.concat(attr_val)
             setattr(self, attr, df)
 
     def _assembly_turbine(self) -> None:
-        """Method to assemble general geometry data of all specified turbines.
+        """Assemble general geometry data of all specified turbines.
 
         :return: None
         """
@@ -765,7 +732,7 @@ class OWTs(object):
             df = getattr(self, attr)
             # if df is None:
             #     raise ValueError(f"Attribute '{attr}' is None.")
-        for turb in self.owts.keys():
+        for turb in self.owts:
             df_list.append(
                 [
                     turb,
@@ -773,11 +740,7 @@ class OWTs(object):
                     self.pile_toe[turb],  # type: ignore
                     self.pile_head[turb],
                     self.tower_base[turb],
-                    (
-                        self.owts[turb].monopile["Height [m]"].sum()
-                        if self.owts[turb].monopile is not None
-                        else None
-                    ),
+                    (self.owts[turb].monopile["Height [m]"].sum() if self.owts[turb].monopile is not None else None),
                     (
                         (
                             self.owts[turb].monopile["Mass [t]"].sum()
@@ -802,24 +765,13 @@ class OWTs(object):
                         if self.owts[turb].transition_piece is not None
                         else None
                     ),
+                    (self.owts[turb].tower["Height [m]"].sum() if self.owts[turb].tower is not None else None),
                     (
-                        self.owts[turb].tower["Height [m]"].sum()
+                        (self.owts[turb].tower["Mass [t]"].sum() + self.owts[turb].tw_lumped_mass["Mass [t]"].sum())
                         if self.owts[turb].tower is not None
                         else None
                     ),
-                    (
-                        (
-                            self.owts[turb].tower["Mass [t]"].sum()
-                            + self.owts[turb].tw_lumped_mass["Mass [t]"].sum()
-                        )
-                        if self.owts[turb].tower is not None
-                        else None
-                    ),
-                    (
-                        self.owts[turb].rna["Mass [t]"].sum()
-                        if self.owts[turb].rna is not None
-                        else None
-                    ),
+                    (self.owts[turb].rna["Mass [t]"].sum() if self.owts[turb].rna is not None else None),
                 ]
             )
         df = pd.DataFrame(df_list, columns=cols)
@@ -836,8 +788,8 @@ class OWTs(object):
             return
         self._init = True
         for owt in self.owts.values():
-            if not len(owt.sub_assemblies) == 3:
-                for sa in owt.sub_assemblies.keys():
+            if len(owt.sub_assemblies) != 3:
+                for sa in owt.sub_assemblies.keys():  # noqa: SIM118
                     owt.process_structure(option=sa)
             else:
                 owt.process_structure()
@@ -846,9 +798,7 @@ class OWTs(object):
                 if attr == "pile_toe":
                     self.pile_toe.append(getattr(owt, attr))
                 elif attr == "all_tubular_structures":
-                    self.all_tubular_structures.extend(
-                        [owt.tower, owt.transition_piece, owt.monopile]
-                    )
+                    self.all_tubular_structures.extend([owt.tower, owt.transition_piece, owt.monopile])
                 elif attr == "all_distributed_mass":
                     self.all_distributed_mass.extend(
                         [
@@ -883,7 +833,7 @@ class OWTs(object):
                     owt_attr_val = getattr(owt, attr)
                     attr_val.append(owt_attr_val)
         attr_list.remove("pile_toe")
-        self.pile_toe = {k: v for k, v in zip(self.owts.keys(), self.pile_toe)}  # type: ignore
+        self.pile_toe = dict(zip(self.owts.keys(), self.pile_toe))  # type: ignore
         self._concat_list(attr_list)
         self._assembly_turbine()
 
@@ -911,13 +861,14 @@ class OWTs(object):
             comp = deepcompare(self.__dict__, other)
             assert comp[0], comp[1]
         else:
-            assert False, "Comparison is not possible due to incompatible types!"
+            raise AssertionError("Comparison is not possible due to incompatible types!")
         return comp[0]
 
     def __getattribute__(self, name):
         if name in ATTR_PROC + ATTR_SPEC + ATTR_FULL and not self._init:
             warnings.warn(
                 f"Attribute '{name}' accessed before processing. \
-                    Run process_structures() first if you want to process values."
+                    Run process_structures() first if you want to process values.",
+                stacklevel=2,
             )
         return object.__getattribute__(self, name)

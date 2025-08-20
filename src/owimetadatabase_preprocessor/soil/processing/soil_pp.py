@@ -4,8 +4,10 @@ for processing soil data.  It is used to transform coordinates, combine raw
 and processed DataFrames, and extract/convert in-situ test detail data.
 """
 
+# mypy: ignore-errors
+
 import warnings
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 import pandas as pd
 from groundhog.general.soilprofile import profile_from_dataframe
@@ -17,14 +19,12 @@ if TYPE_CHECKING:
 
 
 class SoilDataProcessor:
-    """
-    Helper class for processing soil data.
-    """
+    """Helper class for processing soil data."""
 
     @staticmethod
     def transform_coord(
         df: pd.DataFrame, longitude: float, latitude: float, target_srid: str
-    ) -> Tuple[pd.DataFrame, float, float]:
+    ) -> tuple[pd.DataFrame, float, float]:
         """
         Transform coordinates from EPSG:4326 to the target SRID.
 
@@ -42,22 +42,18 @@ class SoilDataProcessor:
             - The transformed easting of the central point.
             - The transformed northing of the central point.
         """
-        transformer = Transformer.from_crs(
-            "epsg:4326", f"epsg:{target_srid}", always_xy=True
-        )
+        transformer = Transformer.from_crs("epsg:4326", f"epsg:{target_srid}", always_xy=True)
         try:
             # Transform the easting and northing columns in the DataFrame
-            df["easting [m]"], df["northing [m]"] = transformer.transform(
-                df["easting"], df["northing"]
-            )
+            df["easting [m]"], df["northing [m]"] = transformer.transform(df["easting"], df["northing"])
         except Exception as err:
-            warnings.warn(f"Error transforming DataFrame coordinates: {err}")
+            warnings.warn(f"Error transforming DataFrame coordinates: {err}", stacklevel=2)
         # Transform the reference central point
         point_east, point_north = transformer.transform(longitude, latitude)
         return df, point_east, point_north
 
     @staticmethod
-    def combine_dfs(dfs: Dict[str, pd.DataFrame]) -> pd.DataFrame:
+    def combine_dfs(dfs: dict[str, pd.DataFrame]) -> pd.DataFrame:
         """
         Combine two DataFrames (usually raw and processed data) along the
         common column "z [m]".
@@ -80,13 +76,11 @@ class SoilDataProcessor:
             )
             return combined_df
         except Exception as err:
-            warnings.warn(f"Error combining raw and processed data: {err}")
+            warnings.warn(f"Error combining raw and processed data: {err}", stacklevel=2)
             return dfs.get("rawdata", pd.DataFrame())
 
     @staticmethod
-    def process_insitutest_dfs(
-        df: pd.DataFrame, cols: List[str]
-    ) -> Dict[str, pd.DataFrame]:
+    def process_insitutest_dfs(df: pd.DataFrame, cols: list[str]) -> dict[str, pd.DataFrame]:
         """
         Process the in-situ test detail DataFrame by extracting specified
         columns.
@@ -115,27 +109,26 @@ class SoilDataProcessor:
 
                     Check that you entered correct parameters in your request
                     or contact database administrators.
-                    """
+                    """,
+                    stacklevel=2,
                 )
                 processed_dfs[col] = pd.DataFrame()
             except Exception as e:
-                warnings.warn(f"Error processing column '{col}': {e}")
+                warnings.warn(f"Error processing column '{col}': {e}", stacklevel=2)
                 processed_dfs[col] = pd.DataFrame()
 
         # Attempt to convert values to numeric where applicable.
         for key in processed_dfs:
             try:
-                processed_dfs[key] = processed_dfs[key].apply(
-                    lambda x: pd.to_numeric(x)
-                )
+                processed_dfs[key] = processed_dfs[key].apply(pd.to_numeric)  # type: ignore
             except Exception as err:
-                warnings.warn(f"Numeric conversion warning for {key}: {err}")
+                warnings.warn(f"Numeric conversion warning for {key}: {err}", stacklevel=2)
         return processed_dfs
 
     @staticmethod
     def gather_data_entity(
         df: pd.DataFrame,
-    ) -> Dict[str, Union[pd.DataFrame, int, str, float, None]]:
+    ) -> dict[str, Union[pd.DataFrame, int, str, float, None]]:
         """Gather the data for the closest entity to a certain point in 2D.
 
         :param df: Pandas dataframe with the data according to the specified search criteria
@@ -155,24 +148,19 @@ class SoilDataProcessor:
             "data": df,
             "id": loc_id,
             "title": df["title"].iloc[0],
-            "offset [m]": df[df["offset [m]"] == df["offset [m]"].min()][
-                "offset [m]"
-            ].iloc[0],
+            "offset [m]": df[df["offset [m]"] == df["offset [m]"].min()]["offset [m]"].iloc[0],
         }
 
     @staticmethod
-    def process_cpt(df_sum: pd.DataFrame, df_raw: pd.DataFrame, **kwargs):
+    def process_cpt(df_sum: pd.DataFrame, df_raw: pd.DataFrame, **kwargs):  # type: ignore
         # TODO: add docstring and type hints
         try:
             cpt = PCPTProcessing(title=df_sum["title"].iloc[0])
-            if "Push" in df_raw.keys():
-                push_key = "Push"
-            else:
-                push_key = None
+            push_key = "Push" if "Push" in df_raw else None
             cpt.load_pandas(df_raw, push_key=push_key, **kwargs)
             return cpt
         except Exception as err:
-            warnings.warn(f"ERROR: PCPTProcessing object not created - {err}")
+            warnings.warn(f"ERROR: PCPTProcessing object not created - {err}", stacklevel=2)
             return None
 
     @staticmethod
@@ -191,11 +179,7 @@ class SoilDataProcessor:
         :return: SoilProfile object or None if conversion fails.
         """
         try:
-            soilprofile_df = (
-                pd.DataFrame(df_detail["soillayer_set"].iloc[0])
-                .sort_values("start_depth")
-                .reset_index(drop=True)
-            )
+            soilprofile_df = pd.DataFrame(df_detail["soillayer_set"].iloc[0]).sort_values("start_depth").reset_index(drop=True)
             soilprofile_df.rename(
                 columns={
                     "start_depth": "Depth from [m]",
@@ -229,18 +213,15 @@ class SoilDataProcessor:
             for col in soilprofile_df.columns:
                 if col != "Soil type":
                     try:
-                        soilprofile_df[col] = pd.to_numeric(
-                            soilprofile_df[col], errors="coerce"
-                        )
+                        soilprofile_df[col] = pd.to_numeric(soilprofile_df[col], errors="coerce")
                     except Exception as err:
                         warnings.warn(
-                            f"Error converting column '{col}' to numeric: {err}"
+                            f"Error converting column '{col}' to numeric: {err}",
+                            stacklevel=2,
                         )
 
             if profile_title is None:
-                profile_title = (
-                    f"{df_sum['location_name'].iloc[0]} - {df_sum['title'].iloc[0]}"
-                )
+                profile_title = f"{df_sum['location_name'].iloc[0]} - {df_sum['title'].iloc[0]}"
             dsp = profile_from_dataframe(soilprofile_df, title=profile_title)
             return dsp
         except KeyError:
@@ -251,26 +232,22 @@ class SoilDataProcessor:
 
                 Check that you entered correct parameters in your request
                 or contact database administrators.
-                """
+                """,
+                stacklevel=2,
             )
             return None
         except Exception as err:
-            warnings.warn(f"Error during loading of soil layers and parameters: {err}")
+            warnings.warn(f"Error during loading of soil layers and parameters: {err}", stacklevel=2)
             return None
 
     @staticmethod
-    def fulldata_processing(
-        unitdata, row, selected_depths, func_get_details, depthcol, **kwargs
-    ):
+    def fulldata_processing(unitdata, row, selected_depths, func_get_details, depthcol, **kwargs) -> pd.DataFrame:  # type: ignore
         # TODO: add docstring and type hints
         _fulldata = func_get_details(location=row["location_name"], **kwargs)["rawdata"]
-        _depthranges = selected_depths[
-            selected_depths["location_name"] == row["location_name"]
-        ]
+        _depthranges = selected_depths[selected_depths["location_name"] == row["location_name"]]
         for _, _layer in _depthranges.iterrows():
             _unitdata = _fulldata[
-                (_fulldata[depthcol] >= _layer["start_depth"])
-                & (_fulldata[depthcol] <= _layer["end_depth"])
+                (_fulldata[depthcol] >= _layer["start_depth"]) & (_fulldata[depthcol] <= _layer["end_depth"])
             ]
             unitdata = pd.concat([unitdata, _unitdata])
         unitdata.reset_index(drop=True, inplace=True)
@@ -280,16 +257,11 @@ class SoilDataProcessor:
         return unitdata
 
     @staticmethod
-    def partialdata_processing(unitdata, row, selected_depths, selected_tests):
+    def partialdata_processing(unitdata, row, selected_depths, selected_tests):  # type: ignore
         # TODO: add docstring and type hints
-        _depthranges = selected_depths[
-            selected_depths["location_name"] == row["location_name"]
-        ]
+        _depthranges = selected_depths[selected_depths["location_name"] == row["location_name"]]
         for _, _layer in _depthranges.iterrows():
-            if (
-                row["depth"] >= _layer["start_depth"]
-                and row["depth"] <= _layer["end_depth"]
-            ):
+            if row["depth"] >= _layer["start_depth"] and row["depth"] <= _layer["end_depth"]:
                 _unitdata = selected_tests[selected_tests["id"] == row["id"]]
                 unitdata = pd.concat([unitdata, _unitdata])
             else:
@@ -297,7 +269,7 @@ class SoilDataProcessor:
         unitdata.reset_index(drop=True, inplace=True)
 
     @staticmethod
-    def objects_to_list(selected_obj, func_get_detail, data_type):
+    def objects_to_list(selected_obj, func_get_detail, data_type):  # type: ignore
         # TODO: add docstring and type hints
         obj = []
         for _, row in selected_obj.iterrows():
@@ -327,9 +299,7 @@ class SoilDataProcessor:
                 )
                 obj.append(_obj)
             except Exception:
-                warnings.warn(
-                    f"Error loading {row['projectsite_name']}-{row['location_name']}-{row['title']}"
-                )
+                warnings.warn(f"Error loading {row['projectsite_name']}-{row['location_name']}-{row['title']}", stacklevel=2)
         return obj
 
 
@@ -346,7 +316,7 @@ class SoilprofileProcessor:
     and any optional keys that are present.
     """
 
-    LATERAL_SSI_KEYS: Dict[str, Dict[str, List[Union[str, Tuple[str, str]]]]] = {
+    LATERAL_SSI_KEYS: dict[str, dict[str, list[Union[str, tuple[str, str]]]]] = {
         "apirp2geo": {
             "mandatory": [
                 "Depth from [m]",
@@ -375,7 +345,7 @@ class SoilprofileProcessor:
         },
     }
 
-    AXIAL_SSI_KEYS: Dict[str, Dict[str, List[Union[str, Tuple[str, str]]]]] = {
+    AXIAL_SSI_KEYS: dict[str, dict[str, list[Union[str, tuple[str, str]]]]] = {
         "cpt": {
             "mandatory": [],
             "optional": [],
@@ -399,9 +369,7 @@ class SoilprofileProcessor:
             raise ValueError(f"Unsupported loading type '{loading}'.")
 
     @staticmethod
-    def _validate_keys(
-        data: pd.DataFrame, required_keys: list, mandatory: bool = True
-    ) -> list[str]:
+    def _validate_keys(data: pd.DataFrame, required_keys: list, mandatory: bool = True) -> list[str]:
         """
         Validate that all required keys are present in the data and return a list
         of standardized column names corresponding to these keys.
@@ -428,28 +396,20 @@ class SoilprofileProcessor:
                         candidate.append(col)
                 if candidate == []:
                     if mandatory:
-                        raise ValueError(
-                            f"Soil input: '{key}' is missing in the soil data."
-                        )
+                        raise ValueError(f"Soil input: '{key}' is missing in the soil data.")
                     else:
                         continue
                 validated_columns.extend(candidate)
             else:
                 # For a string key, check using lower-case comparison.
-                matching_cols = [
-                    col for col in data.columns if key.lower() in col.lower()
-                ]
+                matching_cols = [col for col in data.columns if key.lower() in col.lower()]
                 if len(matching_cols) == 0:
                     if mandatory:
-                        raise ValueError(
-                            f"Soil input: '{key}' is missing in the soil data."
-                        )
+                        raise ValueError(f"Soil input: '{key}' is missing in the soil data.")
                     else:
                         continue
                 elif len(matching_cols) > 1:
-                    raise ValueError(
-                        f"'{key}' should be defined by a single column, found: {matching_cols}"
-                    )
+                    raise ValueError(f"'{key}' should be defined by a single column, found: {matching_cols}")
 
                 original = keys_lower[key.lower()]
                 if original != key:
@@ -497,14 +457,10 @@ class SoilprofileProcessor:
         key_db = cls.LATERAL_SSI_KEYS[option]
         # Mandatory keys for the selected option.
         _keys = key_db.get("mandatory", [])
-        mandatory_keys = cls._validate_keys(
-            data=df, required_keys=_keys, mandatory=True
-        )
+        mandatory_keys = cls._validate_keys(data=df, required_keys=_keys, mandatory=True)
         # Include optional keys that are present.
         _keys = key_db.get("optional", [])
-        optional_keys = cls._validate_keys(
-            data=df, required_keys=_keys, mandatory=False
-        )
+        optional_keys = cls._validate_keys(data=df, required_keys=_keys, mandatory=False)
         soilprofile = df[mandatory_keys + optional_keys].copy()
         # Add additional required info
         soilprofile = cls._add_soilinfo(soilprofile, pw, mudline)
@@ -512,9 +468,7 @@ class SoilprofileProcessor:
         return soilprofile
 
     @staticmethod
-    def _add_soilinfo(
-        df: pd.DataFrame, pw: float, mudline: Union[float, None]
-    ) -> pd.DataFrame:
+    def _add_soilinfo(df: pd.DataFrame, pw: float, mudline: Union[float, None]) -> pd.DataFrame:
         """
         Add additional soil information to the soil profile DataFrame. The
         method calculates the submerged unit weight of the soil and, if provided,

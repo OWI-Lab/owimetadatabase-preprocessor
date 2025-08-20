@@ -1,11 +1,11 @@
 """Module to connect to the database API to retrieve and operate on locations data."""
 
-from typing import Dict, Union
+from typing import Any, Union
 
 import numpy as np
 import pandas as pd
-import plotly as plt  # type: ignore
-import plotly.express as px  # type: ignore
+import plotly as plt
+import plotly.express as px
 
 from owimetadatabase_preprocessor.io import API
 
@@ -25,7 +25,7 @@ class LocationsAPI(API):
     def __init__(
         self,
         api_subdir: str = "/locations/",
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """Create an instance of the LocationsAPI class with the required parameters.
 
@@ -36,9 +36,7 @@ class LocationsAPI(API):
         super().__init__(**kwargs)
         self.api_root = self.api_root + api_subdir
 
-    def get_projectsites(
-        self, **kwargs
-    ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
+    def get_projectsites(self, **kwargs: Any) -> dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
         """Get all available projects.
 
         :param: kwargs: Additional parameters to pass to the API.
@@ -47,16 +45,14 @@ class LocationsAPI(API):
             - "data": Pandas dataframe with the location data for each project
             - "exists": Boolean indicating whether matching records are found
         """
-        url_params = {}  # type: Dict[str, str]
+        url_params = {}  # type: dict[str, str]
         url_params = {**url_params, **kwargs}
         url_data_type = "projectsites"
         output_type = "list"
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
 
-    def get_projectsite_detail(
-        self, projectsite: str, **kwargs
-    ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
+    def get_projectsite_detail(self, projectsite: str, **kwargs: Any) -> dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
         """Get details for a specific projectsite.
 
         :param projectsite: Title of the projectsite.
@@ -75,8 +71,8 @@ class LocationsAPI(API):
         return {"id": df_add["id"], "data": df, "exists": df_add["existance"]}
 
     def get_assetlocations(
-        self, projectsite: Union[str, None] = None, **kwargs
-    ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
+        self, projectsite: Union[str, None] = None, **kwargs: Any
+    ) -> dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
         """Get all available asset locations for all projectsites or a specific projectsite.
 
         :param projectsite: String with the projectsite title (e.g. "Nobelwind").
@@ -87,22 +83,18 @@ class LocationsAPI(API):
             - "data": Pandas dataframe with the location data for each location in the projectsite.
             - "exists": Boolean indicating whether matching records are found.
         """
-        url_params = {}  # type: Dict[str, str]
+        url_params = {}  # type: dict[str, str]
         url_params = {**url_params, **kwargs}
         if projectsite:
             url_params["projectsite__title"] = projectsite
         url_data_type = "assetlocations"
-        if "assetlocations" in url_params.keys() and isinstance(
-            url_params["assetlocations"], list
-        ):
+        if "assetlocations" in url_params and isinstance(url_params["assetlocations"], list):
             df = []
             df_add = {"existance": []}
             for assetlocation in url_params["assetlocations"]:
                 output_type = "single"
                 url_params["assetlocation"] = assetlocation
-                df_temp, df_add_temp = self.process_data(
-                    url_data_type, url_params, output_type
-                )
+                df_temp, df_add_temp = self.process_data(url_data_type, url_params, output_type)
                 df.append(df_temp)
                 df_add["existance"].append(df_add_temp["existance"])
             df = pd.concat(df)
@@ -112,8 +104,8 @@ class LocationsAPI(API):
         return {"data": df, "exists": df_add["existance"]}
 
     def get_assetlocation_detail(
-        self, assetlocation: str, projectsite: Union[None, str] = None, **kwargs
-    ) -> Dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
+        self, assetlocation: str, projectsite: Union[None, str] = None, **kwargs: Any
+    ) -> dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
         """Get a selected turbine.
 
         :param projectsite: Name of the projectsite (e.g. "Nobelwind").
@@ -135,9 +127,7 @@ class LocationsAPI(API):
         df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"id": df_add["id"], "data": df, "exists": df_add["existance"]}
 
-    def plot_assetlocations(
-        self, return_fig: bool = False, **kwargs
-    ) -> Union[plt.graph_objects.Figure, None]:
+    def plot_assetlocations(self, return_fig: bool = False, **kwargs: Any) -> Union[plt.graph_objects.Figure, None]:
         """Retrieve asset locations and generates a Plotly plot to show them.
 
         :param return_fig: Boolean indicating whether to return the figure.
@@ -167,3 +157,4 @@ class LocationsAPI(API):
             return fig
         else:
             fig.show()
+            return None

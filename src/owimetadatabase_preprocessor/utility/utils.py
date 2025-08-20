@@ -1,38 +1,37 @@
 """Utility functions for the owimetadatabase_preprocessor package."""
 
 import math
-from typing import Any, Dict, List, Tuple, Union
+from collections.abc import Sequence
+from typing import Any, Optional, Union, overload
 
 import numpy as np
 import pandas as pd
 
 
-def custom_formatwarning(message, category, filename, lineno, line=None):
-    """Custom format for warnings."""
+def custom_formatwarning(message, category, filename, lineno, line=None):  # type: ignore
+    """Return customized warning."""
     return f"{category.__name__}: {message}\n"
 
 
-def dict_generator(
-    dict_: Dict[str, Any], keys_: List[str] = [], method_: str = "exclude"
-) -> Dict[str, Any]:
+def dict_generator(dict_: dict[str, Any], keys_: Optional[Sequence[str]] = None, method_: str = "exclude") -> dict[str, Any]:
     """Generate a dictionary with the specified keys.
 
     :param dict_: Dictionary to be filtered.
-    :param keys_: List of keys to be included or excluded.
+    :param keys_: list of keys to be included or excluded.
     :param method_: Method to be used for filtering. Options are "exclude" and "include".
     :return: Filtered dictionary.
     """
+    if keys_ is None:
+        keys_ = []
     if method_ == "exclude":
-        return {k: dict_[k] for k in dict_.keys() if k not in keys_}
+        return {k: dict_[k] for k in dict_ if k not in keys_}
     elif method_ == "include":
-        return {k: dict_[k] for k in dict_.keys() if k in keys_}
+        return {k: dict_[k] for k in dict_ if k in keys_}
     else:
         raise ValueError("Method not recognized!")
 
 
-def compare_if_simple_close(
-    a: Any, b: Any, tol: float = 1e-9
-) -> Tuple[bool, Union[None, str]]:
+def compare_if_simple_close(a: Any, b: Any, tol: float = 1e-9) -> tuple[bool, Union[None, str]]:
     """Compare two values and return a boolean and a message.
 
     :param a: First value to be compared.
@@ -44,16 +43,10 @@ def compare_if_simple_close(
         if np.isnan(a) and np.isnan(b):
             return True, None
         assertion = math.isclose(a, b, rel_tol=tol)
-        if assertion:
-            messsage = None
-        else:
-            messsage = f"Values of {a} and {b} are different."
+        messsage = None if assertion else f"Values of {a} and {b} are different."
         return assertion, messsage
     assertion = a == b
-    if assertion:
-        messsage = None
-    else:
-        messsage = f"Values of {a} and {b} are different."
+    messsage = None if assertion else f"Values of {a} and {b} are different."
     return assertion, messsage
 
 
@@ -72,19 +65,17 @@ def check_df_eq(df1: pd.DataFrame, df2: pd.DataFrame, tol: float = 1e-9) -> bool
     if df1.shape != df2.shape:
         return False
     num_cols_eq = np.allclose(
-        df1.select_dtypes(include=np.number),  # type: ignore
-        df2.select_dtypes(include=np.number),  # type: ignore
+        df1.select_dtypes(include="number"),
+        df2.select_dtypes(include="number"),
         rtol=tol,
         atol=tol,
         equal_nan=True,
     )
-    str_cols_eq = df1.select_dtypes(include=object).equals(  # type: ignore
-        df2.select_dtypes(include=object)  # type: ignore
-    )
+    str_cols_eq = df1.select_dtypes(include="object").equals(df2.select_dtypes(include="object"))
     return num_cols_eq and str_cols_eq
 
 
-def deepcompare(a: Any, b: Any, tol: float = 1e-5) -> Tuple[bool, Union[None, str]]:
+def deepcompare(a: Any, b: Any, tol: float = 1e-5) -> tuple[bool, Union[None, str]]:
     """Compare two complicated (potentailly nested) objects recursively and return a result and a message.
 
     :param a: First object to be compared.
@@ -97,9 +88,7 @@ def deepcompare(a: Any, b: Any, tol: float = 1e-5) -> Tuple[bool, Union[None, st
             return deepcompare(a.__dict__, b, tol)
         elif hasattr(b, "__dict__") and isinstance(a, dict):
             return deepcompare(a, b.__dict__, tol)
-        elif isinstance(a, (float, np.floating)) and isinstance(
-            b, (float, np.floating)
-        ):
+        elif isinstance(a, (float, np.floating)) and isinstance(b, (float, np.floating)):
             return deepcompare(np.float64(a), np.float64(b), tol)
         return (
             False,
@@ -114,9 +103,7 @@ def deepcompare(a: Any, b: Any, tol: float = 1e-5) -> Tuple[bool, Union[None, st
             message = None
         else:
             keys = [key for key, val in zip(a.keys(), compare) if val is False]
-            message = (
-                f"Dictionary values are different for {a} and {b}, for keys: {keys}."
-            )
+            message = f"Dictionary values are different for {a} and {b}, for keys: {keys}."
         return assertion, message
     elif isinstance(a, (list, tuple)):
         if len(a) != len(b):
@@ -129,21 +116,14 @@ def deepcompare(a: Any, b: Any, tol: float = 1e-5) -> Tuple[bool, Union[None, st
         if assertion:
             message = None
         else:
-            inds = [
-                ind for ind, val in zip(range(len(compare)), compare) if val is False
-            ]
-            message = (
-                f"Lists/tuples are different for {a} and {b}, for indices: {inds}."
-            )
+            inds = [ind for ind, val in zip(range(len(compare)), compare) if val is False]
+            message = f"Lists/tuples are different for {a} and {b}, for indices: {inds}."
         return assertion, message
     elif hasattr(a, "__dict__") and not isinstance(a, pd.DataFrame):
         return deepcompare(a.__dict__, b.__dict__, tol)
     elif isinstance(a, pd.DataFrame):
         assertion = check_df_eq(a, b, tol)
-        if assertion:
-            message = None
-        else:
-            message = f"Dataframes {a} and {b} are different for {a.compare(b)}."
+        message = None if assertion else f"Dataframes {a} and {b} are different for {a.compare(b)}."
         return assertion, message
     else:
         return compare_if_simple_close(a, b, tol)
@@ -175,33 +155,47 @@ def fix_outline(data: Any) -> Any:
     """
     if isinstance(data, list):
         for i in range(len(data)):
-            if "outline" in data[i].keys() and data[i]["outline"] is not None:
+            if "outline" in data[i] and data[i]["outline"] is not None:
                 data[i]["outline"] = tuple(data[i]["outline"])
     elif isinstance(data, dict):
-        if "outline" in data.keys() and data["outline"] is not None:
+        if "outline" in data and data["outline"] is not None:
             data["outline"] = tuple(data["outline"])
     else:
         raise ValueError("Not supported data type.")
     return data
 
 
-def hex_to_dec(value):
-    """Return [red, green, blue, alpha] for the color given as #rrggbbaa."""
+@overload
+def hex_to_dec(value: str) -> list[float]: ...
+@overload
+def hex_to_dec(value: list[str]) -> list[list[float]]: ...
+@overload
+def hex_to_dec(value: tuple[str, ...]) -> list[list[float]]: ...
+def hex_to_dec(value: Union[str, Sequence[str]]) -> Union[list[float], list[list[float]]]:
+    """Convert hex color(s) to normalized [r, g, b, a] floats.
 
-    def _hex_to_dec(value):
-        value = value.lstrip("#") if value.startswith("#") else value
-        if len(value) != 6:
-            if len(value) != 8:
-                raise ValueError("len(value) != 6 or 8 (excluding #)")
-        col = value[0:6]
-        alpha = value[6:] / 100 if len(value) == 8 else 1
-        lv = len(col)
-        return list(
-            int(col[i : i + lv // 3], 16) / 255  # noqa: E203
-            for i in range(0, lv, lv // 3)
-        ) + [alpha]
+    Accepts 6-digit (#rrggbb) or 8-digit (#rrggbbaa) hex strings, with or without leading '#'.
+    - If `value` is a string: returns [r, g, b, a]
+    - If `value` is a list of strings: returns [[r, g, b, a], ...]
+
+    :param value: Hex color string or list of hex color strings.
+    :return: Normalized RGBA list or list of such lists.
+    :raises ValueError: If the hex string length is not 6 or 8.
+    :raises TypeError: If the input type is not supported.
+    """
+
+    def _hex_to_dec(s: str) -> list[float]:
+        s = s.lstrip("#") if s.startswith("#") else s
+        if len(s) not in (6, 8):
+            raise ValueError("Length of the color string must be 6 or 8 (excluding #)")
+        r = int(s[0:2], 16) / 255.0
+        g = int(s[2:4], 16) / 255.0
+        b = int(s[4:6], 16) / 255.0
+        a = int(s[6:8], 16) / 255.0 if len(s) == 8 else 1.0
+        return [r, g, b, a]
 
     if isinstance(value, str):
-        value = [value]
-    elif isinstance(value, list):
-        return [_hex_to_dec(_) for _ in value]
+        return _hex_to_dec(value)
+    elif isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+        return [_hex_to_dec(v) for v in value]
+    raise ValueError("Value must be a string or a list of strings.")

@@ -22,9 +22,7 @@ class APIException(Exception):
 class APIConnectionError(APIException):
     """Exception raised when the API cannot be reached or returns a failure."""
 
-    def __init__(
-        self, message: str, response: Optional[requests.Response] = None
-    ) -> None:
+    def __init__(self, message: str, response: Optional[requests.Response] = None) -> None:
         self.response = response
         super().__init__(message)
 
@@ -36,9 +34,7 @@ class APIConnectionError(APIException):
 class DataNotFoundError(APIException):
     """Exception raised when no data is found for the given query parameters."""
 
-    def __init__(
-        self, message: str = "No data found for the given search criteria."
-    ) -> None:
+    def __init__(self, message: str = "No data found for the given search criteria.") -> None:
         super().__init__(message)
 
 
@@ -52,7 +48,5 @@ class DataProcessingError(APIException):
 class InvalidParameterError(APIException):
     """Exception raised when query parameters are invalid or missing."""
 
-    def __init__(
-        self, message: str = "Invalid or missing parameters for the request."
-    ) -> None:
+    def __init__(self, message: str = "Invalid or missing parameters for the request.") -> None:
         super().__init__(message)

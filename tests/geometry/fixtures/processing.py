@@ -14,9 +14,7 @@ def sa_list_in(data):
     data_list = []
     for i in range(3):
         data_ = deepcopy(data["sa"][i])
-        data_list.append(
-            dict_generator(data_, keys_=["slug", "model_definition"], method_="exclude")
-        )
+        data_list.append(dict_generator(data_, keys_=["slug", "model_definition"], method_="exclude"))
     return data_list
 
 
@@ -50,9 +48,7 @@ def bb_list_in(bb_in_list, bb_in_list_prop, materials_dicts_init):
             bb_list[i]["vertical_position_reference_system"],
         )
         if bb_list[i]["material"] is not None and not np.isnan(bb_list[i]["material"]):
-            bb_list[i]["material"] = materials_dicts_init[
-                np.int64(bb_list[i]["material"]) - 1
-            ]
+            bb_list[i]["material"] = materials_dicts_init[np.int64(bb_list[i]["material"]) - 1]
         else:
             bb_list[i]["material"] = None
         if bb_in_list[i]["description"] is None:
@@ -130,21 +126,9 @@ def sa_list_out(data, api_root, header, materials_dicts_init, bb_list_in):
 
 @pytest.fixture(scope="function")
 def owt_init(api_test, materials_df, sa_list_out, data, loc):
-    tw_sa = (
-        pd.DataFrame(data["sa_prop"][2]["df"])
-        .drop(columns=["absolute_position, m"], axis=1)
-        .set_index("title")
-    )
-    tp_sa = (
-        pd.DataFrame(data["sa_prop"][0]["df"])
-        .drop(columns=["absolute_position, m"], axis=1)
-        .set_index("title")
-    )
-    mp_sa = (
-        pd.DataFrame(data["sa_prop"][1]["df"])
-        .drop(columns=["absolute_position, m"], axis=1)
-        .set_index("title")
-    )
+    tw_sa = pd.DataFrame(data["sa_prop"][2]["df"]).drop(columns=["absolute_position, m"], axis=1).set_index("title")
+    tp_sa = pd.DataFrame(data["sa_prop"][0]["df"]).drop(columns=["absolute_position, m"], axis=1).set_index("title")
+    mp_sa = pd.DataFrame(data["sa_prop"][1]["df"]).drop(columns=["absolute_position, m"], axis=1).set_index("title")
     return {
         "_init_proc": False,
         "_init_spec_part": False,
@@ -269,12 +253,8 @@ def df_proc_struct_true(request, data):
         tw = pd.DataFrame(data["geo"]["process_tube"][2]).set_index("title")
         tp = pd.DataFrame(data["geo"]["process_tube"][0]).set_index("title")
         mp = pd.DataFrame(data["geo"]["process_tube"][1]).set_index("title")
-        tw_lump = pd.DataFrame(data["geo"]["process_appurtenances"][1]).set_index(
-            "title"
-        )
-        tp_lump = pd.DataFrame(data["geo"]["process_appurtenances"][0]).set_index(
-            "title"
-        )
+        tw_lump = pd.DataFrame(data["geo"]["process_appurtenances"][1]).set_index("title")
+        tp_lump = pd.DataFrame(data["geo"]["process_appurtenances"][0]).set_index("title")
         tp_distr = pd.DataFrame(data["geo"]["process_distr"][0]).set_index("title")
         grout = pd.DataFrame(data["geo"]["process_distr"][1]).set_index("title")
         mp_lump = pd.DataFrame(
@@ -303,14 +283,10 @@ def df_proc_struct_true(request, data):
     elif idx == 1:
         rna = pd.DataFrame(data["geo"]["process_rna"]).set_index("title")
         tw = pd.DataFrame(data["geo"]["process_tube"][2]).set_index("title")
-        tw_lump = pd.DataFrame(data["geo"]["process_appurtenances"][1]).set_index(
-            "title"
-        )
+        tw_lump = pd.DataFrame(data["geo"]["process_appurtenances"][1]).set_index("title")
     elif idx == 2:
         tp = pd.DataFrame(data["geo"]["process_tube"][0]).set_index("title")
-        tp_lump = pd.DataFrame(data["geo"]["process_appurtenances"][0]).set_index(
-            "title"
-        )
+        tp_lump = pd.DataFrame(data["geo"]["process_appurtenances"][0]).set_index("title")
         tp_distr = pd.DataFrame(data["geo"]["process_distr"][0]).set_index("title")
         grout = pd.DataFrame(data["geo"]["process_distr"][1]).set_index("title")
     elif idx == 3:
@@ -405,15 +381,9 @@ def owts_init(owt, api_test, materials_df):
     dict_init["tower_base"] = {"AAA01": owt.tower_base, "AAB02": owt.tower_base}
     dict_init["pile_head"] = {"AAA01": owt.pile_head, "AAB02": owt.pile_head}
     dict_init["water_depth"] = {"AAA01": owt.water_depth, "AAB02": owt.water_depth}
-    dict_init["tw_sub_assemblies"] = pd.concat(
-        [owt.tw_sub_assemblies, owt.tw_sub_assemblies]
-    )
-    dict_init["tp_sub_assemblies"] = pd.concat(
-        [owt.tp_sub_assemblies, owt.tp_sub_assemblies]
-    )
-    dict_init["mp_sub_assemblies"] = pd.concat(
-        [owt.mp_sub_assemblies, owt.mp_sub_assemblies]
-    )
+    dict_init["tw_sub_assemblies"] = pd.concat([owt.tw_sub_assemblies, owt.tw_sub_assemblies])
+    dict_init["tp_sub_assemblies"] = pd.concat([owt.tp_sub_assemblies, owt.tp_sub_assemblies])
+    dict_init["mp_sub_assemblies"] = pd.concat([owt.mp_sub_assemblies, owt.mp_sub_assemblies])
     dict_init["_init"] = False
     dict_init["pile_toe"] = []
     dict_init["rna"] = []
@@ -454,12 +424,8 @@ def owts_true(data, assembled_tp_mp, assembled_full, owts_init):
     tower = pd.DataFrame(data["geo"]["process_tube"][2]).set_index("title")
     tp = pd.DataFrame(data["geo"]["process_tube"][0]).set_index("title")
     mp = pd.DataFrame(data["geo"]["process_tube"][1]).set_index("title")
-    tw_lump_mass = pd.DataFrame(data["geo"]["process_appurtenances"][1]).set_index(
-        "title"
-    )
-    tp_lump_mass = pd.DataFrame(data["geo"]["process_appurtenances"][0]).set_index(
-        "title"
-    )
+    tw_lump_mass = pd.DataFrame(data["geo"]["process_appurtenances"][1]).set_index("title")
+    tp_lump_mass = pd.DataFrame(data["geo"]["process_appurtenances"][0]).set_index("title")
     mp_lump_mass = pd.DataFrame(
         columns=[
             "title",
@@ -511,34 +477,22 @@ def owts_true(data, assembled_tp_mp, assembled_full, owts_init):
     dict_["full_structure"] = pd.concat([assembled_full, assembled_full])
     dict_["tp_skirt"]["Subassembly"] = "TP"
     for sa in ["TW", "TP", "MP"]:
-        dict_["substructure"].loc[
-            dict_["substructure"].index.str.contains(sa.lower()), "Subassembly"
-        ] = sa
-        dict_["full_structure"].loc[
-            dict_["full_structure"].index.str.contains(sa.lower()), "Subassembly"
-        ] = sa
+        dict_["substructure"].loc[dict_["substructure"].index.str.contains(sa.lower()), "Subassembly"] = sa
+        dict_["full_structure"].loc[dict_["full_structure"].index.str.contains(sa.lower()), "Subassembly"] = sa
     dict_["all_tubular_structures"] = pd.concat([tower, tp, mp, tower, tp, mp])
-    dict_["all_distributed_mass"] = pd.concat(
-        [tp_distr_mass, grout, mp_distr_mass, tp_distr_mass, grout, mp_distr_mass]
-    )
+    dict_["all_distributed_mass"] = pd.concat([tp_distr_mass, grout, mp_distr_mass, tp_distr_mass, grout, mp_distr_mass])
     dict_["all_lumped_mass"] = pd.concat(
         [
-            rna[
-                ["X [m]", "Y [m]", "Z [mLAT]", "Mass [t]", "Description", "Subassembly"]
-            ],
+            rna[["X [m]", "Y [m]", "Z [mLAT]", "Mass [t]", "Description", "Subassembly"]],
             tw_lump_mass,
             tp_lump_mass,
             mp_lump_mass,
-            rna[
-                ["X [m]", "Y [m]", "Z [mLAT]", "Mass [t]", "Description", "Subassembly"]
-            ],
+            rna[["X [m]", "Y [m]", "Z [mLAT]", "Mass [t]", "Description", "Subassembly"]],
             tw_lump_mass,
             tp_lump_mass,
             mp_lump_mass,
         ]
     )
-    dict_["all_turbines"] = pd.concat(
-        [pd.DataFrame(data["turb"], index=[0]), pd.DataFrame(data["turb"], index=[1])]
-    )
+    dict_["all_turbines"] = pd.concat([pd.DataFrame(data["turb"], index=[0]), pd.DataFrame(data["turb"], index=[1])])
     dict_["all_turbines"].loc[1, "Turbine name"] = "AAB02"
     return dict_

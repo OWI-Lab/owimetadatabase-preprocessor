@@ -1,4 +1,4 @@
-from typing import Any, Dict, Union
+from typing import Any, Union
 from unittest import mock
 
 import pandas as pd
@@ -41,10 +41,10 @@ from owimetadatabase_preprocessor.geometry.processing import OWTs
 )
 def test_get_subassemblies(
     api_root: str,
-    header: Dict[str, str],
+    header: dict[str, str],
     mock_requests_get_subassemblies: mock.Mock,
-    params: Union[Dict[str, Union[str, int]], None],
-    data_subassemblies: Union[Dict[str, str], None],
+    params: Union[dict[str, Union[str, int]], None],
+    data_subassemblies: Union[dict[str, str], None],
 ) -> None:
     api_test = GeometryAPI(api_root, header=header)
     data_ = api_test.get_subassemblies(**params)  # type: ignore
@@ -129,10 +129,10 @@ def test_get_subassemblies(
 )
 def test_get_buildingblocks(
     api_root: str,
-    header: Dict[str, str],
+    header: dict[str, str],
     mock_requests_get_buildingblocks: mock.Mock,
-    params: Union[Dict[str, Union[str, int]], None],
-    data_buildingblocks: Union[Dict[str, str], None],
+    params: Union[dict[str, Union[str, int]], None],
+    data_buildingblocks: Union[dict[str, str], None],
 ) -> None:
     api_test = GeometryAPI(api_root, header=header)
     data_ = api_test.get_buildingblocks(**params)  # type: ignore
@@ -143,9 +143,7 @@ def test_get_buildingblocks(
     pd_testing.assert_frame_equal(data_["data"], expected_data)
 
 
-def test_get_materials(
-    api_root: str, header: Dict[str, str], mock_requests_get_advanced: mock.Mock
-) -> None:
+def test_get_materials(api_root: str, header: dict[str, str], mock_requests_get_advanced: mock.Mock) -> None:
     api_test = GeometryAPI(api_root, header=header)
     data = api_test.get_materials()
     assert isinstance(data["data"], pd.DataFrame)
@@ -153,8 +151,6 @@ def test_get_materials(
     assert data["exists"]
 
 
-def test_get_owt_geometry_processor(
-    api_test: Any, owts_init: OWTs, mock_requests_for_proc: mock.Mock
-) -> None:
+def test_get_owt_geometry_processor(api_test: Any, owts_init: OWTs, mock_requests_for_proc: mock.Mock) -> None:
     processor = api_test.get_owt_geometry_processor(turbines=["AAA01", "AAB02"])
     assert processor == owts_init

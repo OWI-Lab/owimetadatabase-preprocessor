@@ -1,14 +1,16 @@
 """Module defining classes handling different kinds of fatigue data."""
 
+# mypy: ignore-errors
+
 try:
     from collections.abc import Iterable
 except ImportError:
-    from collections import Iterable
+    from collections.abc import Iterable
 
 import warnings
 from copy import deepcopy
 from itertools import cycle
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Union
 
 import numpy as np
 import plotly.graph_objects as go
@@ -45,9 +47,7 @@ COLOR_LIST = [
 COLOR_LIST_LEN = len(COLOR_LIST)
 
 
-FATIGUE_DETAILS_COLORS = {
-    i: COLOR_LIST[np.random.randint(COLOR_LIST_LEN)] for i in range(100)
-}
+FATIGUE_DETAILS_COLORS = {i: COLOR_LIST[np.random.randint(COLOR_LIST_LEN)] for i in range(100)}
 
 
 # FATIGUE_DETAILS_COLORS = {
@@ -74,10 +74,10 @@ class SNCurve:
 
     def __init__(
         self,
-        json_file: Dict[str, Union[None, str, np.int64, np.float64]],
+        json_file: dict[str, Union[None, str, np.int64, np.float64]],
         api_object=None,
     ) -> None:
-        """Constructor for the SNCurve class.
+        """Initialize an instance of the SNCurve class.
 
         :param json_file: The JSON object containing the SN curve data.
         :param api_object: The FatigueAPI instance that created the SNCurve instance.
@@ -94,15 +94,9 @@ class SNCurve:
 
         m = self.json_file["m"]
         log_a = self.json_file["log_a"]
-        self._m = (
-            np.array(m, dtype=np.float64)
-            if m is not None and isinstance(m, (np.float64, int, list))
-            else m
-        )
+        self._m = np.array(m, dtype=np.float64) if m is not None and isinstance(m, (np.float64, int, list)) else m
         self._log_a = (
-            np.array(log_a, dtype=np.float64)
-            if log_a is not None and isinstance(log_a, (np.float64, int, list))
-            else log_a
+            np.array(log_a, dtype=np.float64) if log_a is not None and isinstance(log_a, (np.float64, int, list)) else log_a
         )
 
         self._n_knee = self.json_file["n_knee"]
@@ -121,13 +115,11 @@ class SNCurve:
         else:
             self.bi_linear = False
         if self.bi_linear and self._n_knee is None:
-            raise ValueError(
-                "For bi-linear S-N Curves a Knee point (N_knee) has to be defined"
-            )
+            raise ValueError("For bi-linear S-N Curves a Knee point (N_knee) has to be defined")
 
     @property
     def m(self) -> Union[list, np.ndarray]:
-        """m parameter of the SN-Curve."""
+        """M parameter of the SN-Curve."""
         return self._m
 
     @m.setter
@@ -154,7 +146,7 @@ class SNCurve:
 
     @property
     def name(self) -> str:
-        """Name of the SN-Curve"""
+        """Name of the SN-Curve."""
         if self.curve is not None:
             if self.environment is not None:
                 if self.norm is not None:
@@ -173,17 +165,11 @@ class SNCurve:
         :return: str of color
         """
         if not isinstance(self.color, str):
-            return "#{:02x}{:02x}{:02x}".format(
-                int(self.color[0] * 255),
-                int(self.color[1] * 255),
-                int(self.color[2] * 255),
-            )
+            return f"#{int(self.color[0] * 255):02x}{int(self.color[1] * 255):02x}{int(self.color[2] * 255):02x}"
         else:
             return self.color
 
-    def n(
-        self, sigma: Union[List[np.float64], np.ndarray]
-    ) -> Union[np.float64, np.ndarray]:
+    def n(self, sigma: Union[list[np.float64], np.ndarray]) -> Union[np.float64, np.ndarray]:
         """Return the number of cycles for a certain stress range.
 
         :param sigma: Stress ranges for which the maximum number of cycles is to be calculated
@@ -191,25 +177,21 @@ class SNCurve:
         if not isinstance(sigma, np.ndarray):
             sigma = np.array(sigma)
 
-        def _calc_n(sigma, m, log_a):
+        def _calc_n(
+            sigma: Union[list[np.float64], np.ndarray], m: Union[list, np.ndarray], log_a: Union[list, np.ndarray]
+        ) -> np.ndarray:
             return 10 ** (log_a) * np.power(sigma, -m)
 
         if not self.bi_linear:
             n = _calc_n(sigma, self.m, self.log_a)
         else:
-            threshold = np.float64(self.sigma(self.n_knee))
+            threshold = np.float64(self.sigma(self.n_knee))  # type: ignore
             n = np.zeros(np.shape(sigma))
-            n[sigma >= threshold] = _calc_n(
-                sigma[sigma >= threshold], self.m[0], self.log_a[0]
-            )
-            n[sigma < threshold] = _calc_n(
-                sigma[sigma < threshold], self.m[1], self.log_a[1]
-            )
+            n[sigma >= threshold] = _calc_n(sigma[sigma >= threshold], self.m[0], self.log_a[0])
+            n[sigma < threshold] = _calc_n(sigma[sigma < threshold], self.m[1], self.log_a[1])
         return n
 
-    def sigma(
-        self, n: Union[List[np.float64], np.ndarray]
-    ) -> Union[np.float64, np.ndarray]:
+    def sigma(self, n: Union[list[np.float64], np.ndarray]) -> Union[np.float64, np.ndarray]:
         """Return the stress ranges for a certain number of n.
 
         :param n: Number of cycles for which the stress ranges have to be calculated
@@ -217,24 +199,20 @@ class SNCurve:
         if not isinstance(n, np.ndarray):
             n = np.array(n)
 
-        def _calc_sigma(n, m, log_a):
+        def _calc_sigma(n: np.ndarray, m: Union[list, np.ndarray], log_a: Union[list, np.ndarray]) -> np.ndarray:
             return (10**log_a) ** (1 / m) * np.power(n, -1 / m)
 
         if not self.bi_linear:
             sigma = _calc_sigma(n, self.m, self.log_a)
         else:
             sigma = np.zeros(np.shape(n))
-            sigma[n <= self.n_knee] = _calc_sigma(
-                n[n <= self.n_knee], self.m[0], self.log_a[0]
-            )
-            sigma[n > self.n_knee] = _calc_sigma(
-                n[n > self.n_knee], self.m[1], self.log_a[1]
-            )
+            sigma[n <= self.n_knee] = _calc_sigma(n[n <= self.n_knee], self.m[0], self.log_a[0])
+            sigma[n > self.n_knee] = _calc_sigma(n[n > self.n_knee], self.m[1], self.log_a[1])
         return sigma
 
     def _check_bi_linear(self) -> None:
-        sigma_1 = self.sigma(self.n_knee)
-        sigma_2 = self.sigma(self.n_knee + 1e-3)
+        sigma_1 = self.sigma(self.n_knee)  # type: ignore
+        sigma_2 = self.sigma(self.n_knee + 1e-3)  # type: ignore
         if np.abs(sigma_1 - sigma_2) > 1e-1:
             w = [
                 "Both ends of the bi-linear curve \033[95m",
@@ -242,13 +220,13 @@ class SNCurve:
                 "\033[0m do not meet up at the knee-point. ",
                 "Check the SN curve definition.",
             ]
-            warnings.warn("".join(w))
+            warnings.warn("".join(w), stacklevel=2)
 
     def _sn_curve_data_points(
         self,
-        n: Union[List[np.float64], np.ndarray, None] = None,
-        sigma: Union[List[np.float64], np.ndarray, None] = None,
-    ) -> Union[List[np.float64], np.ndarray]:
+        n: Union[list[np.float64], np.ndarray, None] = None,
+        sigma: Union[list[np.float64], np.ndarray, None] = None,
+    ) -> Union[list[np.float64], np.ndarray]:
         if sigma is None:
             if n is None:
                 # Default range of n
@@ -256,7 +234,7 @@ class SNCurve:
         else:
             if n is not None:
                 raise TypeError("Either n or sigma shall be NoneType")
-            n = self.N(sigma)
+            n = self.n(sigma)  # used to be self.N ???
         if self.bi_linear:
             n = np.sort(np.append(n, np.array(self.n_knee)))
         sigma = self.sigma(n)
@@ -264,11 +242,11 @@ class SNCurve:
 
     def plotly(
         self,
-        n: Union[List[np.float64], np.ndarray, None] = None,
-        sigma: Union[List[np.float64], np.ndarray, None] = None,
+        n: Union[list[np.float64], np.ndarray, None] = None,
+        sigma: Union[list[np.float64], np.ndarray, None] = None,
         show: bool = True,
-    ) -> Tuple[List[go.Scattergl], go.Layout]:
-        """Use plotly to plot the SN curve
+    ) -> tuple[list[go.Scattergl], go.Layout]:
+        """Use plotly to plot the SN curve.
 
         :param n: Number of cycles for which the stress ranges have to be calculated and the plot shown.
         :param sigma: Stress ranges for which the maximum number of cycles is to be calculated and the plot shown.
@@ -281,25 +259,23 @@ class SNCurve:
                 x=n,  # assign x as the dataframe column 'x'
                 y=sigma,
                 name=self.name,
-                line=dict(color=self.color_str, width=1),
+                line={"color": self.color_str, "width": 1},
             )
         ]
         layout = go.Layout(
-            xaxis=dict(
-                title=go.layout.xaxis.Title(text="Number of cycles"), type="log"
-            ),
-            yaxis=dict(
-                title=go.layout.yaxis.Title(text="Stress range, " + self.unit_string),
-                type="log",
-            ),
+            xaxis={"title": go.layout.xaxis.Title(text="Number of cycles"), "type": "log"},
+            yaxis={
+                "title": go.layout.yaxis.Title(text="Stress range, " + self.unit_string),
+                "type": "log",
+            },
         )
         if show:
             fig = go.Figure(data=data, layout=layout)
             fig.show()
         return data, layout
 
-    def as_dict(self) -> Dict[str, Any]:
-        """Returns the SN curve description as a dictionary."""
+    def as_dict(self) -> dict[str, Any]:
+        """Return the SN curve description as a dictionary."""
         return {
             "name": self.name,
             "units": self.unit_string,
@@ -309,9 +285,9 @@ class SNCurve:
         }
 
     def as_df(self) -> DataFrame:
-        """Returns the SN curve description as a DataFrame."""
+        """Return the SN curve description as a DataFrame."""
         d = self.as_dict()
-        try:
+        try:  # noqa: SIM105
             del d["title"]
         except Exception:
             pass
@@ -355,11 +331,11 @@ class FatigueDetail:
 
     def __init__(
         self,
-        json_file: Dict[str, Union[None, str, np.int64, np.float64]],
+        json_file: dict[str, Union[None, str, np.int64, np.float64]],
         api_object=None,
         subassembly: SubAssembly = None,
     ) -> None:
-        """Constructor for the FatigueDetail class.
+        """Initialize an instance of the FatigueDetail class.
 
         :param json: The JSON object containing the fatigue data.
         :param api_object: The FatigueAPI instance that created the FatigueDetail instance.
@@ -378,8 +354,8 @@ class FatigueDetail:
         self.modeldefinition = json_file["modeldefinition"]
         self.fatiguelifein = json_file["fatiguelifein"]
         self.fatiguelifeout = json_file["fatiguelifeout"]
-        self.scfin = json_file["scfin"] if "scfin" in json_file else None
-        self.scfout = json_file["scfout"] if "scfout" in json_file else None
+        self.scfin = json_file.get("scfin")
+        self.scfout = json_file.get("scfout")
         self.materialsafetyfactor = json_file["materialsafetyfactor"]
         self.scaleeffect = json_file["scaleeffect"]
 
@@ -398,7 +374,7 @@ class FatigueDetail:
                     break
 
     @property
-    def sncurves(self) -> Dict[Dict[str, str], SNCurve]:
+    def sncurves(self) -> dict[dict[str, str], SNCurve]:
         """SN curves of the detail.
 
         :return: Dictionary with SN curves of the detail.
@@ -485,7 +461,7 @@ class FatigueDetail:
         return self._buildingblocktop
 
     @property
-    def wall_thickness(self) -> List[float]:
+    def wall_thickness(self) -> list[float]:
         """Wall thickness."""
         wt = [self.buildingblock.wall_thickness]
         if self.buildingblocktop is not None:
@@ -580,8 +556,8 @@ class FatigueDetail:
         else:
             return None
 
-    def as_dict(self, identify_sncurves: bool = False) -> Dict[str, Any]:
-        """Returns the fatigue detail description as a dictionary."""
+    def as_dict(self, identify_sncurves: bool = False) -> dict[str, Any]:
+        """Return the fatigue detail description as a dictionary."""
         if identify_sncurves:
             _as_dict = {
                 "detailtype": self.fd_type,
@@ -595,22 +571,12 @@ class FatigueDetail:
                 "subassembly": self.subassembly_name[-2:],
                 "fatiguelifein": self.fatiguelifein,
                 "fatiguelifeout": self.fatiguelifeout,
-                "sncurvein": (
-                    self.sncurves["sncurvein"] if "sncurvein" in self.sncurves else None
-                ),
-                "sncurveout": (
-                    self.sncurves["sncurveout"]
-                    if "sncurveout" in self.sncurves
-                    else None
-                ),
+                "sncurvein": (self.sncurves.get("sncurvein", None)),
+                "sncurveout": (self.sncurves.get("sncurveout", None)),
                 "description": self.description if self.description else "-",
                 "scfin": self.scfin,
                 "scfout": self.scfout,
-                "materialsafetyfactor": (
-                    self.materialsafetyfactor
-                    if "materialsafetyfactor" in self.json
-                    else None
-                ),
+                "materialsafetyfactor": (self.materialsafetyfactor if "materialsafetyfactor" in self.json else None),
                 "scaleeffect": self.scaleeffect if "scaleeffect" in self.json else None,
             }
         else:
@@ -625,26 +591,18 @@ class FatigueDetail:
                 "subassembly": self.subassembly_name[-2:],
                 "fatiguelifein": self.fatiguelifein,
                 "fatiguelifeout": self.fatiguelifeout,
-                "sncurvein": (
-                    self.json["sncurvein"] if "sncurvein" in self.json else None
-                ),
-                "sncurveout": (
-                    self.json["sncurveout"] if "sncurveout" in self.json else None
-                ),
+                "sncurvein": (self.json.get("sncurvein", None)),
+                "sncurveout": (self.json.get("sncurveout", None)),
                 "description": self.description if self.description else "-",
                 "scfin": self.scfin,
                 "scfout": self.scfout,
-                "materialsafetyfactor": (
-                    self.materialsafetyfactor
-                    if "materialsafetyfactor" in self.json
-                    else None
-                ),
+                "materialsafetyfactor": (self.materialsafetyfactor if "materialsafetyfactor" in self.json else None),
                 "scaleeffect": self.scaleeffect if "scaleeffect" in self.json else None,
             }
         return _as_dict
 
     def as_df(self) -> DataFrame:
-        """Returns the fatigue detail description as a DataFrame."""
+        """Return the fatigue detail description as a DataFrame."""
         d = self.as_dict()
         del d["title"]
         df = DataFrame.from_dict(d, orient="index", columns=[self.title])
@@ -691,10 +649,10 @@ class FatigueSubAssembly:
 
     def __init__(
         self,
-        json: Dict[str, Union[None, str, np.int64, np.float64]],
+        json: dict[str, Union[None, str, np.int64, np.float64]],
         api_object=None,
     ) -> None:
-        """Constructor for the FatigueSubAssembly class.
+        """Initialize an instance of the FatigueSubAssembly class.
 
         :param json: The JSON object containing the geometry data of the subassembly.
         :param api_object: The FatigueAPI instance that created the FatigueSubAssembly instance.
@@ -719,9 +677,7 @@ class FatigueSubAssembly:
         self.fds = None
         self._subassembly = None
 
-        materials = self.api.geo_api.send_request(
-            url_data_type="materials", url_params={}
-        )
+        materials = self.api.geo_api.send_request(url_data_type="materials", url_params={})
         self._materials = [Material(m) for m in materials.json()]
 
     @property
@@ -761,13 +717,12 @@ class FatigueSubAssembly:
         """Height of the subassembly."""
         height = 0
         for fd in self.fatiguedetails:
-            if fd.fd_type == 45:  # CircumferentialWeld type
-                if fd.buildingblock.height:
-                    height += fd.buildingblock.height
+            if fd.fd_type == 45 and fd.buildingblock.height:  # CircumferentialWeld type
+                height += fd.buildingblock.height
         return height
 
     @property
-    def fatiguedetails(self) -> List[FatigueDetail]:
+    def fatiguedetails(self) -> list[FatigueDetail]:
         """Fatigue details of the subassembly."""
         if self.fds:
             return self.fds
@@ -781,12 +736,7 @@ class FatigueSubAssembly:
             )
             if fds.json():
                 if len(fds.json()) > 0:
-                    self.fds = [
-                        FatigueDetail(
-                            fd, api_object=self.api, subassembly=self.subassembly
-                        )
-                        for fd in fds.json()
-                    ]
+                    self.fds = [FatigueDetail(fd, api_object=self.api, subassembly=self.subassembly) for fd in fds.json()]
                     return self.fds
                 else:
                     return None
@@ -803,7 +753,7 @@ class FatigueSubAssembly:
         showlegend: bool = True,
         showmudline: bool = True,
         showplot: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Use plotly to plot the subassembly."""
         fig_dict = {"data": [], "layout": {}}
 
@@ -835,9 +785,7 @@ class FatigueSubAssembly:
                             "size": [6],
                             "color": FATIGUE_DETAILS_COLORS[fd.fd_type],
                         },
-                        "hovertext": fd.marker["hovertext"]
-                        + "<br>z_pos: "
-                        + str(self.position.z),
+                        "hovertext": fd.marker["hovertext"] + "<br>z_pos: " + str(self.position.z),
                         "hoverinfo": "text",
                         "name": fd.title,
                         "showlegend": showlegend,
@@ -874,10 +822,7 @@ class FatigueSubAssembly:
                 "mode": "lines",
                 "name": "Mudline",
                 "hoverinfo": "text",
-                "hovertext": self.asset
-                + " mudline elevation: "
-                + str(np.round(elevation, 1))
-                + "m",
+                "hovertext": self.asset + " mudline elevation: " + str(np.round(elevation, 1)) + "m",
                 "showlegend": False,
                 "line": {"color": "SaddleBrown", "width": 4},
             }
@@ -899,10 +844,8 @@ class FatigueSubAssembly:
             fig.show()
         return fig_dict
 
-    def as_df(
-        self, include_absolute_postion: bool = True, identify_sncurves: bool = False
-    ) -> DataFrame:
-        """Returns the subassembly fatigue data as a DataFrame."""
+    def as_df(self, include_absolute_postion: bool = True, identify_sncurves: bool = False) -> DataFrame:
+        """Return the subassembly fatigue data as a DataFrame."""
         df = DataFrame()
         out = []
         for fd in self.fatiguedetails:
@@ -911,10 +854,7 @@ class FatigueSubAssembly:
         df = df.set_index("title")
         df = df.sort_values("z", ascending=False)
         cols_at_end = ["description"]
-        df = df[
-            [c for c in df if c not in cols_at_end]
-            + [c for c in cols_at_end if c in df]
-        ]
+        df = df[[c for c in df if c not in cols_at_end] + [c for c in cols_at_end if c in df]]
         if include_absolute_postion:
             df["absolute_position, m"] = (df["z"] + self.position.z) / 1000
         return df
@@ -931,15 +871,12 @@ class FatigueSubAssembly:
         temp_df = self.as_df(include_absolute_postion=True)
         temp_df.dropna(inplace=True, how="any", axis=0)  # Drop all masses etc
         return round(
-            (
-                temp_df["absolute_position, m"].iloc[0]
-                + temp_df["height"].iloc[0] / 1000
-            ),
+            (temp_df["absolute_position, m"].iloc[0] + temp_df["height"].iloc[0] / 1000),
             3,
         )
 
     @property
-    def properties(self) -> Dict[str, float]:
+    def properties(self) -> dict[str, float]:
         """Subassembly properties."""
         property_dict = {"height": self.height}
         return property_dict

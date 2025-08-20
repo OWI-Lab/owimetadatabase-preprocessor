@@ -1,12 +1,13 @@
-from typing import Dict, Union
+from collections.abc import Mapping
+from typing import Union
 from unittest import mock
 
 import pandas as pd
 import pytest
 import requests
 
-from owimetadatabase_preprocessor.io import API
-from owimetadatabase_preprocessor.utility.exceptions import InvalidParameterError
+from owimetadatabase_preprocessor.io import API, PostprocessData
+from owimetadatabase_preprocessor.utility.exceptions import APIConnectionError, InvalidParameterError
 
 
 class TestAPIAuth:
@@ -58,15 +59,13 @@ class TestAPIAuth:
 def test_send_request_with_token(mock_requests_get: mock.Mock, api_root: str) -> None:
     header = {"Authorization": "Token 12345"}
     url_data_type = "/test/"
-    url_params = {"test": "test"}
+    url_params: Mapping[str, Union[str, float, int]] = {"test1": "test", "test2": 1, "test3": 1.0}
     api_test = API(api_root, header=header)
     response = api_test.send_request(url_data_type, url_params)
     assert isinstance(response, requests.models.Response)
 
 
-def test_send_request_with_name_pass(
-    mock_requests_get: mock.Mock, api_root: str
-) -> None:
+def test_send_request_with_name_pass(mock_requests_get: mock.Mock, api_root: str) -> None:
     name = "test"
     pswd = "12345"
     url_data_type = "/test/"
@@ -81,16 +80,13 @@ def test_check_request_health() -> None:
     response.status_code = 200
     API.check_request_health(response)
     response.status_code = 404
-    with pytest.raises(Exception):
+    with pytest.raises(APIConnectionError):
         API.check_request_health(response)
 
 
 def test_output_to_df() -> None:
     response = requests.Response()
-    response._content = (
-        b'[{"col_1": 11, "col_2": 12, "col_3": 13}, '
-        b'{"col_1": 21, "col_2": 22, "col_3": 23}]'
-    )
+    response._content = b'[{"col_1": 11, "col_2": 12, "col_3": 13}, {"col_1": 21, "col_2": 22, "col_3": 23}]'
     df = API.output_to_df(response)
     assert isinstance(df, pd.DataFrame)
     assert df["col_1"][0] == 11
@@ -104,34 +100,30 @@ def test_output_to_df() -> None:
 @pytest.mark.parametrize(
     "df, output_type, expected_result, expected_exception",
     [
-        (pd.DataFrame([]), "single", {"existance": False, "id": None}, None),
+        (pd.DataFrame([]), "single", {"existance": False, "id": None, "response": None}, None),
         (
             pd.DataFrame([{"id": 239, "col_test": "text test"}]),
             "single",
-            {"existance": True, "id": 239},
+            {"existance": True, "id": 239, "response": None},
             None,
         ),
         (
-            pd.DataFrame(
-                [{"id": 1, "col_test": "text 1"}, {"id": 2, "col_test": "text 2"}]
-            ),
+            pd.DataFrame([{"id": 1, "col_test": "text 1"}, {"id": 2, "col_test": "text 2"}]),
             "single",
             None,
             InvalidParameterError,
         ),
-        (pd.DataFrame([]), "list", {"existance": False}, None),
+        (pd.DataFrame([]), "list", {"existance": False, "id": None, "response": None}, None),
         (
             pd.DataFrame([{"id": 239, "col_test": "text test"}]),
             "list",
-            {"existance": True},
+            {"existance": True, "id": None, "response": None},
             None,
         ),
         (
-            pd.DataFrame(
-                [{"id": 1, "col_test": "text 1"}, {"id": 2, "col_test": "text 2"}]
-            ),
+            pd.DataFrame([{"id": 1, "col_test": "text 1"}, {"id": 2, "col_test": "text 2"}]),
             "list",
-            {"existance": True},
+            {"existance": True, "id": None, "response": None},
             None,
         ),
         (
@@ -145,7 +137,7 @@ def test_output_to_df() -> None:
 def test_postprocess_data(
     df: pd.DataFrame,
     output_type: str,
-    expected_result: Union[None, Dict[str, Union[bool, int]]],
+    expected_result: PostprocessData,
     expected_exception: None,
 ) -> None:
     if expected_exception is not None:
@@ -156,12 +148,10 @@ def test_postprocess_data(
         assert result == expected_result
 
 
-def test_process_data(
-    api_root: str, header: Dict[str, str], mock_requests_get_advanced: mock.Mock
-) -> None:
+def test_process_data(api_root: str, header: dict[str, str], mock_requests_get_advanced: mock.Mock) -> None:
     header = header
     url_data_type = "/test/"
-    url_params = {"test": "test"}
+    url_params: Mapping[str, Union[str, float, int]] = {"test1": "test", "test2": 1, "test3": 1.0}
     output_type = "list"
     api_test = API(api_root, header=header)
     df, df_add = api_test.process_data(url_data_type, url_params, output_type)

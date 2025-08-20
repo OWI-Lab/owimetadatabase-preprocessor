@@ -24,9 +24,7 @@ def materials_dicts_init(data):
 def materials_dicts_asdict(data):
     materials_ = []
     for mat in data["mat"]:
-        materials_.append(
-            dict_generator(mat, keys_=["id", "density", "slug"], method_="exclude")
-        )
+        materials_.append(dict_generator(mat, keys_=["id", "density", "slug"], method_="exclude"))
     return materials_
 
 
@@ -212,9 +210,7 @@ def materials_df(materials_dicts_init):
 
 @pytest.fixture(scope="function")
 def sa_in(data):
-    return dict_generator(
-        data["sa"][0], keys_=["slug", "model_definition"], method_="exclude"
-    )
+    return dict_generator(data["sa"][0], keys_=["slug", "model_definition"], method_="exclude")
 
 
 @pytest.fixture(scope="function")
@@ -325,9 +321,7 @@ def bb_out_list(bb_in_list, materials_dicts_init):
             bb_list[i]["vertical_position_reference_system"],
         )
         if bb_list[i]["material"] is not None and not np.isnan(bb_list[i]["material"]):
-            bb_list[i]["material"] = materials_dicts_init[
-                np.int64(bb_list[i]["material"]) - 1
-            ]
+            bb_list[i]["material"] = materials_dicts_init[np.int64(bb_list[i]["material"]) - 1]
         else:
             bb_list[i]["material"] = None
         if bb_in_list[i]["description"] is None:

@@ -18,9 +18,7 @@ class TestOWT:
         ],
         indirect=["df_set_tube_true"],
     )
-    def test_set_df_structure(
-        self, owt, idx, df_set_tube_true, mock_requests_sa_get_bb
-    ):
+    def test_set_df_structure(self, owt, idx, df_set_tube_true, mock_requests_sa_get_bb):
         df = owt.set_df_structure(idx)
         pd_testing.assert_frame_equal(df, df_set_tube_true)
 
@@ -33,9 +31,7 @@ class TestOWT:
         ],
         indirect=["df_proc_tube_true"],
     )
-    def test_process_structure_geometry(
-        self, owt, idx, df_proc_tube_true, mock_requests_sa_get_bb
-    ):
+    def test_process_structure_geometry(self, owt, idx, df_proc_tube_true, mock_requests_sa_get_bb):
         df = owt.process_structure_geometry(idx)
         pd_testing.assert_frame_equal(df, df_proc_tube_true)
 
@@ -51,9 +47,7 @@ class TestOWT:
         ],
         indirect=["df_set_lump_mass_true"],
     )
-    def test_set_df_appurtenances(
-        self, owt, idx, df_set_lump_mass_true, mock_requests_sa_get_bb
-    ):
+    def test_set_df_appurtenances(self, owt, idx, df_set_lump_mass_true, mock_requests_sa_get_bb):
         df = owt.set_df_appurtenances(idx)
         pd_testing.assert_frame_equal(df, df_set_lump_mass_true)
 
@@ -65,9 +59,7 @@ class TestOWT:
         ],
         indirect=["df_proc_lump_mass_true"],
     )
-    def test_process_lumped_masses(
-        self, owt, idx, df_proc_lump_mass_true, mock_requests_sa_get_bb
-    ):
+    def test_process_lumped_masses(self, owt, idx, df_proc_lump_mass_true, mock_requests_sa_get_bb):
         df = owt.process_lumped_masses(idx)
         pd_testing.assert_frame_equal(df, df_proc_lump_mass_true)
 
@@ -79,9 +71,7 @@ class TestOWT:
         ],
         indirect=["df_set_distr_true"],
     )
-    def test_set_df_distributed_appurtenances(
-        self, owt, idx, df_set_distr_true, mock_requests_sa_get_bb
-    ):
+    def test_set_df_distributed_appurtenances(self, owt, idx, df_set_distr_true, mock_requests_sa_get_bb):
         df = owt.set_df_distributed_appurtenances(idx)
         pd_testing.assert_frame_equal(df, df_set_distr_true)
 
@@ -93,9 +83,7 @@ class TestOWT:
         ],
         indirect=["df_proc_distr_true"],
     )
-    def test_process_distributed_lumped_masses(
-        self, owt, idx, df_proc_distr_true, mock_requests_sa_get_bb
-    ):
+    def test_process_distributed_lumped_masses(self, owt, idx, df_proc_distr_true, mock_requests_sa_get_bb):
         df = owt.process_distributed_lumped_masses(idx)
         pd_testing.assert_frame_equal(df, df_proc_distr_true)
 
@@ -109,9 +97,7 @@ class TestOWT:
         ],
         indirect=["df_proc_struct_true"],
     )
-    def test_process_structure(
-        self, owt, opt, df_proc_struct_true, mock_requests_sa_get_bb
-    ):
+    def test_process_structure(self, owt, opt, df_proc_struct_true, mock_requests_sa_get_bb):
         owt.process_structure(opt)
         assert owt._init_proc
         attr = [
@@ -149,10 +135,7 @@ class TestOWT:
     def test_can_modification(self, owt, pos, can_mod, mock_requests_sa_get_bb):
         owt.process_structure("full")
         tp = owt.transition_piece
-        if pos == "bottom":
-            dff = tp[tp["Elevation from [mLAT]"] > 7.5]
-        else:
-            dff = tp[tp["Elevation to [mLAT]"] < 7.5]
+        dff = tp[tp["Elevation from [mLAT]"] > 7.5] if pos == "bottom" else tp[tp["Elevation to [mLAT]"] < 7.5]
         df = owt.can_modification(dff.copy(), 7.5, position=pos)
         pd_testing.assert_frame_equal(df, can_mod)
 
@@ -163,9 +146,7 @@ class TestOWT:
         pd_testing.assert_frame_equal(owt.substructure, assembled_tp_mp[0])
         pd_testing.assert_frame_equal(owt.tp_skirt, assembled_tp_mp[1])
 
-    def test_assembly_full_structure(
-        self, owt, assembled_full, mock_requests_sa_get_bb
-    ):
+    def test_assembly_full_structure(self, owt, assembled_full, mock_requests_sa_get_bb):
         owt.process_structure("full")
         owt.assembly_tp_mp()
         owt.assembly_full_structure()

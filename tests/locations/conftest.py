@@ -11,9 +11,7 @@ def mock_requests_get_projectsite_detail(mocker: mock.Mock) -> mock.Mock:
     def response() -> requests.Response:
         resp = requests.Response()
         resp.status_code = 200
-        resp._content = ('[{"id": 239, "col_2": "text 1", "col_3": "text 2"}]').encode(
-            "utf-8"
-        )
+        resp._content = b'[{"id": 239, "col_2": "text 1", "col_3": "text 2"}]'
         return resp
 
     mock.return_value = response()
@@ -27,8 +25,7 @@ def mock_requests_get_assetlocations(mocker: mock.Mock) -> mock.Mock:
             resp = requests.Response()
             resp.status_code = 200
             resp._content = (
-                b'[{"id": 11, "project": "Nobelwind", "col_3": 13}, '
-                b'{"id": 21, "project": "Nobelwind", "col_3": 23}]'
+                b'[{"id": 11, "project": "Nobelwind", "col_3": 13}, {"id": 21, "project": "Nobelwind", "col_3": 23}]'
             )
         else:
             resp = requests.Response()

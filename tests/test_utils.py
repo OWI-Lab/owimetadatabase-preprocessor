@@ -12,10 +12,7 @@ from owimetadatabase_preprocessor.utility.utils import (
 
 
 def test_dict_generator(dict_gen_dict_in, dict_gen_dict_out):
-    assert (
-        dict_generator(dict_gen_dict_in, **dict_gen_dict_out["method_keys"])
-        == dict_gen_dict_out["data_out"]
-    )
+    assert dict_generator(dict_gen_dict_in, **dict_gen_dict_out["method_keys"]) == dict_gen_dict_out["data_out"]
 
 
 def test_dict_generator_error(dict_gen_dict_in):
@@ -28,7 +25,7 @@ def test_dict_generator_error(dict_gen_dict_in):
     [
         (1.0, 1.0, (True, None)),
         (1.0, 1.0000000000000001, (True, None)),
-        (np.float64(1.0), float(1.0), (True, None)),
+        (np.float64(1.0), 1.0, (True, None)),
         ("value_1", "value_2", (False, "Values of value_1 and value_2 are different.")),
         (1.0, 1.001, (False, "Values of 1.0 and 1.001 are different.")),
         ("value_1", "value_1", (True, None)),
@@ -44,7 +41,7 @@ def test_compare_if_simple_close(a, b, expected):
     [
         (1.0, 1.0, (True, None)),
         (1.0, 1.0000000000000001, (True, None)),
-        (np.float64(1.0), float(1.0), (True, None)),
+        (np.float64(1.0), 1.0, (True, None)),
         ("test", 1.0, (False, "Types of test and 1.0 are different: str and float.")),
         (np.nan, np.nan, (True, None)),
         (np.nan, 1.0, (False, "Values of nan and 1.0 are different.")),

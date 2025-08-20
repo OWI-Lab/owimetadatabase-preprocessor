@@ -2,42 +2,44 @@
 import nox
 
 
-@nox.session(python="3.10")  # (python=["3.8", "3.9", "3.10", "3.11"])
+@nox.session(python="3.12")
 def tests(session):
-    # session.run("poetry", "install", "--all-extras", external=True)
+    """Run tests with pytest."""
     session.run("pip", "install", "-e", ".")
     session.run("pytest", "./tests")
     session.run("pytest", "--cov=./tests")
 
 
-@nox.session(python="3.10")
+@nox.session(python="3.12")
 def type_check(session):
     """Run type checking on specified files or all files by default."""
-    session.install("mypy")
-    session.install("pandas-stubs")
-    session.install("types-requests")
-    session.install("pytest-stub")
-    session.install("types-colorama")
-    session.install("types-Pygments")
-    session.install("types-setuptools")
-
-    # Install the package itself in editable mode
-    session.run("pip", "install", "-e", ".")
-
-    # Get file arguments or default to checking all files
-    files = session.posargs if session.posargs else ["src", "tests"]
-    
-    session.run("mypy", *files)
+    session.run("pip", "install", "-e", ".")    
+    session.run("mypy")
 
 
-@nox.session(python="3.10")
+@nox.session(python="3.12")
 def lint(session):
-    session.install("flake8")
-    session.run("flake8", "./src", "./tests", "--max-line-length=127")
+    session.install("ruff")
+    session.run("ruff", "check", "./src", "./tests")
 
 
-@nox.session(python="3.10")
+@nox.session(python="3.12")
 def format(session):
-    session.install("isort", "black")
-    session.run("isort", "./src", "./tests")
-    session.run("black", "./src", "./tests")
+    session.install("ruff")
+    session.run("ruff", "format", "./src", "./tests")
+    session.run("ruff", "check", "--fix", "./src", "./tests")
+
+
+@nox.session(python="3.12")
+def format_unsafe(session):
+    session.install("ruff")
+    session.run("ruff", "format", "./src", "./tests")
+    session.run("ruff", "check", "--fix", "--unsafe-fixes", "./src", "./tests")
+
+
+@nox.session(python="3.12")
+def check(session):
+    """Run all code quality checks (lint + format)."""
+    session.install("ruff")
+    session.run("ruff", "check", "./src", "./tests")
+    session.run("ruff", "format", "--check", "./src", "./tests")

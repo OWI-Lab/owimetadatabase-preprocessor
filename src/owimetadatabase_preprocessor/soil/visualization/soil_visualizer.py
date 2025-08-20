@@ -4,7 +4,9 @@ API client and data processor, build the Plotly figures, and either return
 or show them.
 """
 
-from typing import Any, Dict, List, Union
+# mypy: ignore-errors
+
+from typing import Any, Optional, Union
 
 import pandas as pd
 import plotly.express as px
@@ -35,17 +37,13 @@ class SoilPlot:
         start: str,
         end: str,
         plotmap: bool = False,
-        fillcolordict: Dict[str, str] = {
-            "SAND": "yellow",
-            "CLAY": "brown",
-            "SAND/CLAY": "orange",
-        },
+        fillcolordict: Optional[dict[str, str]] = None,
         logwidth: float = 100.0,
         show_annotations: bool = True,
-        general_layout: Dict[Any, Any] = dict(),
+        general_layout: Optional[dict[Any, Any]] = None,
         **kwargs,
-    ) -> Dict[str, Union[List[pd.DataFrame], go.Figure]]:
-        """Creates a fence diagram for soil profiles.
+    ) -> dict[str, Union[list[pd.DataFrame], go.Figure]]:
+        """Create a fence diagram for soil profiles.
 
         :param soilprofiles_df: Dataframe with summary data for the selected soil profiles
         :param start: Name of the soil profile at the start
@@ -62,9 +60,15 @@ class SoilPlot:
             - 'diagram': Plotly figure with the fence diagram
         :raises ValueError: If no SoilAPI instance is provided
         """
-        soilprofiles = SoilDataProcessor.objects_to_list(
-            soilprofiles_df, self.soil_api.get_soilprofile_detail, "soilprofile"
-        )
+        if general_layout is None:
+            general_layout = {}
+        if fillcolordict is None:
+            fillcolordict = {
+                "SAND": "yellow",
+                "CLAY": "brown",
+                "SAND/CLAY": "orange",
+            }
+        soilprofiles = SoilDataProcessor.objects_to_list(soilprofiles_df, self.soil_api.get_soilprofile_detail, "soilprofile")
         fence_diagram_1 = plot_fence_diagram(
             profiles=soilprofiles,
             start=start,
@@ -81,26 +85,22 @@ class SoilPlot:
 
     @staticmethod
     def plot_combined_fence(
-        profiles: List[pd.DataFrame],
-        cpts: List[pd.DataFrame],
+        profiles: list[pd.DataFrame],
+        cpts: list[pd.DataFrame],
         startpoint: str,
         endpoint: str,
         band: float = 1000.0,
         scale_factor: float = 10.0,
         extend_profile: bool = True,
         show_annotations: bool = True,
-        general_layout: Dict[Any, Any] = dict(),
-        fillcolordict: Dict[str, str] = {
-            "SAND": "yellow",
-            "CLAY": "brown",
-            "SAND/CLAY": "orange",
-        },
+        general_layout: Optional[dict[Any, Any]] = None,
+        fillcolordict: Optional[dict[str, str]] = None,
         logwidth: float = 100.0,
         opacity: float = 0.5,
         uniformcolor: Union[str, None] = None,
         **kwargs,
-    ) -> Dict[str, go.Figure]:
-        """Creates a combined fence diagram with soil profile and CPT data.
+    ) -> dict[str, go.Figure]:
+        """Create a combined fence diagram with soil profile and CPT data.
 
         :param profiles: List with georeferenced soil profiles
             (run plot_soilprofile_fence first)
@@ -116,7 +116,6 @@ class SoilPlot:
         :param show_annotations: Boolean determining whether annotations are
             shown (default=True)
         :param general_layout: Dictionary with general layout options
-            (default = dict())
         :param fillcolordict: Dictionary with colors for soil types
         :param logwidth: Width of the log in the fence diagram
         :param opacity: Opacity of the soil profile logs
@@ -127,6 +126,14 @@ class SoilPlot:
             - 'diagram': Plotly figure with the fence diagram for CPTs and
                 soil profiles
         """
+        if fillcolordict is None:
+            fillcolordict = {
+                "SAND": "yellow",
+                "CLAY": "brown",
+                "SAND/CLAY": "orange",
+            }
+        if general_layout is None:
+            general_layout = {}
         combined_fence_fig_1 = plot_combined_longitudinal_profile(
             cpts=cpts,
             profiles=profiles,
@@ -148,7 +155,7 @@ class SoilPlot:
 
     def plot_testlocations(self, return_fig: bool = False, **kwargs) -> None:
         """
-        Retrieves soil test locations and generates a Plotly plot to show them.
+        Retrieve soil test locations and generates a Plotly plot to show them.
 
         :param return_fig: Boolean indicating whether the Plotly figure object
             needs to be returned (default is False which simply shows the plot)
@@ -185,11 +192,11 @@ class SoilPlot:
         extend_profile: bool = True,
         plotmap: bool = False,
         show_annotations: bool = True,
-        general_layout: Dict[Any, Any] = dict(),
+        general_layout: dict[Any, Any] = None,
         uniformcolor: Union[str, None] = None,
         **kwargs,
-    ) -> Dict[str, Union[List[pd.DataFrame], go.Figure]]:
-        """Creates a fence diagram for CPTs.
+    ) -> dict[str, Union[list[pd.DataFrame], go.Figure]]:
+        """Create a fence diagram for CPTs.
 
         :param cpt_df: Dataframe with the summary data of the selected CPTs
         :param start: Name of the location for the start point
@@ -200,7 +207,7 @@ class SoilPlot:
         :param extend_profile: Boolean determining whether the profile needs to be extended
         :param plotmap: Boolean determining whether a map with locations is shown
         :param show_annotations: Boolean determining whether annotations are shown
-        :param general_layout: Dictionary with general layout options (default = dict())
+        :param general_layout: Dictionary with general layout options
         :param uniformcolor: If a valid color is provided, used for all CPT traces
         :param kwargs: Keyword arguments for get_insitutests method
         :return: Dictionary with:
@@ -208,10 +215,10 @@ class SoilPlot:
             - 'diagram': Plotly figure with the fence diagram
         :raises ValueError: If no SoilAPI instance is provided
         """
+        if general_layout is None:
+            general_layout = {}
         selected_cpts = cpt_df
-        cpts = SoilDataProcessor.objects_to_list(
-            selected_cpts, self.soil_api.get_cpttest_detail, "cpt"
-        )
+        cpts = SoilDataProcessor.objects_to_list(selected_cpts, self.soil_api.get_cpttest_detail, "cpt")
         cpt_fence_fig_1 = plot_longitudinal_profile(
             cpts=cpts,
             latlon=True,

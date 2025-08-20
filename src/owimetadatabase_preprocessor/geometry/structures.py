@@ -1,6 +1,8 @@
 """Module containing the data classes for the geometry module."""
 
-from typing import Any, Dict, List, Tuple, TypedDict, Union
+# mypy: ignore-errors
+
+from typing import Any, TypedDict, Union
 
 import matplotlib.patches as mpatches  # type: ignore
 import matplotlib.pyplot as plt  # type: ignore
@@ -16,6 +18,8 @@ PLOT_SETTINGS_SUBASSEMBLY = {
     "TP": {"color": "goldenrod"},
     "TW": {"color": "grey"},
 }
+
+DEFAULT_NP_FLOAT64_VALUE = np.float64(0.0)
 
 
 class DataMat(TypedDict):
@@ -79,7 +83,7 @@ class DataSA(TypedDict):
     model_definition: np.int64
 
 
-class BaseStructure(object):
+class BaseStructure:
     """Base class for all structures."""
 
     def __eq__(self, other) -> bool:
@@ -90,7 +94,7 @@ class BaseStructure(object):
             comp = deepcompare(self.__dict__, other)
             assert comp[0], comp[1]
         else:
-            assert False, "Comparison is not possible due to incompatible types!"
+            raise AssertionError("Comparison is not possible due to incompatible types!")
         return comp[0]
 
 
@@ -110,7 +114,7 @@ class Material(BaseStructure):
         self.young_modulus = json["young_modulus"]
         self.id = json["id"]
 
-    def as_dict(self) -> Dict[str, Union[str, np.float64]]:
+    def as_dict(self) -> dict[str, Union[str, np.float64]]:
         """Transform data into dictionary.
 
         :return: Dictionary with the following keys:
@@ -133,12 +137,12 @@ class Position(BaseStructure):
 
     def __init__(
         self,
-        x: np.float64 = np.float64(0.0),
-        y: np.float64 = np.float64(0.0),
-        z: np.float64 = np.float64(0.0),
-        alpha: np.float64 = np.float64(0.0),
-        beta: np.float64 = np.float64(0.0),
-        gamma: np.float64 = np.float64(0.0),
+        x: np.float64 = DEFAULT_NP_FLOAT64_VALUE,
+        y: np.float64 = DEFAULT_NP_FLOAT64_VALUE,
+        z: np.float64 = DEFAULT_NP_FLOAT64_VALUE,
+        alpha: np.float64 = DEFAULT_NP_FLOAT64_VALUE,
+        beta: np.float64 = DEFAULT_NP_FLOAT64_VALUE,
+        gamma: np.float64 = DEFAULT_NP_FLOAT64_VALUE,
         reference_system: str = "LAT",
     ) -> None:
         """Create an instance of the Position class with the required parameters.
@@ -204,7 +208,7 @@ class BuildingBlock(BaseStructure):
             "mass": "lumped_mass",
             "mass_distribution": "distributed_mass",
         }
-        for k in cond.keys():
+        for k in cond:
             if (
                 k in self.json
                 and self.json[k] is not None  # type: ignore
@@ -247,11 +251,7 @@ class BuildingBlock(BaseStructure):
             and not np.isnan(self.bottom_outer_diameter)
         ):
             if self.top_outer_diameter != self.bottom_outer_diameter:
-                return (
-                    str(round(self.bottom_outer_diameter))
-                    + "/"
-                    + str(round(self.top_outer_diameter))
-                )
+                return str(round(self.bottom_outer_diameter)) + "/" + str(round(self.top_outer_diameter))
             else:
                 return str(round(self.bottom_outer_diameter))
         else:
@@ -273,40 +273,28 @@ class BuildingBlock(BaseStructure):
 
                 def _calc_cone_volume(r_bottom, r_top, height):
                     """Calculate the volume of a cone frustum.
-                    Source: https://mathworld.wolfram.com/ConicalFrustum.html
+                    Source: https://mathworld.wolfram.com/ConicalFrustum.html.
 
                     :param r_bottom: Radius of the bottom circle, mm.
                     :param r_top: Radius of the top circle, mm.
                     :param height: Height of the cone frustum, mm.
                     :return: Volume of the cone frustum, mm³.
                     """
-                    volume = (
-                        pi * height / 3 * (r_bottom**2 + r_bottom * r_top + r_top**2)
-                    )
+                    volume = pi * height / 3 * (r_bottom**2 + r_bottom * r_top + r_top**2)
                     return volume
 
-                r_bottom_inner = (
-                    self.json["bottom_outer_diameter"] / 2 - self.json["wall_thickness"]
-                )
+                r_bottom_inner = self.json["bottom_outer_diameter"] / 2 - self.json["wall_thickness"]
                 r_bottom_outer = self.json["bottom_outer_diameter"] / 2
-                r_top_inner = (
-                    self.json["top_outer_diameter"] / 2 - self.json["wall_thickness"]
-                )
+                r_top_inner = self.json["top_outer_diameter"] / 2 - self.json["wall_thickness"]
                 r_top_outer = self.json["top_outer_diameter"] / 2
-                volume_inner_cone = _calc_cone_volume(
-                    r_bottom_inner, r_top_inner, self.json["height"]
-                )
-                volume_outer_cone = _calc_cone_volume(
-                    r_bottom_outer, r_top_outer, self.json["height"]
-                )
+                volume_inner_cone = _calc_cone_volume(r_bottom_inner, r_top_inner, self.json["height"])
+                volume_outer_cone = _calc_cone_volume(r_bottom_outer, r_top_outer, self.json["height"])
                 return (volume_outer_cone - volume_inner_cone) / 1e9
             else:
                 raise ValueError("Height data is missing.")
         elif self.type == "distributed_mass":
             if self.height:
-                return np.float64(
-                    round(self.json["volume_distribution"] * self.height / 1000)
-                )
+                return np.float64(round(self.json["volume_distribution"] * self.height / 1000))
             else:
                 raise ValueError("Height data is missing.")
         else:
@@ -319,9 +307,7 @@ class BuildingBlock(BaseStructure):
             return self.json["mass"]
         elif self.type == "distributed_mass":
             if self.height:
-                return np.float64(
-                    round(self.json["mass_distribution"] * self.height / 1000)
-                )
+                return np.float64(round(self.json["mass_distribution"] * self.height / 1000))
             else:
                 raise ValueError("Height data is missing.")
         elif self.type == "tubular_section":
@@ -336,7 +322,7 @@ class BuildingBlock(BaseStructure):
             raise ValueError("Unsupported building block type.")
 
     @property
-    def moment_of_inertia(self) -> Dict[str, Union[np.float64, None]]:
+    def moment_of_inertia(self) -> dict[str, Union[np.float64, None]]:
         """Moment of inertia of the building block, kg*m².
         IMPORTANT! Only works for building blocks of the type lumped_mass.
 
@@ -352,7 +338,7 @@ class BuildingBlock(BaseStructure):
             return {"x": None, "y": None, "z": None}
 
     @property
-    def outline(self) -> Union[None, Tuple[List[np.float64], List[np.float64]]]:
+    def outline(self) -> Union[None, tuple[list[np.float64], list[np.float64]]]:
         """Trace of the outlines.
 
         :return: A tuple of two lists containing the x and corresponding z coordinates of the outline.
@@ -369,7 +355,7 @@ class BuildingBlock(BaseStructure):
             return None
 
     @property
-    def marker(self) -> Union[None, Dict[str, Union[np.float64, str]]]:
+    def marker(self) -> Union[None, dict[str, Union[np.float64, str]]]:
         """Indication for the lumped mass in the building block.
 
         :return: Dictionary containing the x,y,z coordinates of the marker and the radius of the marker.
@@ -394,7 +380,7 @@ class BuildingBlock(BaseStructure):
             return None
 
     @property
-    def line(self) -> Union[None, Dict[str, Union[List[np.float64], str]]]:
+    def line(self) -> Union[None, dict[str, Union[list[np.float64], str]]]:
         """Line for the distributed mass in the building block.
 
         :return: Dictionary containing the x,y,z coordinates of the line and the color of the line.
@@ -411,7 +397,7 @@ class BuildingBlock(BaseStructure):
 
     def as_dict(
         self,
-    ) -> Dict[str, Union[str, np.float64, Dict[str, Union[np.float64, None]], None]]:
+    ) -> dict[str, Union[str, np.float64, dict[str, Union[np.float64, None]], None]]:
         """Transform data into dictionary.
 
         :return: Dictionary with the following keys:
@@ -484,8 +470,8 @@ class SubAssembly(BaseStructure):
         return PLOT_SETTINGS_SUBASSEMBLY[self.type]["color"]
 
     @property
-    def building_blocks(self) -> Union[List[BuildingBlock], None]:
-        """Building blocks of the subassembly
+    def building_blocks(self) -> Union[list[BuildingBlock], None]:
+        """Building blocks of the subassembly.
 
         :return: List of instances of building block class.
         """
@@ -508,12 +494,7 @@ class SubAssembly(BaseStructure):
         height = np.float64(0.0)
         if self.building_blocks:
             for bb in self.building_blocks:
-                if (
-                    bb.type == "tubular_section"
-                    and "grout" not in bb.title.lower()
-                    and bb.height
-                    and not np.isnan(bb.height)
-                ):
+                if bb.type == "tubular_section" and "grout" not in bb.title.lower() and bb.height and not np.isnan(bb.height):
                     height += bb.height
                 else:
                     continue
@@ -536,14 +517,14 @@ class SubAssembly(BaseStructure):
         return mass
 
     @property
-    def properties(self) -> Dict[str, np.float64]:
+    def properties(self) -> dict[str, np.float64]:
         """Mass and height of the subassembly."""
         property_dict = {"mass": self.mass, "height": self.height}
         return property_dict
 
     @property
-    def outline(self) -> Tuple[List[np.float64], List[np.float64]]:
-        """Defines the traces of the outline of the subassembly
+    def outline(self) -> tuple[list[np.float64], list[np.float64]]:
+        """Defines the traces of the outline of the subassembly.
 
         :return:  A tuple of two lists containing the x and corresponding z coordinates of the outline.
         """
@@ -558,9 +539,7 @@ class SubAssembly(BaseStructure):
                     x_local, z_local = bb.outline
                     x.append(x_local)
                     z.append(z_local)
-        outlines = [
-            (x, z) for _, x, z in sorted(zip(z_pos, x, z), key=lambda pair: pair[0])
-        ]
+        outlines = [(x, z) for _, x, z in sorted(zip(z_pos, x, z), key=lambda pair: pair[0])]
         x_all = []
         z_all = []
         for ol in outlines:
@@ -572,7 +551,7 @@ class SubAssembly(BaseStructure):
         z_absolute = [z + self.position.z for z in z_all]
         return x_all, z_absolute
 
-    def plot(self, x_offset: np.float64 = np.float64(0.0)) -> None:
+    def plot(self, x_offset: np.float64 = DEFAULT_NP_FLOAT64_VALUE) -> None:
         """Plot the subassembly."""
         x0, z = self.outline
         plt.plot(
@@ -607,8 +586,8 @@ class SubAssembly(BaseStructure):
 
     def plotly(
         self,
-        x_offset: np.float64 = np.float64(0.0),
-        y_offset: np.float64 = np.float64(0.0),
+        x_offset: np.float64 = DEFAULT_NP_FLOAT64_VALUE,
+        y_offset: np.float64 = DEFAULT_NP_FLOAT64_VALUE,
     ):
         """Plot the subassembly.
 
@@ -623,19 +602,19 @@ class SubAssembly(BaseStructure):
                 y=z,
                 mode="lines",
                 name=self.title,
-                line=dict(color=self.color, width=1),
+                line={"color": self.color, "width": 1},
             )
         ]
         layout = go.Layout(
-            scene=dict(aspectmode="data"),
-            yaxis=dict(
-                title=go.layout.yaxis.Title(text="Height , mm"),
-                scaleanchor="x",
-                scaleratio=1,
-                type="linear",
-            ),
+            scene={"aspectmode": "data"},
+            yaxis={
+                "title": go.layout.yaxis.Title(text="Height , mm"),
+                "scaleanchor": "x",
+                "scaleratio": 1,
+                "type": "linear",
+            },
         )
-        markers: List[Dict[str, Union[str, np.float64, List[np.float64]]]] = []
+        markers: list[dict[str, Union[str, np.float64, list[np.float64]]]] = []
         if self.bb:
             for bb in self.bb:
                 if bb.marker:
@@ -669,10 +648,7 @@ class SubAssembly(BaseStructure):
         df = df.set_index("title")
         df = df.sort_values("z", ascending=False)
         cols_at_end = ["description"]
-        df = df[
-            [c for c in df if c not in cols_at_end]
-            + [c for c in cols_at_end if c in df]
-        ]
+        df = df[[c for c in df if c not in cols_at_end] + [c for c in cols_at_end if c in df]]
         if include_absolute_postion:
             df["absolute_position, m"] = (df["z"] + self.position.z) / 1000
         return df
@@ -690,8 +666,7 @@ class SubAssembly(BaseStructure):
         temp_df.dropna(inplace=True, how="any", axis=0)
         return np.float64(
             round(
-                temp_df["absolute_position, m"].iloc[0]
-                + temp_df["height"].iloc[0] / 1000,
+                temp_df["absolute_position, m"].iloc[0] + temp_df["height"].iloc[0] / 1000,
                 3,
             )
         )
@@ -701,6 +676,6 @@ class SubAssembly(BaseStructure):
         return html_str
 
     def __str__(self) -> str:
-        """Returns a string representation of the subassembly."""
+        """Return a string representation of the subassembly."""
         s = str(self.title) + " subassembly"
         return s

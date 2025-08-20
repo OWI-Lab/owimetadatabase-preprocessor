@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 
@@ -16,7 +16,7 @@ def fatigue_init(header):
     }
 
 
-def test_init(fatigue_init: Dict[str, Any], header: Dict[str, str]) -> None:
+def test_init(fatigue_init: dict[str, Any], header: dict[str, str]) -> None:
     api_fatigue = FatigueAPI(header=header)
     assert fatigue_init["api_root"] == api_fatigue.api_root
     assert fatigue_init["header"] == api_fatigue.header
