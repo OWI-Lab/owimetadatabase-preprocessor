@@ -1,3 +1,4 @@
+from collections.abc import Mapping
 from typing import Union
 from unittest import mock
 
@@ -5,7 +6,7 @@ import pandas as pd
 import pytest
 import requests
 
-from owimetadatabase_preprocessor.io import API
+from owimetadatabase_preprocessor.io import API, PostprocessData
 from owimetadatabase_preprocessor.utility.exceptions import APIConnectionError, InvalidParameterError
 
 
@@ -58,7 +59,7 @@ class TestAPIAuth:
 def test_send_request_with_token(mock_requests_get: mock.Mock, api_root: str) -> None:
     header = {"Authorization": "Token 12345"}
     url_data_type = "/test/"
-    url_params = {"test": "test"}
+    url_params: Mapping[str, Union[str, float, int]] = {"test1": "test", "test2": 1, "test3": 1.0}
     api_test = API(api_root, header=header)
     response = api_test.send_request(url_data_type, url_params)
     assert isinstance(response, requests.models.Response)
@@ -99,11 +100,11 @@ def test_output_to_df() -> None:
 @pytest.mark.parametrize(
     "df, output_type, expected_result, expected_exception",
     [
-        (pd.DataFrame([]), "single", {"existance": False, "id": None}, None),
+        (pd.DataFrame([]), "single", {"existance": False, "id": None, "response": None}, None),
         (
             pd.DataFrame([{"id": 239, "col_test": "text test"}]),
             "single",
-            {"existance": True, "id": 239},
+            {"existance": True, "id": 239, "response": None},
             None,
         ),
         (
@@ -112,17 +113,17 @@ def test_output_to_df() -> None:
             None,
             InvalidParameterError,
         ),
-        (pd.DataFrame([]), "list", {"existance": False}, None),
+        (pd.DataFrame([]), "list", {"existance": False, "id": None, "response": None}, None),
         (
             pd.DataFrame([{"id": 239, "col_test": "text test"}]),
             "list",
-            {"existance": True},
+            {"existance": True, "id": None, "response": None},
             None,
         ),
         (
             pd.DataFrame([{"id": 1, "col_test": "text 1"}, {"id": 2, "col_test": "text 2"}]),
             "list",
-            {"existance": True},
+            {"existance": True, "id": None, "response": None},
             None,
         ),
         (
@@ -136,7 +137,7 @@ def test_output_to_df() -> None:
 def test_postprocess_data(
     df: pd.DataFrame,
     output_type: str,
-    expected_result: Union[None, dict[str, Union[bool, int]]],
+    expected_result: PostprocessData,
     expected_exception: None,
 ) -> None:
     if expected_exception is not None:
@@ -150,7 +151,7 @@ def test_postprocess_data(
 def test_process_data(api_root: str, header: dict[str, str], mock_requests_get_advanced: mock.Mock) -> None:
     header = header
     url_data_type = "/test/"
-    url_params = {"test": "test"}
+    url_params: Mapping[str, Union[str, float, int]] = {"test1": "test", "test2": 1, "test3": 1.0}
     output_type = "list"
     api_test = API(api_root, header=header)
     df, df_add = api_test.process_data(url_data_type, url_params, output_type)

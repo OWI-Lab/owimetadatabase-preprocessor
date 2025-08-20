@@ -2,7 +2,8 @@
 
 import json
 import warnings
-from typing import Union
+from collections.abc import Mapping, Sequence
+from typing import Any, TypedDict, Union
 
 import numpy as np
 import pandas as pd
@@ -16,6 +17,12 @@ from owimetadatabase_preprocessor.utility.exceptions import (
 from owimetadatabase_preprocessor.utility.utils import deepcompare
 
 
+class PostprocessData(TypedDict):
+    existance: bool
+    id: np.int64 | None
+    response: requests.Response | None
+
+
 class API:
     """Base API class handling user access information to the Database API."""
 
@@ -25,7 +32,7 @@ class API:
         token: Union[str, None] = None,
         uname: Union[str, None] = None,
         password: Union[str, None] = None,
-        **kwargs: Union[str, dict[str, str], None],
+        **kwargs: Any,
     ) -> None:
         """Create an instance of the API class with the required parameters.
 
@@ -44,7 +51,7 @@ class API:
         self.header = None
         if "header" in kwargs:
             self.header = kwargs["header"]
-            if "Authorization" in self.header:
+            if self.header and isinstance(self.header, dict) and "Authorization" in self.header:
                 if not self.header["Authorization"].startswith("Token "):
                     if self.header["Authorization"].startswith("token "):
                         self.header = {"Authorization": f"Token {self.header['Authorization'][6:]}"}
@@ -84,7 +91,9 @@ class API:
             raise AssertionError("Comparison is not possible due to incompatible types!")
         return comp[0]
 
-    def send_request(self, url_data_type: str, url_params: dict[str, str]) -> requests.Response:
+    def send_request(
+        self, url_data_type: str, url_params: Mapping[str, Union[str, float, int, Sequence[Union[str, float, int]], None]]
+    ) -> requests.Response:
         """Handle sending appropriate request according to the type of authentication.
 
         :param url_data_type: Type of the data we want to request (according to database model).
@@ -133,7 +142,7 @@ class API:
         return pd.DataFrame(data)
 
     @staticmethod
-    def postprocess_data(df: pd.DataFrame, output_type: str) -> dict[str, Union[bool, np.int64, None]]:
+    def postprocess_data(df: pd.DataFrame, output_type: str) -> PostprocessData:
         """Process dataframe information to extarct the necessary additional data.
 
         :param df: Dataframe of the output data.
@@ -149,10 +158,18 @@ class API:
                 project_id = df["id"].iloc[0]
             else:
                 raise InvalidParameterError("More than one project site was returned, check search criteria.")
-            data_add = {"existance": exists, "id": project_id}
+            data_add: PostprocessData = {
+                "existance": exists,
+                "id": project_id,
+                "response": None,
+            }
         elif output_type == "list":
             exists = df.__len__() != 0
-            data_add = {"existance": exists}
+            data_add = {
+                "existance": exists,
+                "id": None,
+                "response": None,
+            }
         else:
             raise InvalidParameterError("Output type must be either 'single' or 'list', not " + output_type + ".")
         return data_add
@@ -195,8 +212,11 @@ class API:
         return df
 
     def process_data(
-        self, url_data_type: str, url_params: dict[str, str], output_type: str
-    ) -> tuple[pd.DataFrame, dict[str, Union[pd.DataFrame, bool, np.int64, requests.Response, None]]]:
+        self,
+        url_data_type: str,
+        url_params: Mapping[str, Union[str, float, int, Sequence[Union[str, float, int]], None]],
+        output_type: str,
+    ) -> tuple[pd.DataFrame, PostprocessData]:
         """Process output data according to specified request parameters.
 
         :param url_data_type: Type of the data we want to request (according to

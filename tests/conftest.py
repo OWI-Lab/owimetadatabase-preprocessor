@@ -1,3 +1,4 @@
+from typing import Union
 from unittest import mock
 
 import pytest
@@ -47,7 +48,7 @@ def dict_gen_dict_in() -> dict[str, str]:
 
 
 @pytest.fixture(scope="function", params=[1, 2, 3, 4, 5, 6, 7, 8])
-def dict_gen_dict_out(request) -> dict[dict[str, list[str]], dict[str, str]]:
+def dict_gen_dict_out(request) -> dict[str, Union[dict, dict[str, Union[str, list[str]]]]]:
     param = request.param
     if param == 1:
         method_keys = {"method_": "exclude", "keys_": ["key_1"]}

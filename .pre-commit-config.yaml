@@ -7,13 +7,13 @@ repos:
   - id: ruff-check
     files: ^(src/|tests/).*\.py$
   - id: ruff-format
+    files: ^(src/tests/).*\.py$
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: v1.17.1
+  hooks:
+  - id: mypy
     files: ^(src/|tests/).*\.py$
-# - repo: https://github.com/pre-commit/mirrors-mypy
-#   rev: v1.17.1
-#   hooks:
-#   - id: mypy
-#     files: ^(src/|tests/).*\.py$
-#     additional_dependencies: [pandas-stubs, 
-#        types-requests, pytest-stub, types-colorama, 
-#        types-Pygments, types-setuptools, types-python-dateutil, 
-#        types-pytz]
+    additional_dependencies: [pandas-stubs, 
+       types-requests, pytest-stub, types-colorama, 
+       types-Pygments, types-setuptools, types-python-dateutil, 
+       types-pytz]

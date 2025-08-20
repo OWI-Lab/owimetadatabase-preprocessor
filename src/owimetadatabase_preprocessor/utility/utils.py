@@ -1,7 +1,8 @@
 """Utility functions for the owimetadatabase_preprocessor package."""
 
 import math
-from typing import Any, Optional, Union
+from collections.abc import Sequence
+from typing import Any, Optional, Union, overload
 
 import numpy as np
 import pandas as pd
@@ -12,7 +13,7 @@ def custom_formatwarning(message, category, filename, lineno, line=None):  # typ
     return f"{category.__name__}: {message}\n"
 
 
-def dict_generator(dict_: dict[str, Any], keys_: Optional[list[str]] = None, method_: str = "exclude") -> dict[str, Any]:
+def dict_generator(dict_: dict[str, Any], keys_: Optional[Sequence[str]] = None, method_: str = "exclude") -> dict[str, Any]:
     """Generate a dictionary with the specified keys.
 
     :param dict_: Dictionary to be filtered.
@@ -64,15 +65,13 @@ def check_df_eq(df1: pd.DataFrame, df2: pd.DataFrame, tol: float = 1e-9) -> bool
     if df1.shape != df2.shape:
         return False
     num_cols_eq = np.allclose(
-        df1.select_dtypes(include=np.number),  # type: ignore
-        df2.select_dtypes(include=np.number),  # type: ignore
+        df1.select_dtypes(include="number"),
+        df2.select_dtypes(include="number"),
         rtol=tol,
         atol=tol,
         equal_nan=True,
     )
-    str_cols_eq = df1.select_dtypes(include=object).equals(  # type: ignore
-        df2.select_dtypes(include=object)  # type: ignore
-    )
+    str_cols_eq = df1.select_dtypes(include="object").equals(df2.select_dtypes(include="object"))
     return num_cols_eq and str_cols_eq
 
 
@@ -166,24 +165,37 @@ def fix_outline(data: Any) -> Any:
     return data
 
 
-def hex_to_dec(value: Union[str, list]) -> list[Union[str, list[float]]]:
-    """Return [red, green, blue, alpha] for the color given as #rrggbbaa."""
+@overload
+def hex_to_dec(value: str) -> list[float]: ...
+@overload
+def hex_to_dec(value: list[str]) -> list[list[float]]: ...
+@overload
+def hex_to_dec(value: tuple[str, ...]) -> list[list[float]]: ...
+def hex_to_dec(value: Union[str, Sequence[str]]) -> Union[list[float], list[list[float]]]:
+    """Convert hex color(s) to normalized [r, g, b, a] floats.
 
-    def _hex_to_dec(value: str) -> list[float]:
-        value = value.lstrip("#") if value.startswith("#") else value
-        if len(value) != 6 and len(value) != 8:
+    Accepts 6-digit (#rrggbb) or 8-digit (#rrggbbaa) hex strings, with or without leading '#'.
+    - If `value` is a string: returns [r, g, b, a]
+    - If `value` is a list of strings: returns [[r, g, b, a], ...]
+
+    :param value: Hex color string or list of hex color strings.
+    :return: Normalized RGBA list or list of such lists.
+    :raises ValueError: If the hex string length is not 6 or 8.
+    :raises TypeError: If the input type is not supported.
+    """
+
+    def _hex_to_dec(s: str) -> list[float]:
+        s = s.lstrip("#") if s.startswith("#") else s
+        if len(s) not in (6, 8):
             raise ValueError("Length of the color string must be 6 or 8 (excluding #)")
-        col = value[0:6]
-        alpha = value[6:] / 100 if len(value) == 8 else 1
-        lv = len(col)
-        return [
-            int(col[i : i + lv // 3], 16) / 255  # noqa: E203
-            for i in range(0, lv, lv // 3)
-        ] + [alpha]
+        r = int(s[0:2], 16) / 255.0
+        g = int(s[2:4], 16) / 255.0
+        b = int(s[4:6], 16) / 255.0
+        a = int(s[6:8], 16) / 255.0 if len(s) == 8 else 1.0
+        return [r, g, b, a]
 
     if isinstance(value, str):
-        value = [value]
-        return value
-    elif isinstance(value, list):
-        return [_hex_to_dec(_) for _ in value]
+        return _hex_to_dec(value)
+    elif isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+        return [_hex_to_dec(v) for v in value]
     raise ValueError("Value must be a string or a list of strings.")

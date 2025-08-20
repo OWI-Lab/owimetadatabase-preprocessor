@@ -3,6 +3,7 @@
 # mypy: ignore-errors
 
 import warnings
+from collections.abc import Mapping, Sequence
 from typing import Callable, Union
 
 import numpy as np
@@ -60,7 +61,7 @@ class SoilAPI(API):
         self,
         api_url: str,
         radius_init: float,
-        url_params: dict[str, str],
+        url_params: Mapping[str, Union[str, float, int, Sequence[Union[str, float, int]], None]],
         radius_max: float = 500.0,
     ) -> pd.DataFrame:
         """

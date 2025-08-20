@@ -158,27 +158,28 @@ def data_gather_sorted() -> list[dict[str, Union[str, float]]]:
 def mock_requests_search_any_entity(data_search, mocker: mock.Mock) -> mock.Mock:
     def custom_side_effect(*args, **kwargs) -> requests.Response:
         resp = requests.Response()
-        # Convert offset string to float for comparison
-        offset = float(kwargs.get("params")["offset"])
-        if kwargs.get("params")["latitude"] == 50.0 and kwargs.get("params")["longitude"] == 2.0 and offset >= 10.0:
-            data = data_search
-            resp.status_code = 200
-        elif (
-            kwargs.get("params")["latitude"] == 50.0
-            and kwargs.get("params")["longitude"] == 2.0
-            and offset >= 1.0
-            and offset <= 10.0
-        ):
-            data = [data_search[i] for i in [0, 2]]
-            resp.status_code = 200
-        elif kwargs.get("params")["latitude"] == 50.0 and kwargs.get("params")["longitude"] == 2.0 and offset <= 1.0:
-            data = []
-            resp.status_code = 200
+        if "params" in kwargs and "offset" in kwargs["params"]:
+            params: dict[str, Union[str, float]] = kwargs["params"]
+            offset = float(params["offset"])
+            if params["latitude"] == 50.0 and params["longitude"] == 2.0 and offset >= 10.0:
+                data = data_search
+                resp.status_code = 200
+            elif params["latitude"] == 50.0 and params["longitude"] == 2.0 and offset >= 1.0 and offset <= 10.0:
+                data = [data_search[i] for i in [0, 2]]
+                resp.status_code = 200
+            elif params["latitude"] == 50.0 and params["longitude"] == 2.0 and offset <= 1.0:
+                data = []
+                resp.status_code = 200
+            else:
+                data = []
+                resp.status_code = 404
+                resp.reason = "The object corresponding to the specified parameters is not found"
+            resp._content = json.dumps(data).encode("utf-8")
         else:
             data = []
             resp.status_code = 404
             resp.reason = "The object corresponding to the specified parameters is not found"
-        resp._content = json.dumps(data).encode("utf-8")
+            resp._content = json.dumps(data).encode("utf-8")
         return resp
 
     mock = mocker.patch("requests.get", side_effect=custom_side_effect)

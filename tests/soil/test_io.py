@@ -99,7 +99,7 @@ def test_gather_data_entity(
         if key != "data":
             assert dict_gathered[key] == dict_gathered_true[key]
         else:
-            pd_testing.assert_frame_equal(dict_gathered[key], dict_gathered_true[key])
+            pd_testing.assert_frame_equal(dict_gathered[key], dict_gathered_true[key])  # type: ignore
 
 
 def test_get_closest_entity_2d(
@@ -114,7 +114,7 @@ def test_get_closest_entity_2d(
         if key != "data":
             assert dict_[key] == dict_true[key]
         else:
-            pd_testing.assert_frame_equal(dict_[key], dict_true[key])
+            pd_testing.assert_frame_equal(dict_[key], dict_true[key])  # type: ignore
 
 
 # def test_get_closest_entity_3d(
