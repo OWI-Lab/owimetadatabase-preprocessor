@@ -5,12 +5,15 @@ and processed DataFrames, and extract/convert in-situ test detail data.
 """
 
 import warnings
-from typing import Dict, List, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 from groundhog.general.soilprofile import profile_from_dataframe
 from groundhog.siteinvestigation.insitutests.pcpt_processing import PCPTProcessing
 from pyproj import Transformer
+
+if TYPE_CHECKING:
+    from groundhog.general.soilprofile import SoilProfile
 
 
 class SoilDataProcessor:
@@ -173,8 +176,20 @@ class SoilDataProcessor:
             return None
 
     @staticmethod
-    def convert_to_profile(df_sum, df_detail, profile_title, drop_info_cols):
-        # TODO: add docstring and type hints
+    def convert_to_profile(
+        df_sum: pd.DataFrame,
+        df_detail: pd.DataFrame,
+        profile_title: Optional[str],
+        drop_info_cols: bool,
+    ) -> Optional["SoilProfile"]:
+        """Convert soil profile dataframe into a Groundhog soil profile representation.
+
+        :param df_sum: Summary DataFrame containing general information about the soil profile.
+        :param df_detail: Detail DataFrame containing specific information about soil layers.
+        :param profile_title: Title for the soil profile.
+        :param drop_info_cols: Boolean indicating whether to drop informational columns.
+        :return: SoilProfile object or None if conversion fails.
+        """
         try:
             soilprofile_df = (
                 pd.DataFrame(df_detail["soillayer_set"].iloc[0])
@@ -196,28 +211,6 @@ class SoilDataProcessor:
                         soilprofile_df.loc[i, key] = value
                 except Exception:
                     pass
-            for col in soilprofile_df.columns:
-                is_numeric_col = True
-                for value in soilprofile_df[col]:
-                    if value is None or pd.isna(value) or value == "" or value == "None" or value == "null":
-                        continue
-                    if not isinstance(value, (int, float)):
-                        try:
-                            float(value)
-                        except (ValueError, TypeError):
-                            is_numeric_col = False
-                            break
-                if is_numeric_col:
-                    try:
-                        soilprofile_df[col] = pd.to_numeric(soilprofile_df[col])
-                    except Exception as err:
-                        warnings.warn(
-                            f"Error converting column '{col}' to numeric: {err}"
-                        )
-            if profile_title is None:
-                profile_title = (
-                    f"{df_sum['location_name'].iloc[0]} - {df_sum['title'].iloc[0]}"
-                )
             if drop_info_cols:
                 soilprofile_df.drop(
                     [
@@ -231,6 +224,22 @@ class SoilDataProcessor:
                     ],
                     axis=1,
                     inplace=True,
+                )
+            # Convert numeric columns, excluding "Soil type" (str)
+            for col in soilprofile_df.columns:
+                if col != "Soil type":
+                    try:
+                        soilprofile_df[col] = pd.to_numeric(
+                            soilprofile_df[col], errors="coerce"
+                        )
+                    except Exception as err:
+                        warnings.warn(
+                            f"Error converting column '{col}' to numeric: {err}"
+                        )
+
+            if profile_title is None:
+                profile_title = (
+                    f"{df_sum['location_name'].iloc[0]} - {df_sum['title'].iloc[0]}"
                 )
             dsp = profile_from_dataframe(soilprofile_df, title=profile_title)
             return dsp

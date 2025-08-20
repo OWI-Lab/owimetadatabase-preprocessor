@@ -888,6 +888,7 @@ class SoilAPI(API):
         :param soilprofile: Title of the soil profile (e.g. "Borehole log")
         :param convert_to_profile: Boolean determining whether the soil profile
             needs to be converted to a groundhog SoilProfile object
+        :param profile_title: Title for the soil profile
         :param drop_info_cols: Boolean determining whether or not to drop the
             columns with additional info (e.g. soil description, ...)
         :return: Dictionary with the following keys:
