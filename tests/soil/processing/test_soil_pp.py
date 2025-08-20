@@ -194,8 +194,6 @@ def test_convert_to_profile(filename_input: str, filename_output: str) -> None:
         }
     )
 
-    result = SoilDataProcessor.convert_to_profile(
-        df_temp, df_input, None, True
-    )
+    result = SoilDataProcessor.convert_to_profile(df_temp, df_input, None, True)
 
     pd.testing.assert_frame_equal(result, groundhog_profile, check_like=True)
