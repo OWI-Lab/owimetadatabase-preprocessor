@@ -79,18 +79,25 @@ class FatigueAPI(API):
         fatigue_details = [FatigueDetail(item, api_object=self) for item in resp.json()]
         return fatigue_details
 
-    def get_fatiguesubassembly(self, turbine: str, subassembly: str = None) -> list[FatigueSubAssembly]:
+    def get_fatiguesubassembly(
+        self, turbine: str, subassembly: str = None, model_definition: str = None
+    ) -> dict[str, FatigueSubAssembly]:
         """Get all fatigue details for a given turbine/turbine subassembly.
 
         :param turbine: Turbine title (e.g. 'BBC01')
         :param subassembly: Sub-assembly type (e.g. 'MP', 'TW', 'TP')
+        :param model_definition: Model definition (e.g. 'as-designed Project' etc.)
         :return: List of FatigueSubAssembly objects representing subassemblies
         """
         url_data_type = "subassemblies"
+        url_params = {"asset__title": turbine}
         if subassembly is not None:
-            url_params = {"asset__title": turbine, "subassembly_type": subassembly}
-        else:
-            url_params = {"asset__title": turbine}
+            url_params["subassembly_type"] = subassembly
+        if model_definition is not None:
+            model_definition_id = self.geo_api.get_modeldefinition_id(
+                assetlocation=turbine, model_definition=model_definition
+            )["id"]
+            url_params["model_definition"] = str(model_definition_id)
         resp = self.geo_api.send_request(url_data_type, url_params)
         self.geo_api.check_request_health(resp)
         if not resp.json():

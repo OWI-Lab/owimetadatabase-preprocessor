@@ -9,6 +9,7 @@ except ImportError:
 
 import warnings
 from copy import deepcopy
+from functools import cached_property
 from itertools import cycle
 from typing import Any, Union
 
@@ -373,7 +374,7 @@ class FatigueDetail:
                     self.material = mat
                     break
 
-    @property
+    @cached_property
     def sncurves(self) -> dict[dict[str, str], SNCurve]:
         """SN curves of the detail.
 
@@ -432,7 +433,7 @@ class FatigueDetail:
             )
         return self.buildingblock.position
 
-    @property
+    @cached_property
     def buildingblock(self) -> BuildingBlock:
         """Building block to which the detail belongs."""
         if self._buildingblock:
@@ -446,7 +447,7 @@ class FatigueDetail:
             self._buildingblock = BuildingBlock(bb.json()[0])
         return self._buildingblock
 
-    @property
+    @cached_property
     def buildingblocktop(self):
         """Top building block."""
         if self._buildingblocktop is not None:
@@ -460,7 +461,7 @@ class FatigueDetail:
             self._buildingblocktop = BuildingBlock(bbtop.json()[0])
         return self._buildingblocktop
 
-    @property
+    @cached_property
     def wall_thickness(self) -> list[float]:
         """Wall thickness."""
         wt = [self.buildingblock.wall_thickness]
@@ -468,7 +469,7 @@ class FatigueDetail:
             wt.append(self.buildingblocktop.wall_thickness)
         return wt
 
-    @property
+    @cached_property
     def height(self) -> float:
         """Height of the detail."""
         return self.buildingblock.height if self.buildingblock.height is not None else 0
@@ -672,6 +673,7 @@ class FatigueSubAssembly:
         self.sa_type = json["subassembly_type"]
         self.source = json["source"]
         self._asset = json["asset"]
+        self.model_definition = json["model_definition"]
 
         self.turbine = self.asset
         self.fds = None
@@ -680,30 +682,20 @@ class FatigueSubAssembly:
         materials = self.api.geo_api.send_request(url_data_type="materials", url_params={})
         self._materials = [Material(m) for m in materials.json()]
 
-    @property
+    @cached_property
     def asset(self):
         """Turbine name."""
-        # TODO: This has to be worked out properly.
-        # ! The LocationsAPI class is not mature yet.
-        # ! This is how I would make it...
-        # ! req = _make_request(
-        # !     api=self.api,
-        # !     url='%s/locations/routes/assetlocation',
-        # !     params={'id': self._asset}
-        # ! )
-        # ! if req.status_code != 200:
-        # !     return None
-        # ! else:
-        # !     return req.json()[0]['title']
+        data = self.api.loc_api.get_assetlocations(id=self._asset)
+        asset_title = data["data"].loc[0, "title"]
+        return asset_title
 
-        return self.title.split("_")[0]
-
-    @property
+    @cached_property
     def subassembly(self):
         """Subassembly object."""
         self._subassembly = self.api.geo_api.get_subassembly_objects(
             turbine=self.asset,
             subassembly=self.sa_type,
+            model_definition_id=self.model_definition,
         )
         return list(self._subassembly.values())[0]
 
@@ -712,7 +704,7 @@ class FatigueSubAssembly:
         """Color for the subassembly."""
         return PLOT_SETTINGS_SUBASSEMBLY[self.sa_type]["color"]
 
-    @property
+    @cached_property
     def height(self) -> float:
         """Height of the subassembly."""
         height = 0
@@ -721,7 +713,7 @@ class FatigueSubAssembly:
                 height += fd.buildingblock.height
         return height
 
-    @property
+    @cached_property
     def fatiguedetails(self) -> list[FatigueDetail]:
         """Fatigue details of the subassembly."""
         if self.fds:
@@ -732,7 +724,10 @@ class FatigueSubAssembly:
         else:
             fds = self.api.send_request(
                 url_data_type="fatiguedetail",
-                url_params={"title__icontains": self.title},
+                url_params={
+                    "title__icontains": self.title,
+                    "modeldefinition__id": self.model_definition,
+                },
             )
             if fds.json():
                 if len(fds.json()) > 0:
@@ -859,13 +854,13 @@ class FatigueSubAssembly:
             df["absolute_position, m"] = (df["z"] + self.position.z) / 1000
         return df
 
-    @property
+    @cached_property
     def absolute_bottom(self) -> float:
         """Absolute bottom."""
         temp_df = self.as_df(include_absolute_postion=True)
         return temp_df["absolute_position, m"].iloc[-1]
 
-    @property
+    @cached_property
     def absolute_top(self) -> float:
         """Absolute top."""
         temp_df = self.as_df(include_absolute_postion=True)
@@ -875,7 +870,7 @@ class FatigueSubAssembly:
             3,
         )
 
-    @property
+    @cached_property
     def properties(self) -> dict[str, float]:
         """Subassembly properties."""
         property_dict = {"height": self.height}
