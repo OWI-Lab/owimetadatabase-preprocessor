@@ -1,4 +1,4 @@
-next-version: 0.9.6
+next-version: 0.9.7
 mode: ContinuousDelivery
 branches:
   main:
