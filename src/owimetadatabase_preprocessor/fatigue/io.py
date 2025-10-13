@@ -2,6 +2,7 @@
 
 # mypy: ignore-errors
 
+import warnings
 from typing import Union
 
 import numpy as np
@@ -106,6 +107,250 @@ class FatigueAPI(API):
         sas = [FatigueSubAssembly(item, api_object=self) for item in resp.json()]
         subassemblies = dict(zip(sas_types, sas))
         return subassemblies
+
+    def get_defects(
+        self, turbine: str, subassembly: Union[str, None] = None, model_definition: Union[str, None] = None, **kwargs
+    ) -> dict[str, Union[pd.DataFrame, bool, np.int64, None]]:
+        """Get all defects for a given turbine/turbine subassembly.
+
+        :param turbine: Turbine title (e.g. 'BBC01')
+        :param subassembly: Sub-assembly type (e.g. 'MP', 'TW', 'TP')
+        :param model_definition: Model definition (e.g. 'as-designed Project' etc.)
+        :return:
+        """
+        url_params = {"sub_assembly__asset": turbine}
+        if subassembly is not None:
+            url_params["sub_assembly"] = turbine + "_" + subassembly
+        if model_definition is not None:
+            model_definition_id = self.geo_api.get_modeldefinition_id(
+                assetlocation=turbine, model_definition=model_definition
+            )["id"]
+            url_params["sub_assembly__model_definition"] = str(model_definition_id)
+        url_params.update(kwargs)
+        url_data_type = "defects"
+        output_type = "list"
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        return {"data": df, "exists": df_add["existance"]}
+
+    def plot_defects(
+        self,
+        turbine: str,
+        subassembly: Union[str, None] = None,
+        model_definition: Union[str, None] = None,
+        showmudline: bool = True,
+        show: bool = True,
+        marker_size: int = 20,
+        **kwargs,
+    ) -> dict[str, Union[go.Figure, pd.DataFrame]]:
+        """Plot defects on a turbine structure.
+
+        :param turbine: Turbine title (e.g. 'BBC01')
+        :param subassembly: Sub-assembly type (e.g. 'MP', 'TW', 'TP')
+        :param model_definition: Model definition (e.g. 'as-designed Project' etc.)
+        :param showmudline: Whether to show mudline in the plot
+        :param show: Whether to show the plot
+        :param marker_size: Size of the defect markers (default 20)
+        :param kwargs: Additional keyword arguments for filtering defects
+        :return: Dictionary with the defects DataFrame and Plotly figure
+        """
+        # Get defect data
+        defects_result = self.get_defects(
+            turbine=turbine, subassembly=subassembly, model_definition=model_definition, **kwargs
+        )
+
+        defects_df = defects_result["data"]
+
+        if not defects_result["exists"] or defects_df.empty:
+            raise ValueError(f"No defects found for turbine {turbine}")
+
+        # Get subassembly structure for visualization
+        subass = self.geo_api.get_subassembly_objects(turbine)
+
+        # Figure instantiation
+        fig_dict = {
+            "data": [],
+            "layout": {},
+        }
+
+        # Layout configuration
+        fig_dict["layout"]["hovermode"] = "closest"
+        fig_dict["layout"]["height"] = 800
+        fig_dict["layout"]["width"] = 700
+        fig_dict["layout"]["margin"] = {"l": 50, "t": 50, "r": 50, "b": 50, "pad": 4}
+        fig_dict["layout"]["paper_bgcolor"] = "#ffffff"
+        fig_dict["layout"]["plot_bgcolor"] = "#ffffff"
+        fig_dict["layout"]["showlegend"] = True
+        fig_dict["layout"]["autosize"] = True
+        fig_dict["layout"]["title"] = f"Defects for {turbine}"
+
+        # Add mudline and water level if requested
+        if showmudline:
+            url_data_type = "assetlocations"
+            url_params = {"title": turbine}
+            elevation_req = self.loc_api.send_request(url_data_type, url_params)
+            self.loc_api.check_request_health(elevation_req)
+            elevation = elevation_req.json()[0]["elevation"]
+
+            mudline_dict = {
+                "x": [-5000, 5000],
+                "y": [elevation * 1000] * 2,
+                "mode": "lines",
+                "name": "Mudline",
+                "hoverinfo": "text",
+                "hovertext": f"{turbine} mudline elevation: {np.round(elevation, 1)}m",
+                "line": {"color": "SaddleBrown", "width": 4},
+            }
+            fig_dict["data"].append(mudline_dict)
+
+            waterlevel_dict = {
+                "x": [-5000, 5000],
+                "y": [0, 0],
+                "fill": "tonexty",
+                "mode": "lines",
+                "name": "Water level",
+                "hoverinfo": "text",
+                "hovertext": "Water level",
+                "line": {"color": "DodgerBlue", "width": 0.5},
+            }
+            fig_dict["data"].append(waterlevel_dict)
+
+        # Extract subassembly information
+        bod = {}
+        tod = {}
+        sub_col = {}
+        sub_z = {}
+        sub_h = {}
+
+        for _sub_key, sub_value in subass.items():
+            # Handle case where sub_value can be a single SubAssembly or a list of SubAssemblies
+            sub_list = sub_value if isinstance(sub_value, list) else [sub_value]
+
+            for sub in sub_list:
+                if sub.type not in bod:
+                    bod[sub.type] = []
+                    tod[sub.type] = []
+                    sub_col[sub.type] = []
+                    sub_z[sub.type] = []
+                    sub_h[sub.type] = []
+
+                for bb in sub.building_blocks:
+                    bod[sub.type].append(bb.bottom_outer_diameter)
+                    tod[sub.type].append(bb.top_outer_diameter)
+                    sub_col[sub.type].append(sub.color)
+                    sub_z[sub.type].append(sub.position.z)
+                    sub_h[sub.type].append(sub.height)
+
+        bod = {k: np.nanmax(np.array(v, dtype=np.float64)) for (k, v) in bod.items()}
+        tod = {k: np.nanmax(np.array(v, dtype=np.float64)) for (k, v) in tod.items()}
+        sub_col = {k: list(set(v))[0] for (k, v) in sub_col.items()}
+        sub_z = {k: list(set(v))[0] for (k, v) in sub_z.items()}
+        sub_h = {k: list(set(v))[0] for (k, v) in sub_h.items()}
+
+        # Get list of subtypes for iteration
+        subtypes = list(sub_z.keys())
+
+        # Draw subassembly structures
+        for subtype in subtypes:
+            # Draw the turbine outline as a closed shape (trapezoid/frustum)
+            # Points: top-left, top-right, bottom-right, bottom-left, back to top-left
+            x = [
+                -tod[subtype] / 2,  # top-left
+                tod[subtype] / 2,  # top-right
+                bod[subtype] / 2,  # bottom-right
+                -bod[subtype] / 2,  # bottom-left
+                -tod[subtype] / 2,  # back to top-left to close the shape
+            ]
+            y = [
+                sub_z[subtype] + sub_h[subtype],  # top-left
+                sub_z[subtype] + sub_h[subtype],  # top-right
+                sub_z[subtype],  # bottom-right
+                sub_z[subtype],  # bottom-left
+                sub_z[subtype] + sub_h[subtype],  # back to top-left
+            ]
+            structure_dict = {
+                "x": x,
+                "y": y,
+                "mode": "lines",
+                "name": subtype,
+                "hoverinfo": "text",
+                "hovertext": f"{turbine}_{subtype}",
+                "line": {"color": sub_col[subtype], "width": 2},
+                "fill": "toself",
+                "fillcolor": sub_col[subtype],
+                "opacity": 0.3,
+            }
+            fig_dict["data"].append(structure_dict)
+
+        # Plot defects as large red markers
+        if "x_position" in defects_df.columns and "y_position" in defects_df.columns and "z_position" in defects_df.columns:
+            # Prepare hover text
+            hover_texts = []
+            for _, row in defects_df.iterrows():
+                hover_text = f"<b>Defect: {row.get('title', 'Unknown')}</b><br>"
+                if "description" in row and pd.notna(row["description"]):
+                    hover_text += f"Description: {row['description']}<br>"
+                if "defect_type" in row and pd.notna(row["defect_type"]):
+                    hover_text += f"Type: {row['defect_type']}<br>"
+                if "severity" in row and pd.notna(row["severity"]):
+                    hover_text += f"Severity: {row['severity']}<br>"
+                hover_text += f"Position: ({row['x_position']:.1f}, {row['y_position']:.1f}, {row['z_position']:.1f}) mm"
+                hover_texts.append(hover_text)
+
+            # Get subassembly types for defects to compute absolute z positions
+            defect_z_positions = []
+            for _, row in defects_df.iterrows():
+                sub_type = row.get("subassembly_type", None)
+                if sub_type and sub_type in sub_z:
+                    defect_z_positions.append(row["z_position"] + sub_z[sub_type])
+                else:
+                    # If no subassembly type, use absolute z position
+                    defect_z_positions.append(row["z_position"])
+
+            defects_dict = {
+                "x": list(defects_df["y_position"]),  # Using y_position for x-axis (circumferential)
+                "y": defect_z_positions,
+                "mode": "markers",
+                "name": "Defects",
+                "hoverinfo": "text",
+                "hovertext": hover_texts,
+                "marker": {
+                    "color": "red",
+                    "size": marker_size,
+                    "symbol": "circle",
+                    "line": {"color": "darkred", "width": 2},
+                },
+            }
+            fig_dict["data"].append(defects_dict)
+        else:
+            warnings.warn(
+                "Defects DataFrame does not contain position columns (x_position, y_position, z_position)", stacklevel=2
+            )
+
+        # Set axis properties
+        min_y = []
+        max_y = []
+        for data in fig_dict["data"]:
+            if "y" in data:
+                min_y.append(min(data["y"]))
+                max_y.append(max(data["y"]))
+
+        if min_y and max_y:
+            fig_dict["layout"]["yaxis"] = {
+                "title": "Height, mm",
+                "scaleanchor": "x",
+                "scaleratio": 1,
+                "range": [min(min_y), max(max_y)],
+            }
+
+        fig_dict["layout"]["xaxis"] = {
+            "title": "Circumferential position, mm",
+        }
+
+        if show:
+            fig = go.Figure(fig_dict)
+            fig.show()
+
+        return {"DataFrame": defects_df, "Plotly": fig_dict}
 
     def fatiguedetails_df(
         self,
