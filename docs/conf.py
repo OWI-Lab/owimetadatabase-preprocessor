@@ -15,7 +15,7 @@ sys.path.insert(0, module_path)
 project = "Owimetadatabase preprocessor"
 copyright = "2025, OWI-Lab"
 author = "OWI-Lab"
-version = "0.9.7"
+version = "0.9.8"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
