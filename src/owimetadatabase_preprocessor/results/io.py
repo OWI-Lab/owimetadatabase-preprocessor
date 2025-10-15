@@ -2,17 +2,12 @@
 
 # mypy: ignore-errors
 
-import warnings
-from contextlib import contextmanager
 from typing import Union
 
 import numpy as np
 import pandas as pd
-import plotly as plt
-from plotly.subplots import make_subplots
 
 from owimetadatabase_preprocessor.io import API
-from owimetadatabase_preprocessor.locations.io import LocationsAPI
 
 
 class ResultsAPI(API):
@@ -75,11 +70,11 @@ class ResultsAPI(API):
         """
         url_params = kwargs
         if projectsite is not None:
-            url_params["site"] = projectsite
+            url_params["site__title"] = projectsite
         if assetlocation is not None:
-            url_params["location"] = assetlocation
+            url_params["location__title"] = assetlocation
         if analysis is not None:
-            url_params["analysis"] = analysis
+            url_params["analysis__title"] = analysis
         if short_description is not None:
             url_params["short_description"] = short_description
         url_data_type = "result"
