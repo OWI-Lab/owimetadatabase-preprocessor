@@ -16,3 +16,4 @@ API reference for the owimetadatabase-preprocessor package.
    fatigue/io
    fatigue/data_objects
    soil/index
+   results/io
