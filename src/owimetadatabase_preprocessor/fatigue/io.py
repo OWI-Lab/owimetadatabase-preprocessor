@@ -129,9 +129,9 @@ class FatigueAPI(API):
         :param model_definition: Model definition (e.g. 'as-designed Project' etc.)
         :return:
         """
-        url_params = {"sub_assembly__asset": turbine}
+        url_params = {"sub_assembly__asset__title": turbine}
         if subassembly is not None:
-            url_params["sub_assembly"] = turbine + "_" + subassembly
+            url_params["sub_assembly__title"] = turbine + "_" + subassembly
         if model_definition is not None:
             model_definition_id = self.geo_api.get_modeldefinition_id(
                 assetlocation=turbine, model_definition=model_definition
@@ -305,18 +305,45 @@ class FatigueAPI(API):
                     hover_text += f"Type: {row['defect_type']}<br>"
                 if "severity" in row and pd.notna(row["severity"]):
                     hover_text += f"Severity: {row['severity']}<br>"
+                if "vertical_position_reference_system" in row and pd.notna(row["vertical_position_reference_system"]):
+                    hover_text += f"Vertical ref: {row['vertical_position_reference_system']}<br>"
                 hover_text += f"Position: ({row['x_position']:.1f}, {row['y_position']:.1f}, {row['z_position']:.1f}) mm"
                 hover_texts.append(hover_text)
 
             # Get subassembly types for defects to compute absolute z positions
+            # Account for vertical_position_reference field
             defect_z_positions = []
             for _, row in defects_df.iterrows():
                 sub_type = row.get("subassembly_type", None)
-                if sub_type and sub_type in sub_z:
-                    defect_z_positions.append(row["z_position"] + sub_z[sub_type])
+                z_pos = row["z_position"]
+                vertical_ref = row.get("vertical_position_reference_system", None)
+
+                # Handle different vertical position references
+                if vertical_ref and isinstance(vertical_ref, str):
+                    vertical_ref_lower = vertical_ref.lower()
+
+                    if "lat" in vertical_ref_lower:
+                        # LAT (Lowest Astronomical Tide) or absolute coordinates - use as-is
+                        defect_z_positions.append(z_pos)
+                    elif "sub" in vertical_ref_lower:
+                        # Position from bottom of subassembly - add subassembly base z position
+                        if sub_type and sub_type in sub_z:
+                            defect_z_positions.append(z_pos + sub_z[sub_type])
+                        else:
+                            # Fallback: assume it's absolute if we can't find subassembly
+                            defect_z_positions.append(z_pos)
+                    else:
+                        # Unknown reference - try to infer from subassembly type
+                        if sub_type and sub_type in sub_z:
+                            defect_z_positions.append(z_pos + sub_z[sub_type])
+                        else:
+                            defect_z_positions.append(z_pos)
                 else:
-                    # If no subassembly type, use absolute z position
-                    defect_z_positions.append(row["z_position"])
+                    # No vertical reference specified - try to infer from subassembly
+                    if sub_type and sub_type in sub_z:
+                        defect_z_positions.append(z_pos + sub_z[sub_type])
+                    else:
+                        defect_z_positions.append(z_pos)
 
             defects_dict = {
                 "x": list(defects_df["y_position"]),  # Using y_position for x-axis (circumferential)
@@ -361,8 +388,9 @@ class FatigueAPI(API):
         if show:
             fig = go.Figure(fig_dict)
             fig.show()
+            return
 
-        return {"DataFrame": defects_df, "Plotly": fig_dict}
+        return fig
 
     def fatiguedetails_df(
         self,
