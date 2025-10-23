@@ -453,7 +453,13 @@ class FatigueDetail:
         if self._buildingblocktop is not None:
             return self._buildingblocktop
         if self.fd_type == 45:  # CW
-            prmtrtop = self.json["tubularsection"] + 1
+            cw = self.api.send_request(
+                url_data_type="circumferentialweld",
+                url_params={
+                    "slug": self.json["slug"],
+                },
+            )
+            prmtrtop = cw.json()[0]["tubularsectiontop"]
             bbtop = self.api.geo_api.send_request(
                 url_data_type="buildingblocks",
                 url_params={"id": prmtrtop},
