@@ -118,14 +118,11 @@ class FatigueAPI(API):
         :param model_definition: Model definition (e.g. 'as-designed Project' etc.)
         :return:
         """
-        url_params = {"sub_assembly__asset__title": turbine}
+        url_params = {"asset": turbine}
         if subassembly is not None:
-            url_params["sub_assembly__title"] = turbine + "_" + subassembly
+            url_params["sub_assembly"] = turbine + "_" + subassembly
         if model_definition is not None:
-            model_definition_id = self.geo_api.get_modeldefinition_id(
-                assetlocation=turbine, model_definition=model_definition
-            )["id"]
-            url_params["sub_assembly__model_definition"] = str(model_definition_id)
+            url_params["model_definition"] = model_definition
         url_params.update(kwargs)
         url_data_type = "defects"
         output_type = "list"
