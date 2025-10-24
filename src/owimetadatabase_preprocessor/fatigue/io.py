@@ -150,26 +150,20 @@ class FatigueAPI(API):
         :param kwargs: Additional keyword arguments for filtering defects
         :return: Dictionary with the defects DataFrame and Plotly figure
         """
-        # Get defect data
-        defects_result = self.get_defects(
+        defects = self.get_defects(
             turbine=turbine, subassembly=subassembly, model_definition=model_definition, **kwargs
         )
-
-        defects_df = defects_result["data"]
-
-        if not defects_result["exists"] or defects_df.empty:
+        if not defects["exists"]:
             raise ValueError(f"No defects found for turbine {turbine}")
+        defects_df = defects["data"]
 
-        # Get subassembly structure for visualization
-        subass = self.geo_api.get_subassembly_objects(turbine)
+        sas = self.geo_api.get_subassembly_objects(turbine)
 
-        # Figure instantiation
         fig_dict = {
             "data": [],
             "layout": {},
         }
 
-        # Layout configuration
         fig_dict["layout"]["hovermode"] = "closest"
         fig_dict["layout"]["height"] = 800
         fig_dict["layout"]["width"] = 700
@@ -180,13 +174,10 @@ class FatigueAPI(API):
         fig_dict["layout"]["autosize"] = True
         fig_dict["layout"]["title"] = f"Defects for {turbine}"
 
-        # Add mudline and water level if requested
         if showmudline:
-            url_data_type = "assetlocations"
-            url_params = {"title": turbine}
-            elevation_req = self.loc_api.send_request(url_data_type, url_params)
-            self.loc_api.check_request_health(elevation_req)
-            elevation = elevation_req.json()[0]["elevation"]
+            assetlocation = self.loc_api.get_assetlocation_detail(assetlocation=turbine)
+            if assetlocation["exists"]:
+                elevation = assetlocation["data"].loc[0, "elevation"]
 
             mudline_dict = {
                 "x": [-5000, 5000],
@@ -211,15 +202,14 @@ class FatigueAPI(API):
             }
             fig_dict["data"].append(waterlevel_dict)
 
-        # Extract subassembly information
         bod = {}
         tod = {}
         sub_col = {}
         sub_z = {}
         sub_h = {}
+        sub_id = {}
 
-        for _sub_key, sub_value in subass.items():
-            # Handle case where sub_value can be a single SubAssembly or a list of SubAssemblies
+        for _, sub_value in sas.items():
             sub_list = sub_value if isinstance(sub_value, list) else [sub_value]
 
             for sub in sub_list:
@@ -229,6 +219,7 @@ class FatigueAPI(API):
                     sub_col[sub.type] = []
                     sub_z[sub.type] = []
                     sub_h[sub.type] = []
+                    sub_id[sub.type] = []
 
                 for bb in sub.building_blocks:
                     bod[sub.type].append(bb.bottom_outer_diameter)
@@ -236,20 +227,18 @@ class FatigueAPI(API):
                     sub_col[sub.type].append(sub.color)
                     sub_z[sub.type].append(sub.position.z)
                     sub_h[sub.type].append(sub.height)
+                    sub_id[sub.type].append(sub.id)
 
         bod = {k: np.nanmax(np.array(v, dtype=np.float64)) for (k, v) in bod.items()}
         tod = {k: np.nanmax(np.array(v, dtype=np.float64)) for (k, v) in tod.items()}
         sub_col = {k: list(set(v))[0] for (k, v) in sub_col.items()}
         sub_z = {k: list(set(v))[0] for (k, v) in sub_z.items()}
         sub_h = {k: list(set(v))[0] for (k, v) in sub_h.items()}
+        sub_id = {k: list(set(v))[0] for (k, v) in sub_id.items()}
 
-        # Get list of subtypes for iteration
         subtypes = list(sub_z.keys())
 
-        # Draw subassembly structures
         for subtype in subtypes:
-            # Draw the turbine outline as a closed shape (trapezoid/frustum)
-            # Points: top-left, top-right, bottom-right, bottom-left, back to top-left
             x = [
                 -tod[subtype] / 2,  # top-left
                 tod[subtype] / 2,  # top-right
@@ -278,60 +267,45 @@ class FatigueAPI(API):
             }
             fig_dict["data"].append(structure_dict)
 
-        # Plot defects as large red markers
         if "x_position" in defects_df.columns and "y_position" in defects_df.columns and "z_position" in defects_df.columns:
-            # Prepare hover text
             hover_texts = []
             for _, row in defects_df.iterrows():
                 hover_text = f"<b>Defect: {row.get('title', 'Unknown')}</b><br>"
-                if "description" in row and pd.notna(row["description"]):
-                    hover_text += f"Description: {row['description']}<br>"
                 if "defect_type" in row and pd.notna(row["defect_type"]):
                     hover_text += f"Type: {row['defect_type']}<br>"
-                if "severity" in row and pd.notna(row["severity"]):
-                    hover_text += f"Severity: {row['severity']}<br>"
-                if "vertical_position_reference_system" in row and pd.notna(row["vertical_position_reference_system"]):
-                    hover_text += f"Vertical ref: {row['vertical_position_reference_system']}<br>"
+                if "defect_subtype" in row and pd.notna(row["defect_subtype"]):
+                    hover_text += f"Subtype: {row['defect_subtype']}<br>"
+                if "defect_kind" in row and pd.notna(row["defect_kind"]):
+                    hover_text += f"Kind: {row['defect_kind']}<br>"
                 hover_text += f"Position: ({row['x_position']:.1f}, {row['y_position']:.1f}, {row['z_position']:.1f}) mm"
                 hover_texts.append(hover_text)
 
-            # Get subassembly types for defects to compute absolute z positions
-            # Account for vertical_position_reference field
             defect_z_positions = []
             for _, row in defects_df.iterrows():
-                sub_type = row.get("subassembly_type", None)
                 z_pos = row["z_position"]
                 vertical_ref = row.get("vertical_position_reference_system", None)
+                sub_id_ = row.get("sub_assembly", None)
 
-                # Handle different vertical position references
                 if vertical_ref and isinstance(vertical_ref, str):
                     vertical_ref_lower = vertical_ref.lower()
 
                     if "lat" in vertical_ref_lower:
-                        # LAT (Lowest Astronomical Tide) or absolute coordinates - use as-is
                         defect_z_positions.append(z_pos)
                     elif "sub" in vertical_ref_lower:
-                        # Position from bottom of subassembly - add subassembly base z position
-                        if sub_type and sub_type in sub_z:
-                            defect_z_positions.append(z_pos + sub_z[sub_type])
+                        for k, sub in sub_id.items():
+                            if sub == sub_id_:
+                                z_sub = sub_z[k]
+                        if z_sub:
+                            defect_z_positions.append(z_pos + z_sub)
                         else:
-                            # Fallback: assume it's absolute if we can't find subassembly
                             defect_z_positions.append(z_pos)
                     else:
-                        # Unknown reference - try to infer from subassembly type
-                        if sub_type and sub_type in sub_z:
-                            defect_z_positions.append(z_pos + sub_z[sub_type])
-                        else:
-                            defect_z_positions.append(z_pos)
+                        raise ValueError(f"Unsupported vertical position reference system: {vertical_ref}")
                 else:
-                    # No vertical reference specified - try to infer from subassembly
-                    if sub_type and sub_type in sub_z:
-                        defect_z_positions.append(z_pos + sub_z[sub_type])
-                    else:
-                        defect_z_positions.append(z_pos)
+                    raise ValueError(f"Cannot determine vertical position reference system: {vertical_ref}")
 
             defects_dict = {
-                "x": list(defects_df["y_position"]),  # Using y_position for x-axis (circumferential)
+                "x": list(defects_df["y_position"]),
                 "y": defect_z_positions,
                 "mode": "markers",
                 "name": "Defects",
@@ -350,7 +324,6 @@ class FatigueAPI(API):
                 "Defects DataFrame does not contain position columns (x_position, y_position, z_position)", stacklevel=2
             )
 
-        # Set axis properties
         min_y = []
         max_y = []
         for data in fig_dict["data"]:
