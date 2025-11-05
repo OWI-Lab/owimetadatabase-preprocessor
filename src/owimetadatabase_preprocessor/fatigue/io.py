@@ -150,9 +150,7 @@ class FatigueAPI(API):
         :param kwargs: Additional keyword arguments for filtering defects
         :return: Dictionary with the defects DataFrame and Plotly figure
         """
-        defects = self.get_defects(
-            turbine=turbine, subassembly=subassembly, model_definition=model_definition, **kwargs
-        )
+        defects = self.get_defects(turbine=turbine, subassembly=subassembly, model_definition=model_definition, **kwargs)
         if not defects["exists"]:
             raise ValueError(f"No defects found for turbine {turbine}")
         defects_df = defects["data"]

@@ -1,8 +1,10 @@
 """Utility functions for the owimetadatabase_preprocessor package."""
 
+from __future__ import annotations
+
 import math
 from collections.abc import Sequence
-from typing import Any, Optional, Union, overload
+from typing import Any, overload
 
 import numpy as np
 import pandas as pd
@@ -13,7 +15,7 @@ def custom_formatwarning(message, category, filename, lineno, line=None):  # typ
     return f"{category.__name__}: {message}\n"
 
 
-def dict_generator(dict_: dict[str, Any], keys_: Optional[Sequence[str]] = None, method_: str = "exclude") -> dict[str, Any]:
+def dict_generator(dict_: dict[str, Any], keys_: Sequence[str] | None = None, method_: str = "exclude") -> dict[str, Any]:
     """Generate a dictionary with the specified keys.
 
     :param dict_: Dictionary to be filtered.
@@ -31,7 +33,7 @@ def dict_generator(dict_: dict[str, Any], keys_: Optional[Sequence[str]] = None,
         raise ValueError("Method not recognized!")
 
 
-def compare_if_simple_close(a: Any, b: Any, tol: float = 1e-9) -> tuple[bool, Union[None, str]]:
+def compare_if_simple_close(a: Any, b: Any, tol: float = 1e-9) -> tuple[bool, None | str]:
     """Compare two values and return a boolean and a message.
 
     :param a: First value to be compared.
@@ -75,7 +77,7 @@ def check_df_eq(df1: pd.DataFrame, df2: pd.DataFrame, tol: float = 1e-9) -> bool
     return num_cols_eq and str_cols_eq
 
 
-def deepcompare(a: Any, b: Any, tol: float = 1e-5) -> tuple[bool, Union[None, str]]:
+def deepcompare(a: Any, b: Any, tol: float = 1e-5) -> tuple[bool, None | str]:
     """Compare two complicated (potentailly nested) objects recursively and return a result and a message.
 
     :param a: First object to be compared.
@@ -171,7 +173,7 @@ def hex_to_dec(value: str) -> list[float]: ...
 def hex_to_dec(value: list[str]) -> list[list[float]]: ...
 @overload
 def hex_to_dec(value: tuple[str, ...]) -> list[list[float]]: ...
-def hex_to_dec(value: Union[str, Sequence[str]]) -> Union[list[float], list[list[float]]]:
+def hex_to_dec(value: str | Sequence[str]) -> list[float] | list[list[float]]:
     """Convert hex color(s) to normalized [r, g, b, a] floats.
 
     Accepts 6-digit (#rrggbb) or 8-digit (#rrggbbaa) hex strings, with or without leading '#'.
