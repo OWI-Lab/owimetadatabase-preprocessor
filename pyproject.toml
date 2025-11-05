@@ -1,73 +1,88 @@
-[tool.poetry]
+[project]
 name = "owimetadatabase-preprocessor"
 version = "0.10.0"
 description = "Package for preprocessing data from owimetadatabase."
-authors = ["arsmlnkv <melnikov.arsene@gmail.com>"]
+authors = [{ name = "arsmlnkv", email = "melnikov.arsene@gmail.com" }]
 readme = "README.md"
+license = {file = "LICENSE"}
+keywords = ["owimetadatabase"]
+requires-python = ">=3.9,<3.14"
+dependencies = [
+    "plotly >=5.19.0",
+    "requests >=2.32.0",
+    "matplotlib ==3.9.4 ; python_version < '3.10'",
+    "matplotlib >=3.10.0 ; python_version >= '3.10'",
+    "numpy >=1.26.0,<2.0.0 ; python_version < '3.11'",
+    "numpy >=2.0.0 ; python_version >= '3.11'",
+    "pandas >=2.0.0",
+    "groundhog >=0.11.0",
+    "pyproj >=3.6.0,<3.7.0 ; python_version < '3.10'",
+    "pyproj >=3.7.0,<3.7.2 ; python_version >= '3.10' and python_version < '3.11'",
+    "pyproj >=3.7.2 ; python_version >= '3.11'",
+    "scipy <1.14.0 ; python_version < '3.10'",
+    "scipy >=1.14.0,<1.16.0 ; python_version >= '3.10' and python_version < '3.11'",
+    "scipy >=1.16.0 ; python_version >= '3.11'",
+    "tqdm >=4.66.0",
+]
+
+
+[dependency-groups]
+dev = [
+    {include-group = "test"},
+    {include-group = "lint"},
+    {include-group = "typing"},
+    {include-group = "docs"},
+    {include-group = "dev-tools"},
+    {include-group = "versioning"},
+    {include-group = "compatibility"}
+]
+test = [
+    "pytest >=8.4.0",
+    "pytest-mock >=3.15.0",
+    "pytest-xdist >=3.7.0",
+    "pytest-clarity >=1.0.0",
+    "pytest-cov >=7.0.0",
+    "requests-mock >=1.12.1"
+]
+lint = [
+    "ruff >=0.12.9"
+]
+typing = [
+    "mypy >=1.10.0",
+    "pandas-stubs >=2.0.0,<2.2.3.241009 ; python_version < '3.10'",
+    "pandas-stubs >=2.2.3.241009 ; python_version >= '3.10'",
+    "types-requests >=2.32.0",
+    "pytest-stub >=1.0.0",
+    "types-colorama >=0.4.0",
+    "types-Pygments >=2.0.0",
+    "types-setuptools >=68.0.0",
+    "types-python-dateutil >=2.8.0",
+    "types-pytz >=2023.3.0"
+]
+docs = [
+    "sphinx >=7.2.5,<8.0.0 ; python_version < '3.10'",
+    "sphinx >=8.0.0,<8.2.0 ; python_version >= '3.10' and python_version < '3.11'",
+    "sphinx >=8.2.0,<9.0.0 ; python_version >= '3.11'",
+    "sphinx_rtd_theme >=3.0.0,<4.0.0",
+    "furo >=2025.7.19"
+]
+dev-tools = [
+    "nox >=2023.4.22",
+    "pre-commit >=3.0.0"
+]
+versioning = [
+    "bump2version >=1.0.0"
+]
+compatibility = [
+    "deptry >=0.23.0",
+    "vermin >=1.6.0"
+]
+
+
+[project.urls]
 homepage = "https://owi-lab.github.io/owimetadatabase-preprocessor/"
 repository = "https://github.com/OWI-Lab/owimetadatabase-preprocessor"
-license = "GNU General Public License v3.0"
-keywords = ["owimetadatabase"]
-
-
-[tool.poetry.dependencies]
-# Main dependencies only
-python = ">=3.9, <3.13"
-setuptools = ">=78.1.1"
-virtualenv = ">=20.26.6"
-plotly = ">=5.19.0, < 6.0.0"
-requests = "^2.32.0"
-matplotlib = "^3.8.0"
-numpy = "^1.26.0"
-pandas = "^2.0.0"
-groundhog = ">=0.11.0"
-pyproj = ">=3.6.0, <4.0.0"
-scipy = "^1.12.0"
-tqdm = ">=4.66.3"
-python-dotenv = "^1.0.0"
-jinja2 = "^3.1.0"
-urllib3 = "^2.5.0"
-zipp = ">=3.19.1"
-certifi = ">=2025.8.3"
-
-
-[tool.poetry.group.dev.dependencies]
-# Move all development dependencies here
-# Testing
-pytest = "^8.0.0"
-pytest-mock = "^3.14.0"
-pytest-xdist = "*"
-pytest-clarity = "*"
-pytest-cov = "*"
-requests-mock = "*"
-
-# Code formatting & linting
-ruff = ">=0.12.9"
-mypy = "^1.0.0"
-
-# Type stubs
-pandas-stubs = "*"
-types-requests = "*"
-pytest-stub = "*"
-types-colorama = "*"
-types-Pygments = "*"
-types-setuptools = "*"
-types-python-dateutil = "*"
-types-pytz = "*"
-
-# Development tools
-nox = ">=2023.4.22"
-pre-commit = "*"
-
-# Documentation
-sphinx = [
-    {version = "^7.1.2", python = ">=3.9,<3.11"},
-    {version = "^8.1.3", python = ">=3.11"}
-]
-sphinx_rtd_theme = "^3.0.2"
-
-# Version management
-bump2version = "^1.0.0"
+documentation = "https://owi-lab.github.io/owimetadatabase-preprocessor/"
 
 
 [tool.pytest.ini_options]
@@ -76,6 +91,12 @@ filterwarnings = [
 ]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+addopts = [
+    "-v",
+    "--import-mode=importlib",
+    "--strict-markers",
+    "--tb=short",
+]
 
 
 [tool.ruff]
@@ -116,7 +137,7 @@ known-first-party = ["owimetadatabase_preprocessor"]
 
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.9"
 mypy_path = ["src/", "tests/"]
 explicit_package_bases = true
 
@@ -143,6 +164,10 @@ module = "matplotlib.*,plotly.*,pyproj.*,groundhog.*"
 ignore_missing_imports = true
 
 
+[tool.deptry.per_rule_ignores]
+DEP002 = ["scipy"]
+
+
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.9.6,<0.10.0"]
+build-backend = "uv_build"
