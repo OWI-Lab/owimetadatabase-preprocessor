@@ -16,12 +16,18 @@ __pycache__
 # Pyenv
 .python-version
 
+# Environment directories
+.venv/
+
 # To do
 .todo
 
 # Sphinx documentation
 docs/_build/
 docs/generated/
+
+# Linter/formatter
+.ruff_cache/
 
 # OS specific
 .DS_Store

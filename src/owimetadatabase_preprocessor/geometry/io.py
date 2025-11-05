@@ -3,7 +3,6 @@
 # mypy: ignore-errors
 
 import warnings
-from contextlib import contextmanager
 from typing import Union
 
 import numpy as np
@@ -35,16 +34,6 @@ class GeometryAPI(API):
         self.loc_api = LocationsAPI(**kwargs)
         self.api_root = self.api_root + api_subdir
 
-    @contextmanager
-    def _temp_api_root(self, new_api_root: str):
-        """Temporarily change the api_root."""
-        original_root = self.api_root
-        self.api_root = new_api_root
-        try:
-            yield
-        finally:
-            self.api_root = original_root
-
     def get_model_definitions(
         self,
         projectsite: Union[str, None] = None,
@@ -62,8 +51,7 @@ class GeometryAPI(API):
             url_params["site"] = projectsite
         url_data_type = "modeldefinitions"
         output_type = "list"
-        with self._temp_api_root(self.api_root.replace("userroutes", "routes")):
-            df, df_add = self.process_data(url_data_type, url_params, output_type)
+        df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
 
     def get_modeldefinition_id(
