@@ -4,9 +4,19 @@ version = "0.10.1"
 description = "Package for preprocessing data from owimetadatabase."
 authors = [{ name = "arsmlnkv", email = "melnikov.arsene@gmail.com" }]
 readme = "README.md"
-license = {file = "LICENSE"}
+license = {text = "GNU GPLv3"}
 keywords = ["owimetadatabase"]
 requires-python = ">=3.9,<3.14"
+classifiers = [
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
 dependencies = [
     "plotly >=5.19.0",
     "requests >=2.32.0",
