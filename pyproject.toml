@@ -1,6 +1,6 @@
 [project]
 name = "owimetadatabase-preprocessor"
-version = "0.10.2"
+version = "0.10.3"
 description = "Package for preprocessing data from owimetadatabase."
 authors = [{ name = "arsmlnkv", email = "melnikov.arsene@gmail.com" }]
 readme = "README.md"

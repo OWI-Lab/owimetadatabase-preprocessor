@@ -1590,7 +1590,7 @@ wheels = [
 
 [[package]]
 name = "owimetadatabase-preprocessor"
-version = "0.10.2"
+version = "0.10.3"
 source = { editable = "." }
 dependencies = [
     { name = "groundhog" },
