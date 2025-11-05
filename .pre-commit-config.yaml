@@ -17,3 +17,14 @@ repos:
        types-requests, pytest-stub, types-colorama, 
        types-Pygments, types-setuptools, types-python-dateutil, 
        types-pytz]
+- repo: https://github.com/fpgmaas/deptry.git
+  rev: "0.23.1"
+  hooks:
+    - id: deptry
+      pass_filenames: false
+      entry: deptry src
+- repo: https://github.com/netromdk/vermin
+  rev: v1.7.0
+  hooks:
+    - id: vermin
+      args: ['-t=3.9-', '--violations', '--eval-annotations', '--backport', 'typing', '--no-parse-comments']
