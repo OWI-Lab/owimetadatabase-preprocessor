@@ -4,7 +4,7 @@ version = "0.10.2"
 description = "Package for preprocessing data from owimetadatabase."
 authors = [{ name = "arsmlnkv", email = "melnikov.arsene@gmail.com" }]
 readme = "README.md"
-license = {text = "GNU GPLv3"}
+license = {file = "LICENSE"}
 keywords = ["owimetadatabase"]
 requires-python = ">=3.9,<3.14"
 classifiers = [
