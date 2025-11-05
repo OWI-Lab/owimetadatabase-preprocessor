@@ -13,29 +13,37 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repo
+      uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
-    - uses: snok/install-poetry@v1
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
       with:
-        version: 1.7.0
-        virtualenvs-create: true
-        virtualenvs-in-project: true
+        python-version: ${{ matrix.python-version }}
+        enable-cache: true
+        cache-python: true
     - name: Install dependencies
       run: |
-        poetry install --all-extras
+        uv sync --all-extras
+    - name: Verify Python compatibility
+      run: |
+        uv run vermin -t=3.9- --violations --eval-annotations --backport typing --no-parse-comments .
+    - name: Verify dependencies compatibility
+      run: |
+        uv run deptry src
     - name: Type checking with mypy
-      run: | #  poetry run mypy --install-types --non-interactive
-        poetry run mypy ./src ./tests
+      run: |
+        uv run mypy ./src ./tests
     - name: Lint and format check with ruff
       run: |
-        poetry run ruff check ./src ./tests
-        poetry run ruff format --check ./src ./tests
+        uv run ruff check ./src ./tests
+        uv run ruff format --check ./src ./tests
     - name: Test with pytest
       run: |
-        poetry run pytest ./tests
-        poetry run pytest --cov=./tests
+        uv run pytest ./tests
+        uv run pytest --cov=./tests

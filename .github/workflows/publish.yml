@@ -8,23 +8,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python "3.10"
+    - name: Set up Python "3.12"
       uses: actions/setup-python@v5
       with:
-        python-version: "3.10"
-    - uses: snok/install-poetry@v1
+        python-version: "3.12"
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
       with:
-        version: 1.7.0
-        virtualenvs-create: true
-        virtualenvs-in-project: true
+        python-version: "3.12"
+        enable-cache: true
+        cache-python: true
     - name: Install dependencies
-      run: poetry install
-    #- name: Bump version
-    #  run: poetry run bump2version patch
-    - name: Build and publish
+      run: uv sync
+    - name: Build package
+      run: uv build
+    - name: Publish to PyPI
       env:
         PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
       run: |
-        poetry config pypi-token.pypi $PYPI_TOKEN
-        poetry build
-        poetry publish
+        uv publish --token $PYPI_TOKEN

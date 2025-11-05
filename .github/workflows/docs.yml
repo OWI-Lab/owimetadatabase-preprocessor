@@ -7,10 +7,6 @@ on:
 
 permissions: write-all 
 
-# concurrency:
-#   group: "pages"
-#   cancel-in-progress: true
-
 jobs:
   build-deploy:
     environment:
@@ -19,21 +15,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python "3.10"
+    - name: Set up Python "3.12"
       uses: actions/setup-python@v5
       with:
-        python-version: "3.10"
-    - uses: snok/install-poetry@v1
+        python-version: "3.12"
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
       with:
-        version: 1.7.0
-        virtualenvs-create: true
-        virtualenvs-in-project: true
+        python-version: "3.12"
+        enable-cache: true
+        cache-python: true
     - name: Install dependencies
-      run: poetry install --all-extras
+      run: uv sync --all-extras
     - name: Build documentation
       run: |
         cd docs
-        poetry run make html
+        uv run make html
     - name: Setup Pages
       uses: actions/configure-pages@v5
     - name: Upload artifact
