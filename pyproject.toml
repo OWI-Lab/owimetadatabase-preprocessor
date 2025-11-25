@@ -33,6 +33,7 @@ dependencies = [
     "scipy >=1.14.0,<1.16.0 ; python_version >= '3.10' and python_version < '3.11'",
     "scipy >=1.16.0 ; python_version >= '3.11'",
     "tqdm >=4.66.0",
+    "jinja2 >=3.1.6"
 ]
 
 
@@ -175,7 +176,7 @@ ignore_missing_imports = true
 
 
 [tool.deptry.per_rule_ignores]
-DEP002 = ["scipy"]
+DEP002 = ["scipy", "jinja2"]
 
 
 [build-system]
