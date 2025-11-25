@@ -3,6 +3,7 @@
 # mypy: ignore-errors
 
 import warnings
+from contextlib import contextmanager
 from typing import Union
 
 import numpy as np
@@ -45,6 +46,16 @@ class FatigueAPI(API):
         self.geo_api = GeometryAPI(**kwargs)
         self.loc_api = LocationsAPI(**kwargs)
         self.api_root = self.api_root + api_subdir
+
+    @contextmanager
+    def _temp_api_root(self, new_api_root: str):
+        """Temporarily change the api_root."""
+        original_root = self.api_root
+        self.api_root = new_api_root
+        try:
+            yield
+        finally:
+            self.api_root = original_root
 
     def get_sncurves(self, **kwargs) -> list[SNCurve]:
         """Get all available SN curves requested by the user.
@@ -126,7 +137,8 @@ class FatigueAPI(API):
         url_params.update(kwargs)
         url_data_type = "defects"
         output_type = "list"
-        df, df_add = self.process_data(url_data_type, url_params, output_type)
+        with self._temp_api_root(self.api_root.replace("userroutes", "routes")):
+            df, df_add = self.process_data(url_data_type, url_params, output_type)
         return {"data": df, "exists": df_add["existance"]}
 
     def plot_defects(
