@@ -58,6 +58,23 @@ class SoilPlot:
         :return: Dictionary with the following keys:
             - 'profiles': List of SoilProfile objects
             - 'diagram': Plotly figure with the fence diagram
+
+        Examples
+        --------
+        A minimal example showing how to call this method. Note that the
+        example purposely does not specify a location — only `projectsite`
+        and `soilprofile` are provided (this is important for the example):
+
+        .. code-block:: python
+
+            from owimetadatabase_preprocessor.soil import SoilAPI, SoilprofileProcessor, SoilPlot
+
+            api_geo = SoilAPI(token=TOKEN)
+            plotter = SoilPlot(api_geo)
+            sps = api_geo.get_soilprofiles(projectsite='Project', soilprofile='Some profile name')
+            sps_df = sps['data'].head()  # use a subset for the example
+            plt_sp_fence = plotter.plot_soilprofile_fence(soilprofiles_df=sps_df, start='TURBINE1', end='TURBINE2')
+
         :raises ValueError: If no SoilAPI instance is provided
         """
         if general_layout is None:
