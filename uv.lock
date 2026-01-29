@@ -1639,7 +1639,7 @@ wheels = [
 
 [[package]]
 name = "owimetadatabase-preprocessor"
-version = "0.10.5"
+version = "0.10.6"
 source = { editable = "." }
 dependencies = [
     { name = "filelock", version = "3.19.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
