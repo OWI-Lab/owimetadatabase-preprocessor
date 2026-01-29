@@ -18,6 +18,10 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
+    "filelock ==3.19.1 ; python_version < '3.10'",
+    "filelock >=3.20.3 ; python_version >= '3.10'",
+    "fonttools ==4.60.2 ; python_version < '3.10'",
+    "fonttools >=4.61.0 ; python_version >= '3.10'",
     "plotly >=5.19.0",
     "requests >=2.32.0",
     "matplotlib ==3.9.4 ; python_version < '3.10'",
@@ -33,7 +37,9 @@ dependencies = [
     "scipy >=1.14.0,<1.16.0 ; python_version >= '3.10' and python_version < '3.11'",
     "scipy >=1.16.0 ; python_version >= '3.11'",
     "tqdm >=4.66.0",
-    "jinja2 >=3.1.6"
+    "jinja2 >=3.1.6",
+    "urllib3 >=2.6.3",
+    "virtualenv >=20.36.1"
 ]
 
 
@@ -176,7 +182,7 @@ ignore_missing_imports = true
 
 
 [tool.deptry.per_rule_ignores]
-DEP002 = ["scipy", "jinja2"]
+DEP002 = ["scipy", "jinja2", "filelock", "fonttools", "virtualenv", "urllib3"]
 
 
 [build-system]
