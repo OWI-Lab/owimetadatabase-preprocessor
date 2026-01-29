@@ -11,12 +11,13 @@ import warnings
 from copy import deepcopy
 from functools import cached_property
 from itertools import cycle
-from typing import Any, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 import plotly.graph_objects as go
 from matplotlib.colors import ListedColormap
 from pandas import DataFrame
+from requests import Response
 
 from owimetadatabase_preprocessor.geometry.structures import (
     PLOT_SETTINGS_SUBASSEMBLY,
@@ -62,6 +63,15 @@ FATIGUE_DETAILS_COLORS = {i: COLOR_LIST[np.random.randint(COLOR_LIST_LEN)] for i
 #     # 'Hook': COLOR_LIST[7],
 #     # 'Rail': COLOR_LIST[8],
 # }
+
+
+class FatigueDetailPositionWarning(UserWarning):
+    """Low-priority warning for inferred fatigue detail positions."""
+
+    pass
+
+
+warnings.filterwarnings("ignore", category=FatigueDetailPositionWarning)
 
 
 class SNCurve:
@@ -421,17 +431,92 @@ class FatigueDetail:
         else:
             raise ValueError("No SN curves found.")
 
-    @property
+    @cached_property
     def position(self) -> Position:
         """Position of the detail."""
-        if "vertical_position_reference_sistem" in self.json:
-            return Position(
-                x=self.json["x_position"],
-                y=self.json["y_position"],
-                z=self.json["z_position"],
-                reference_system=self.json["vertical_position_reference_system"],
+
+        def _handle_specific_fd_request(self, url_data_type: str) -> Optional[Response]:
+            fd = self.api.send_request(
+                url_data_type=url_data_type,
+                url_params={
+                    "slug": self.json["slug"],
+                },
             )
-        return self.buildingblock.position
+            if fd.json() == [] or "vertical_position_reference_system" not in fd.json()[0]:
+                warnings.warn(
+                    f"There is no explicit definition for the position of the fatigue detail {self.title}."
+                    "It will be inherited from the building block position.",
+                    FatigueDetailPositionWarning,
+                    stacklevel=2,
+                )
+                return None
+            return fd
+
+        FD = {
+            36: "boatlandingstub",
+            38: "stopper",
+            40: "itubestub",
+            41: "longitudinalweld",
+            43: "airtightplatform",
+            45: "circumferentialweld",
+            51: "refreshmenthole",
+            52: "cableentryhole",
+            54: "guides",
+        }
+        # If not explicitly defined, assume based on building block
+        # CW
+        if self.fd_type == 45:
+            if self.buildingblocktop is not None:
+                return self.buildingblocktop.position
+            else:
+                pos = self.buildingblock.position
+                pos.z = pos.z + self.buildingblock.height
+                return pos
+        # LW
+        elif self.fd_type == 41:
+            pos = self.buildingblock.position
+            fd = _handle_specific_fd_request(self, FD[self.fd_type])
+            if fd is None:
+                return pos
+            pos.x = fd.json()[0]["x_position"]
+            pos.y = fd.json()[0]["y_position"]
+            if abs(pos.z - fd.json()[0]["z_position"]) > 1e-3 and fd.json()[0]["vertical_position_reference_system"] == "SUB":
+                pos.z = fd.json()[0]["z_position"]
+            return pos
+        # BL, ITS
+        elif self.fd_type in (36, 40):
+            fd = _handle_specific_fd_request(self, FD[self.fd_type])
+            if fd is None or fd.json()[0]["vertical_position_reference_system"] != "SUB":
+                return self.buildingblock.position
+            return Position(
+                x=fd.json()[0]["x_position"],
+                y=fd.json()[0]["y_position"],
+                z=fd.json()[0]["z_position"],
+                reference_system=fd.json()[0]["vertical_position_reference_system"],
+            )
+        # guides, stopper, airtight platform, refreshment hole, cable entry hole
+        elif self.fd_type in (38, 43, 51, 52, 54):
+            pos = self.buildingblock.position
+            fd = _handle_specific_fd_request(self, FD[self.fd_type])
+            if fd is None or fd.json()[0]["vertical_position_reference_system"] != "SUB":
+                return pos
+            z = fd.json()[0]["z_position"]
+            # pos_ref = fd.json()[0]["vertical_position_reference_system"]
+            # Re-check again
+            #    if pos_ref == 'LAT':
+            #        pos.z = z + self.buildingblock.position.z
+            #    else:
+            pos.z = z
+            return pos
+        # not currently in the db
+        else:
+            warnings.warn(
+                f"There is no explicit definition for the position of the fatigue detail {self.title}."
+                "It will be inherited from the building block position.",
+                FatigueDetailPositionWarning,
+                stacklevel=2,
+            )
+            return self.buildingblock.position
 
     @cached_property
     def buildingblock(self) -> BuildingBlock:
@@ -460,6 +545,8 @@ class FatigueDetail:
                 },
             )
             prmtrtop = cw.json()[0]["tubularsectiontop"]
+            if prmtrtop is None:
+                return None
             bbtop = self.api.geo_api.send_request(
                 url_data_type="buildingblocks",
                 url_params={"id": prmtrtop},
